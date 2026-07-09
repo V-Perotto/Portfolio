@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Portfólio de Vittorio Perotto — Analista de Sistemas e Desenvolvedor Fullstack em Curitiba-PR. Java (Quarkus), Python, TypeScript, arquitetura de sistemas e agentes de IA.">
+  <title>Vittorio Perotto — Desenvolvedor Fullstack</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>&gt;_</text></svg>">
+</head>
+<body class="booting">
+
+  <!-- ===== tela de boot: conexão ssh fake ===== -->
+  <div id="bootScreen" class="boot-screen">
+    <div id="bootBody" class="boot-body mono"></div>
+    <p class="boot-skip mono">[ pressione qualquer tecla para pular ]</p>
+  </div>
+
+  <!-- ===== overlay de scanlines ===== -->
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="#home" class="nav-logo">
+        <span class="prompt-user">viper</span><span class="prompt-at">@</span><span class="prompt-host">portfolio</span><span class="prompt-colon">:</span><span class="prompt-path">~</span><span class="prompt-dollar">$</span><span class="nav-cursor">▊</span>
+      </a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#sobre">~/sobre</a></li>
+        <li><a href="#experiencia">~/experiencia</a></li>
+        <li><a href="#skills">~/skills</a></li>
+        <li><a href="#projetos">~/projetos</a></li>
+        <li><a href="#educacao">~/educacao</a></li>
+        <li><a href="#contato" class="nav-cta">~/contato</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <header class="hero" id="home">
+    <canvas id="matrixCanvas" aria-hidden="true"></canvas>
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="hero-content">
+      <p class="hero-boot mono">[ OK ] Inicializando portfolio.service ...</p>
+      <h1 class="glitch" data-text="Vittorio Perotto">Vittorio Perotto</h1>
+      <div class="hero-terminal mono">
+        <span class="prompt-user">viper</span><span class="prompt-at">@</span><span class="prompt-host">portfolio</span><span class="prompt-colon">:</span><span class="prompt-path">~</span><span class="prompt-dollar">$ </span><span id="typedRole"></span><span class="cursor" id="heroCursor">▊</span>
+      </div>
+      <p class="hero-sub">Transformando processos em sistemas escaláveis — de APIs a agentes de IA.</p>
+      <div class="hero-actions">
+        <a href="#experiencia" class="btn btn-primary">./ver_experiencia.sh</a>
+        <a href="#contato" class="btn btn-ghost">ping vittorio</a>
+      </div>
+    </div>
+    <a href="#sobre" class="hero-scroll mono" aria-label="Rolar para a seção sobre">▼ scroll</a>
+  </header>
+
+  <main>
+
+    <!-- ===== SOBRE ===== -->
+    <section class="section" id="sobre">
+      <div class="section-decor" aria-hidden="true">
+        <img class="decor-img tint-green" src="img/image3-bg.webp" alt="" loading="lazy">
+      </div>
+      <h2 class="section-title mono"><span class="title-hash">##</span> sobre<span class="title-slash">/</span></h2>
+      <div class="terminal-window reveal">
+        <div class="terminal-bar">
+          <span class="terminal-title mono">bash — sobre.txt</span>
+          <div class="t-controls" aria-hidden="true">
+            <span class="t-btn t-min">−</span>
+            <span class="t-btn t-max">□</span>
+            <span class="t-btn t-close">✕</span>
+          </div>
+        </div>
+        <div class="terminal-body mono">
+          <p class="t-line"><span class="prompt-dollar">$ </span>cat sobre.txt</p>
+          <p class="t-output">Analista de Sistemas e Desenvolvedor Fullstack. Experiência sólida no desenvolvimento de sistemas utilizando <span class="hl-green">TypeScript</span> e <span class="hl-green">Vue</span>, com experiência técnica no desenho de processos e arquitetura de sistemas. Especialista em identificar oportunidades de melhoria e implementar soluções sustentáveis e escaláveis para otimização do fluxo de trabalho e experiência do usuário.</p>
+          <p class="t-line"><span class="prompt-dollar">$ </span>whois vittorio --info</p>
+          <div class="t-output badges">
+            <span class="badge">📍 Curitiba - PR, Brasil</span>
+            <span class="badge">🇮🇹 Dupla cidadania (Italiana)</span>
+            <span class="badge">🇧🇷 Português: nativo</span>
+            <span class="badge">🇬🇧 Inglês: avançado</span>
+            <span class="badge">🇮🇹 Italiano: básico</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== EXPERIÊNCIA ===== -->
+    <section class="section" id="experiencia">
+      <h2 class="section-title mono"><span class="title-hash">##</span> experiencia<span class="title-slash">/</span></h2>
+      <p class="section-lead mono">$ git log --carreira --reverse=false</p>
+
+      <div class="timeline">
+
+        <article class="timeline-item reveal">
+          <div class="timeline-marker" aria-hidden="true"></div>
+          <div class="card">
+            <p class="card-date mono">// MAR 2026 — PRESENTE <span class="tag-now">HEAD</span></p>
+            <h3 class="card-role">Programador Full-Stack</h3>
+            <p class="card-company mono">Empresa de Tecnologia (Confidencial) · Curitiba - PR</p>
+            <p class="card-desc">Desenvolvimento de aplicações web usando Angular e criação de agentes de IA utilizando LLMs para otimizar a tomada de decisão e a interação com o usuário.</p>
+            <div class="chips"><span class="chip">Angular</span><span class="chip">Agentes de IA</span><span class="chip">LLMs</span></div>
+          </div>
+        </article>
+
+        <article class="timeline-item reveal">
+          <div class="timeline-marker" aria-hidden="true"></div>
+          <div class="card">
+            <p class="card-date mono">// ABR 2025 — SET 2025</p>
+            <h3 class="card-role">Programador Full-Stack</h3>
+            <p class="card-company mono">Osuper Sistemas LTDA · São Miguel do Oeste - SC</p>
+            <p class="card-desc">Soluções de e-commerce com foco na melhoria da experiência do cliente e conversão de vendas.</p>
+            <div class="chips"><span class="chip">React</span><span class="chip">TypeScript</span><span class="chip">PostgreSQL</span><span class="chip">RabbitMQ</span><span class="chip">Redis</span></div>
+          </div>
+        </article>
+
+        <article class="timeline-item reveal">
+          <div class="timeline-marker" aria-hidden="true"></div>
+          <div class="card">
+            <p class="card-date mono">// OUT 2023 — DEZ 2024</p>
+            <h3 class="card-role">Engenheiro de Software</h3>
+            <p class="card-company mono">Quadritech Tecnologia · Curitiba - PR</p>
+            <p class="card-desc">Projetou a arquitetura do sistema policial ABIS desenhando seus processos. Desenvolveu rotinas para população de dados de testes consumindo APIs Java (Quarkus).</p>
+            <div class="chips"><span class="chip">Java</span><span class="chip">Quarkus</span><span class="chip">Arquitetura</span><span class="chip">APIs REST</span></div>
+          </div>
+        </article>
+
+        <article class="timeline-item reveal">
+          <div class="timeline-marker" aria-hidden="true"></div>
+          <div class="card">
+            <p class="card-date mono">// JAN 2023 — JUL 2023</p>
+            <h3 class="card-role">Consultor SAP SD</h3>
+            <p class="card-company mono">COINOV Consultoria e Serviços LTDA · Curitiba - PR</p>
+            <p class="card-desc">Análise funcional de processos de vendas e distribuição, garantindo aderência do sistema às necessidades do negócio. Interface entre usuários e soluções técnicas no ecossistema SAP.</p>
+            <div class="chips"><span class="chip">SAP SD</span><span class="chip">Análise Funcional</span><span class="chip">Processos</span></div>
+          </div>
+        </article>
+
+        <article class="timeline-item reveal">
+          <div class="timeline-marker" aria-hidden="true"></div>
+          <div class="card">
+            <p class="card-date mono">// OUT 2020 — OUT 2022</p>
+            <h3 class="card-role">Desenvolvedor RPA</h3>
+            <p class="card-company mono">Prime Control e Prime Robot · Curitiba - PR</p>
+            <p class="card-desc">Desenhou e implantou melhorias de processos para clientes utilizando Python e ferramentas de OCR. Documentação técnica garantindo escalabilidade, orquestração via Jenkins e monitoramento de performance com Elasticsearch (Kibana).</p>
+            <div class="chips"><span class="chip">Python</span><span class="chip">OCR</span><span class="chip">Jenkins</span><span class="chip">Elasticsearch</span><span class="chip">Kibana</span></div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ===== SKILLS ===== -->
+    <section class="section" id="skills">
+      <div class="section-decor" aria-hidden="true">
+        <img class="decor-img tint-purple" src="img/image2-bg.webp" alt="" loading="lazy">
+      </div>
+      <h2 class="section-title mono"><span class="title-hash">##</span> skills<span class="title-slash">/</span></h2>
+      <p class="section-lead mono">$ ls -la /usr/lib/vittorio/</p>
+      <div class="skills-grid">
+
+        <div class="skill-card reveal">
+          <h3 class="skill-cat mono"><span class="skill-icon">&lt;/&gt;</span> linguagens_frameworks/</h3>
+          <div class="chips">
+            <span class="chip">Python (Flask)</span><span class="chip">Java (Quarkus)</span><span class="chip">TypeScript</span><span class="chip">Vue.js</span><span class="chip">React</span><span class="chip">Node.js</span><span class="chip">C#</span>
+          </div>
+        </div>
+
+        <div class="skill-card reveal">
+          <h3 class="skill-cat mono"><span class="skill-icon">⌁</span> conceitos_web/</h3>
+          <div class="chips">
+            <span class="chip">Programação Web</span><span class="chip">APIs REST</span>
+          </div>
+        </div>
+
+        <div class="skill-card reveal">
+          <h3 class="skill-cat mono"><span class="skill-icon">▤</span> gestao_de_dados/</h3>
+          <div class="chips">
+            <span class="chip">MongoDB</span><span class="chip">PostgreSQL</span><span class="chip">SQL Server</span>
+          </div>
+        </div>
+
+        <div class="skill-card reveal">
+          <h3 class="skill-cat mono"><span class="skill-icon">⬡</span> desenho_de_processos/</h3>
+          <div class="chips">
+            <span class="chip">Design Patterns</span><span class="chip">Singleton</span><span class="chip">Factory</span><span class="chip">MVC</span><span class="chip">DDD</span><span class="chip">TDD</span>
+          </div>
+        </div>
+
+        <div class="skill-card reveal">
+          <h3 class="skill-cat mono"><span class="skill-icon">⚙</span> devops_qualidade/</h3>
+          <div class="chips">
+            <span class="chip">Git</span><span class="chip">Docker</span><span class="chip">Jenkins</span><span class="chip">RabbitMQ</span><span class="chip">Redis</span><span class="chip">Elasticsearch</span><span class="chip">Clean Code</span><span class="chip">Agile/Scrum</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== PROJETOS ===== -->
+    <section class="section" id="projetos">
+      <div class="section-decor" aria-hidden="true">
+        <img class="decor-img tint-green" src="img/image1-bg.webp" alt="" loading="lazy">
+      </div>
+      <h2 class="section-title mono"><span class="title-hash">##</span> projetos<span class="title-slash">/</span></h2>
+      <div class="projects-grid">
+
+        <div class="terminal-window reveal">
+          <div class="terminal-bar">
+            <span class="terminal-title mono">bash — italiami</span>
+            <div class="t-controls" aria-hidden="true">
+              <span class="t-btn t-min">−</span>
+              <span class="t-btn t-max">□</span>
+              <span class="t-btn t-close">✕</span>
+            </div>
+          </div>
+          <div class="terminal-body mono">
+            <p class="t-line"><span class="prompt-dollar">$ </span>./run italiami --describe</p>
+            <p class="t-output"><span class="hl-purple">ItaliaMi</span> — Sistema de Agendamento</p>
+            <p class="t-output t-desc">Sistema para otimização de processos de agendamento de passaportes, reduzindo o tempo de pesquisa manual e sugerindo melhorias na jornada do usuário.</p>
+            <p class="t-line"><span class="hl-green">[projeto pessoal]</span> <span class="t-exit">exit 0</span></p>
+          </div>
+        </div>
+
+        <div class="terminal-window reveal">
+          <div class="terminal-bar">
+            <span class="terminal-title mono">bash — monitoria</span>
+            <div class="t-controls" aria-hidden="true">
+              <span class="t-btn t-min">−</span>
+              <span class="t-btn t-max">□</span>
+              <span class="t-btn t-close">✕</span>
+            </div>
+          </div>
+          <div class="terminal-body mono">
+            <p class="t-line"><span class="prompt-dollar">$ </span>./run monitoria --describe</p>
+            <p class="t-output"><span class="hl-purple">Monitor de Curso</span> — PUC-PR, Curitiba</p>
+            <p class="t-output t-desc">Mentorias de lógica de programação e pensamento matemático aplicadas à linguagem Java.</p>
+            <p class="t-line"><span class="hl-green">[experiência acadêmica]</span> <span class="t-exit">exit 0</span></p>
+          </div>
+        </div>
+
+        <div class="terminal-window reveal">
+          <div class="terminal-bar">
+            <span class="terminal-title mono">bash — vscode-themes</span>
+            <div class="t-controls" aria-hidden="true">
+              <span class="t-btn t-min">−</span>
+              <span class="t-btn t-max">□</span>
+              <span class="t-btn t-close">✕</span>
+            </div>
+          </div>
+          <div class="terminal-body mono">
+            <p class="t-line"><span class="prompt-dollar">$ </span>ovsx get DistroLinux/* --describe</p>
+            <p class="t-output"><span class="hl-purple">Temas VS Code</span> — Open VSX Registry</p>
+            <p class="t-output t-desc">Dois temas visuais criados e publicados no Open VSX para VS Code e VSCodium.</p>
+            <div class="t-badges">
+              <div class="t-theme">
+                <p class="t-theme-name"><span class="prompt-dollar">&gt; </span><span class="neon-grape">Grape Glass Theme</span></p>
+                <a href="https://open-vsx.org/extension/DistroLinux/grape-glass-theme" target="_blank" rel="noopener noreferrer">
+                  <img src="https://img.shields.io/open-vsx/dt/DistroLinux/grape-glass-theme?style=for-the-badge&amp;logo=vscodium&amp;logoColor=%23389e81&amp;logoSize=auto&amp;labelColor=151515&amp;label=Downloads&amp;color=%23852ffc&amp;cacheSeconds=60" alt="Downloads do Grape Glass Theme no Open VSX" loading="lazy">
+                </a>
+              </div>
+              <div class="t-theme">
+                <p class="t-theme-name"><span class="prompt-dollar">&gt; </span><span class="neon-sith">Shadow Lord - Son of Dathomir Theme</span></p>
+                <a href="https://open-vsx.org/extension/DistroLinux/shadow-lord-son-of-dathomir-theme" target="_blank" rel="noopener noreferrer">
+                  <img src="https://img.shields.io/open-vsx/dt/DistroLinux/shadow-lord-son-of-dathomir-theme?style=for-the-badge&amp;logo=vscodium&amp;logoColor=%23D90404&amp;logoSize=auto&amp;labelColor=%23121212&amp;label=Downloads&amp;color=%23D90404&amp;cacheSeconds=60" alt="Downloads do Shadow Lord - Son of Dathomir Theme no Open VSX" loading="lazy">
+                </a>
+              </div>
+            </div>
+            <p class="t-line"><span class="hl-green">[open-vsx · DistroLinux]</span> <span class="t-exit">exit 0</span></p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== EDUCAÇÃO ===== -->
+    <section class="section" id="educacao">
+      <h2 class="section-title mono"><span class="title-hash">##</span> educacao<span class="title-slash">/</span></h2>
+      <p class="section-lead mono">$ apt list --installed | grep formacao</p>
+      <div class="edu-list">
+
+        <div class="edu-item card reveal">
+          <p class="card-date mono">// 2025 — 2027 <span class="tag-now">EM CURSO</span></p>
+          <h3 class="card-role">Pós-Graduação em Cibersegurança</h3>
+          <p class="card-company mono">PUC-PR · Curitiba - PR</p>
+        </div>
+
+        <div class="edu-item card reveal">
+          <p class="card-date mono">// 2020 — 2024</p>
+          <h3 class="card-role">Bacharelado em Sistemas de Informação</h3>
+          <p class="card-company mono">PUC-PR · Curitiba - PR</p>
+        </div>
+
+        <div class="edu-item card reveal">
+          <p class="card-date mono">// 2018 — 2019</p>
+          <h3 class="card-role">Técnico em Análise e Desenvolvimento de Sistemas</h3>
+          <p class="card-company mono">SENAI-PR · Curitiba - PR</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== CONTATO ===== -->
+    <section class="section" id="contato">
+      <h2 class="section-title mono"><span class="title-hash">##</span> contato<span class="title-slash">/</span></h2>
+      <div class="terminal-window reveal contact-terminal">
+        <div class="terminal-bar">
+          <span class="terminal-title mono">bash — contato.sh</span>
+          <div class="t-controls" aria-hidden="true">
+            <span class="t-btn t-min">−</span>
+            <span class="t-btn t-max">□</span>
+            <span class="t-btn t-close">✕</span>
+          </div>
+        </div>
+        <div class="terminal-body mono">
+          <p class="t-line"><span class="prompt-dollar">$ </span>./contato.sh --all</p>
+          <ul class="contact-list" id="contactList">
+            <!-- links extras (GitHub, LinkedIn...) são injetados aqui pelo js/main.js -->
+          </ul>
+          <p class="t-line"><span class="prompt-dollar">$ </span><span class="hl-green">Conexão estabelecida. Aguardando sua mensagem...</span><span class="cursor">▊</span></p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer mono">
+    <p><span class="prompt-dollar">$ </span>echo "© <span id="year">2026</span> Vittorio Perotto — feito com HTML, CSS e JS puro"</p>
+    <p class="footer-exit">process finished with <span class="hl-green">exit code 0</span></p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
