@@ -83,8 +83,9 @@ Só com números sustentados pelo currículo (Princípio I). Nenhum existe hoje.
 | `kind` | `'pessoal' \| 'academico' \| 'open-source' \| 'profissional'` | rótulo de tipo |
 | `tag` | `string` | rodapé da janela (`[projeto pessoal]`) |
 | `highlights` | `Metric[]?` | FR-006 |
-| `evidence` | `Evidence[]` | vazio exige `noEvidenceReason` |
-| `noEvidenceReason` | `string?` | obrigatório se `evidence` vazio (FR-010) |
+| `evidence` | `Evidence[]` | vazio só para trabalho confidencial (`confidential: true`) ou experiência acadêmica sem artefato público (`kind: 'academico'`), sempre com `noEvidenceReason` |
+| `confidential` | `true?` | marca trabalho confidencial sem evidência; proibido com evidência (FR-010, Princípio II v2.1.0) |
+| `noEvidenceReason` | `string?` | obrigatório se `evidence` vazio; diz que o trabalho é confidencial, sem detalhes sigilosos (FR-010) |
 
 **Nota de paridade**: hoje os projetos não exibem stack nem papel, mas o FR-010 e o Princípio II os
 exigem. Por isso `role` é obrigatório e `stack` precisa de ≥ 1 item: o build falha até o autor
@@ -123,7 +124,7 @@ preencher esses campos a partir do currículo (ver *Pendências de conteúdo* no
 3. `id` único dentro de cada coleção.
 4. Toda URL começa com `https://`.
 5. `staticPhraseIndex` válido; `typedPhrases` sem strings vazias.
-6. Projeto com `evidence` vazio tem `noEvidenceReason`.
+6. Projeto com `evidence` vazio é confidencial (`confidential: true`) ou acadêmico (`kind: 'academico'`) e tem `noEvidenceReason`.
 7. Paridade (SC-001): 5 experiências, 5 grupos de skills, 3 projetos, 3 formações, 5 atributos,
    2 contatos — o teste é atualizado junto com o currículo.
 
@@ -175,7 +176,7 @@ Python (Flask), Node.js, PostgreSQL, MongoDB, Docker, RabbitMQ, Redis.
 
 | id | name | subtitle | kind | evidence |
 |----|------|----------|------|----------|
-| `italiami` | ItaliaMi | Sistema de Agendamento | pessoal | nenhuma → `noEvidenceReason` a definir pelo autor |
+| `italiami` | ItaliaMi | Sistema de Agendamento | pessoal | nenhuma → confidencial: "Projeto confidencial, sem link público." (autor, 2026-10-07) |
 | `monitoria` | Monitor de Curso | PUC-PR, Curitiba | academico | nenhuma → "experiência acadêmica, sem artefato público" |
 | `vscode-themes` | Temas VS Code | Open VSX Registry | open-source | 2 × marketplace (Grape Glass Theme, Shadow Lord - Son of Dathomir Theme) com badges atuais |
 

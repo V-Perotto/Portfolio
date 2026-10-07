@@ -11,11 +11,14 @@
  * - `featured: true` em uma skill a coloca na faixa contínua da seção de skills.
  * - `highlights` (métricas de impacto) só com números que o currículo sustente (Princípio I da
  *   constituição). Sem métricas, omita o campo — nada é exibido.
- * - Projetos: `evidence: []` exige `noEvidenceReason`; projetos aparecem na ordem deste arquivo
- *   (relevância).
- * - Campo obrigatório faltando ou com tipo errado quebra o `npm run build` apontando a linha.
+ * - Projetos: só trabalho confidencial (`confidential: true`) ou experiência acadêmica sem
+ *   artefato público (`kind: 'academico'`) fica sem evidência — `evidence: []` exige um
+ *   `noEvidenceReason` que diga qual é o caso, sem detalhes sigilosos. Projetos aparecem na
+ *   ordem deste arquivo (relevância).
+ * - Campo obrigatório faltando ou com tipo errado quebra o `npm run build` apontando a linha do
+ *   item (cada item tem `satisfies <Tipo>`) e o nome do campo.
  */
-import type { Resume } from '@/types/resume'
+import type { Education, Experience, Project, Resume, SkillGroup } from '@/types/resume'
 
 const data = {
   profile: {
@@ -63,7 +66,7 @@ const data = {
       summary:
         'Desenvolvimento de aplicações web usando Angular e criação de agentes de IA utilizando LLMs para otimizar a tomada de decisão e a interação com o usuário.',
       tech: ['Angular', 'Agentes de IA', 'LLMs'],
-    },
+    } satisfies Experience,
     {
       id: 'osuper',
       role: 'Programador Full-Stack',
@@ -73,7 +76,7 @@ const data = {
       end: '2025-09',
       summary: 'Soluções de e-commerce com foco na melhoria da experiência do cliente e conversão de vendas.',
       tech: ['React', 'TypeScript', 'PostgreSQL', 'RabbitMQ', 'Redis'],
-    },
+    } satisfies Experience,
     {
       id: 'quadritech',
       role: 'Engenheiro de Software',
@@ -84,7 +87,7 @@ const data = {
       summary:
         'Projetou a arquitetura do sistema policial ABIS desenhando seus processos. Desenvolveu rotinas para população de dados de testes consumindo APIs Java (Quarkus).',
       tech: ['Java', 'Quarkus', 'Arquitetura', 'APIs REST'],
-    },
+    } satisfies Experience,
     {
       id: 'coinov',
       role: 'Consultor SAP SD',
@@ -95,7 +98,7 @@ const data = {
       summary:
         'Análise funcional de processos de vendas e distribuição, garantindo aderência do sistema às necessidades do negócio. Interface entre usuários e soluções técnicas no ecossistema SAP.',
       tech: ['SAP SD', 'Análise Funcional', 'Processos'],
-    },
+    } satisfies Experience,
     {
       id: 'prime-control',
       role: 'Desenvolvedor RPA',
@@ -106,7 +109,7 @@ const data = {
       summary:
         'Desenhou e implantou melhorias de processos para clientes utilizando Python e ferramentas de OCR. Documentação técnica garantindo escalabilidade, orquestração via Jenkins e monitoramento de performance com Elasticsearch (Kibana).',
       tech: ['Python', 'OCR', 'Jenkins', 'Elasticsearch', 'Kibana'],
-    },
+    } satisfies Experience,
   ],
 
   skillGroups: [
@@ -123,12 +126,12 @@ const data = {
         { name: 'Node.js', featured: true },
         { name: 'C#' },
       ],
-    },
+    } satisfies SkillGroup,
     {
       id: 'conceitos_web',
       icon: '⌁',
       items: [{ name: 'Programação Web' }, { name: 'APIs REST' }],
-    },
+    } satisfies SkillGroup,
     {
       id: 'gestao_de_dados',
       icon: '▤',
@@ -137,7 +140,7 @@ const data = {
         { name: 'PostgreSQL', featured: true },
         { name: 'SQL Server' },
       ],
-    },
+    } satisfies SkillGroup,
     {
       id: 'desenho_de_processos',
       icon: '⬡',
@@ -149,7 +152,7 @@ const data = {
         { name: 'DDD' },
         { name: 'TDD' },
       ],
-    },
+    } satisfies SkillGroup,
     {
       id: 'devops_qualidade',
       icon: '⚙',
@@ -164,7 +167,7 @@ const data = {
         { name: 'Clean Code' },
         { name: 'Agile/Scrum' },
       ],
-    },
+    } satisfies SkillGroup,
   ],
 
   projects: [
@@ -180,8 +183,9 @@ const data = {
       kind: 'pessoal',
       tag: '[projeto pessoal]',
       evidence: [],
-      noEvidenceReason: 'Projeto pessoal, código privado (por enquanto)',
-    },
+      confidential: true,
+      noEvidenceReason: 'Projeto confidencial, sem link público.',
+    } satisfies Project,
     {
       id: 'monitoria',
       name: 'Monitor de Curso',
@@ -194,7 +198,7 @@ const data = {
       tag: '[experiência acadêmica]',
       evidence: [],
       noEvidenceReason: 'Experiência acadêmica, sem artefato público',
-    },
+    } satisfies Project,
     {
       id: 'vscode-themes',
       name: 'Temas VS Code',
@@ -227,7 +231,7 @@ const data = {
           },
         },
       ],
-    },
+    } satisfies Project,
   ],
 
   education: [
@@ -238,7 +242,7 @@ const data = {
       startYear: 2025,
       endYear: 2027,
       status: 'em-curso',
-    },
+    } satisfies Education,
     {
       course: 'Bacharelado em Sistemas de Informação',
       institution: 'PUC-PR',
@@ -246,7 +250,7 @@ const data = {
       startYear: 2020,
       endYear: 2024,
       status: 'concluido',
-    },
+    } satisfies Education,
     {
       course: 'Técnico em Análise e Desenvolvimento de Sistemas',
       institution: 'SENAI-PR',
@@ -254,7 +258,7 @@ const data = {
       startYear: 2018,
       endYear: 2019,
       status: 'concluido',
-    },
+    } satisfies Education,
   ],
 
   contacts: [

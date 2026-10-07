@@ -84,6 +84,9 @@ desejado.
 - Q: Quais itens da revisão do `checklists/ux.md` viram mudança na spec? → A: 33 dos 40 (CHK001–006,
   008, 009, 011–019, 021, 025–029, 031–040), com a redação proposta na revisão; CHK007, 010, 020,
   022, 023, 024 e 030 ficam como estão.
+- Q: O projeto "Monitor de Curso" (experiência acadêmica, sem artefato público e não confidencial)
+  pode continuar no site? → A: Sim. A constituição v2.1.0 ampliou a exceção do Princípio II para
+  experiência acadêmica sem artefato público, dita explicitamente no card (FR-010).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -132,8 +135,9 @@ papel e evidência; clicar em cada link externo e confirmar que abre em nova aba
    **Then** o destino abre em nova aba, sem dar à página aberta acesso à janela de origem.
 3. **Given** o projeto "Temas VS Code", **When** o serviço de badges está fora do ar, **Then** o card
    continua legível, com o nome de cada tema e o link para o Open VSX funcionando.
-4. **Given** um projeto confidencial sem evidência pública, **When** exibido, **Then** o card informa
-   claramente que o trabalho é confidencial, em vez de mostrar link quebrado.
+4. **Given** um projeto sem evidência pública (confidencial ou experiência acadêmica sem artefato
+   público), **When** exibido, **Then** o card informa claramente qual é o caso, em vez de mostrar
+   link quebrado.
 
 ---
 
@@ -249,9 +253,9 @@ ativada; conferir efeitos, foco visível e ausência de movimento quando reduzid
   acionável por toque e teclado, com estado aberto/fechado anunciado; Esc fecha o menu e devolve o
   foco ao botão, escolher um item fecha o menu, e o foco não fica preso dentro dele.
 - **FR-010**: Cada projeto MUST exibir nome, propósito, stack, papel do autor, tipo e as evidências
-  públicas. Só projetos confidenciais MAY não ter evidência pública; nesse caso o card MUST dizer que
-  o trabalho é confidencial, sem detalhes sigilosos (Princípio II). Projeto não confidencial sem
-  evidência não é exibido.
+  públicas. Só dois tipos de projeto MAY não ter evidência pública: trabalho confidencial e experiência
+  acadêmica sem artefato público; nesse caso o card MUST dizer qual é o caso, sem detalhes
+  sigilosos (Princípio II, constituição v2.1.0). Outro projeto sem evidência não é exibido.
 - **FR-011**: Links externos MUST abrir em nova aba de forma isolada da página de origem, com
   indicação visual e um texto para tecnologias assistivas ("abre em nova aba"). Badges dinâmicos
   MUST ter texto alternativo descritivo e espaço reservado de tamanho fixo; se a imagem falhar ou
@@ -356,7 +360,7 @@ ativada; conferir efeitos, foco visível e ausência de movimento quando reduzid
   marcado como "principal" alimenta a faixa contínua.
 - **Projeto**: identificador, nome, subtítulo, linha de comando temática, propósito, stack, papel do
   autor, tipo (pessoal, acadêmico, open source, profissional), rótulo de rodapé, destaques de
-  impacto (opcional), evidências ou, só se confidencial, o motivo da ausência delas.
+  impacto (opcional), evidências ou, só se confidencial ou acadêmico sem artefato público, o motivo da ausência delas.
 - **Evidência**: rótulo, URL, tipo (repositório, demo, marketplace, artigo), badge dinâmico
   opcional (URL da imagem + texto alternativo) e cor de destaque opcional. Pertence a um Projeto.
 - **Formação**: curso, instituição, cidade/UF, ano de início, ano de término (opcional), status.

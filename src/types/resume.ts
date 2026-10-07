@@ -104,10 +104,15 @@ interface ProjectBase {
   highlights?: Metric[]
 }
 
-/** Projeto sem evidência pública precisa explicar o motivo (FR-010). */
+/**
+ * Sem evidência pública, só trabalho confidencial (`confidential: true`) ou experiência acadêmica
+ * sem artefato público (`kind: 'academico'`), e o motivo precisa dizer qual é o caso (FR-010,
+ * Princípio II da constituição v2.1.0). Outro projeto sem evidência não entra nos dados.
+ */
 export type Project =
-  | (ProjectBase & { evidence: NonEmpty<Evidence>; noEvidenceReason?: never })
-  | (ProjectBase & { evidence: []; noEvidenceReason: string })
+  | (ProjectBase & { evidence: NonEmpty<Evidence>; confidential?: never; noEvidenceReason?: never })
+  | (ProjectBase & { evidence: []; confidential: true; noEvidenceReason: string })
+  | (ProjectBase & { kind: 'academico'; evidence: []; confidential?: never; noEvidenceReason: string })
 
 export interface Education {
   course: string

@@ -52,9 +52,11 @@ describe('resume.ts — validação', () => {
     for (const phrase of typedPhrases) expect(phrase.trim()).not.toBe('')
   })
 
-  it('(6) projeto sem evidência explica o motivo', () => {
+  it('(6) projeto sem evidência é confidencial ou acadêmico e explica o motivo', () => {
     for (const project of projects) {
-      if (project.evidence.length === 0) expect(project.noEvidenceReason?.trim(), project.id).toBeTruthy()
+      if (project.evidence.length > 0) continue
+      expect(project.confidential === true || project.kind === 'academico', project.id).toBe(true)
+      expect(project.noEvidenceReason?.trim(), project.id).toBeTruthy()
     }
   })
 
