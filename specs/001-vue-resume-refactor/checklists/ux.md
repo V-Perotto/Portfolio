@@ -10,64 +10,64 @@
 
 ## Requirement Completeness
 
-- [ ] CHK001 - Os requisitos definem como a navegação recolhida (FR-009) se comporta ao abrir/fechar: tecla Escape, retorno do foco ao botão, fechamento ao escolher um item e se o foco fica preso no menu aberto? [Gap, Spec §FR-009]
-- [ ] CHK002 - Está especificado como a "seção ativa" da navegação é comunicada a tecnologias assistivas (ex.: estado atual anunciado), e não só visualmente? [Gap, Spec §FR-009]
-- [ ] CHK003 - Os requisitos definem o que acontece com o foco do teclado e com leitores de tela durante e após a tela de boot (o boot é anunciado? para onde vai o foco ao terminar ou ser pulado)? [Gap, Spec §FR-031]
-- [ ] CHK004 - Está definido como o prompt digitado em loop (FR-032) é exposto a leitores de tela, para que cada caractere digitado/apagado não seja anunciado nem gere leitura instável? [Gap, Spec §FR-032]
-- [ ] CHK005 - Está definido se os rótulos temáticos de terminal (`## secao/`, `$ git log …`, títulos de janela, `exit 0`) são lidos por leitores de tela, e qual é o nome acessível dos títulos de seção decorados? [Gap, Spec §FR-033, §FR-023]
-- [ ] CHK006 - O "indicador de abre em nova aba" (Design System › Estados) tem requisito de equivalente textual para tecnologias assistivas, além do indicador visual? [Completeness, Spec §Estados, §FR-011]
-- [ ] CHK007 - Os estados de interação (padrão, hover, foco, ativo) estão especificados por componente interativo (CTA, item de navegação, botão do menu, link de evidência, link de contato), e não só de forma genérica? [Completeness, Spec §Estados]
-- [ ] CHK008 - Há requisito para o comportamento do realce do SpotlightCard em dispositivos de toque (aparece ao tocar, fica preso, não aparece)? [Gap, Spec §Edge Cases, §FR-014]
-- [ ] CHK009 - O deslocamento das âncoras sob a navegação fixa está especificado (o título da seção não pode ficar escondido atrás da barra ao abrir `/#projetos`)? [Gap, Spec §FR-008, §FR-009, §Edge Cases]
-- [ ] CHK010 - Os requisitos de impressão (FR-027) cobrem o que acontece com a navegação fixa, o overlay de scanlines, a faixa de tecnologias e o realce dos cartões? [Completeness, Spec §FR-027, Contract §print]
-- [ ] CHK011 - Está especificado o espaço reservado para os badges dinâmicos (dimensões fixas) para que carregá-los ou falharem não desloque o layout e não ameace o SC-004? [Gap, Spec §FR-011, §SC-004]
+- [x] CHK001 - Os requisitos definem como a navegação recolhida (FR-009) se comporta ao abrir/fechar: tecla Escape, retorno do foco ao botão, fechamento ao escolher um item e se o foco fica preso no menu aberto? [Gap, Spec §FR-009]
+- [x] CHK002 - Está especificado como a "seção ativa" da navegação é comunicada a tecnologias assistivas (ex.: estado atual anunciado), e não só visualmente? [Gap, Spec §FR-009]
+- [x] CHK003 - Os requisitos definem o que acontece com o foco do teclado e com leitores de tela durante e após a tela de boot (o boot é anunciado? para onde vai o foco ao terminar ou ser pulado)? [Gap, Spec §FR-031]
+- [x] CHK004 - Está definido como o prompt digitado em loop (FR-032) é exposto a leitores de tela, para que cada caractere digitado/apagado não seja anunciado nem gere leitura instável? [Gap, Spec §FR-032]
+- [x] CHK005 - Está definido se os rótulos temáticos de terminal (`## secao/`, `$ git log …`, títulos de janela, `exit 0`) são lidos por leitores de tela, e qual é o nome acessível dos títulos de seção decorados? [Gap, Spec §FR-033, §FR-023]
+- [x] CHK006 - O "indicador de abre em nova aba" (Design System › Estados) tem requisito de equivalente textual para tecnologias assistivas, além do indicador visual? [Completeness, Spec §Estados, §FR-011]
+- [x] CHK007 - Os estados de interação (padrão, hover, foco, ativo) estão especificados por componente interativo (CTA, item de navegação, botão do menu, link de evidência, link de contato), e não só de forma genérica? [Completeness, Spec §Estados]
+- [x] CHK008 - Há requisito para o comportamento do realce do SpotlightCard em dispositivos de toque (aparece ao tocar, fica preso, não aparece)? [Gap, Spec §Edge Cases, §FR-014]
+- [x] CHK009 - O deslocamento das âncoras sob a navegação fixa está especificado (o título da seção não pode ficar escondido atrás da barra ao abrir `/#projetos`)? [Gap, Spec §FR-008, §FR-009, §Edge Cases]
+- [x] CHK010 - Os requisitos de impressão (FR-027) cobrem o que acontece com a navegação fixa, o overlay de scanlines, a faixa de tecnologias e o realce dos cartões? [Completeness, Spec §FR-027, Contract §print]
+- [x] CHK011 - Está especificado o espaço reservado para os badges dinâmicos (dimensões fixas) para que carregá-los ou falharem não desloque o layout e não ameace o SC-004? [Gap, Spec §FR-011, §SC-004]
 
 ## Requirement Clarity
 
-- [ ] CHK012 - O token de foco `--color-accent` citado em Design System › Estados está definido na tabela de tokens, e a qual cor da paleta ele corresponde? [Ambiguity, Spec §Estados, §Tokens]
-- [ ] CHK013 - A convenção de nomes dos tokens está clara: a tabela usa `--bg`/`--surface`, mas o exemplo do Tailwind referencia `var(--color-surface)`; coexistem dois nomes ou um substitui o outro? [Ambiguity, Spec §Tokens]
-- [ ] CHK014 - "Realce equivalente" no foco (FR-014) está definido de forma verificável, já que o foco por teclado não tem posição de cursor para o spotlight seguir (research R8 traz uma interpretação; ela está refletida na spec)? [Clarity, Spec §FR-014, Research §R8]
-- [ ] CHK015 - "Velocidade constante e legível" da faixa contínua está quantificada de forma inequívoca ("um item atravessa a tela em ≥ 8s" depende da largura da tela: 360px ou 1920px)? [Clarity, Spec §Movimento, §FR-016]
-- [ ] CHK016 - Está definido como a revelação "palavra a palavra em no máximo 1,5s" se ajusta se a frase de posicionamento crescer (duração por palavra × número de palavras)? [Clarity, Spec §FR-015]
-- [ ] CHK017 - "Destaque visual" das métricas de impacto (FR-006) está especificado (cor, peso, posição no cartão), considerando que os campos nascem vazios? [Clarity, Spec §FR-006, §Assumptions]
-- [ ] CHK018 - "Não deixar espaço quebrado" quando o badge falha (FR-011) está definido em termos observáveis (ícone de imagem quebrada, texto alternativo visível, elemento removido)? [Clarity, Spec §FR-011]
-- [ ] CHK019 - O limiar de contraste para títulos (3:1 em "títulos ≥ 24px") considera peso da fonte e o valor mínimo do `clamp` em 360px para cada nível de título? [Clarity, Spec §FR-022, §Tipografia]
+- [x] CHK012 - O token de foco `--color-accent` citado em Design System › Estados está definido na tabela de tokens, e a qual cor da paleta ele corresponde? [Ambiguity, Spec §Estados, §Tokens]
+- [x] CHK013 - A convenção de nomes dos tokens está clara: a tabela usa `--bg`/`--surface`, mas o exemplo do Tailwind referencia `var(--color-surface)`; coexistem dois nomes ou um substitui o outro? [Ambiguity, Spec §Tokens]
+- [x] CHK014 - "Realce equivalente" no foco (FR-014) está definido de forma verificável, já que o foco por teclado não tem posição de cursor para o spotlight seguir (research R8 traz uma interpretação; ela está refletida na spec)? [Clarity, Spec §FR-014, Research §R8]
+- [x] CHK015 - "Velocidade constante e legível" da faixa contínua está quantificada de forma inequívoca ("um item atravessa a tela em ≥ 8s" depende da largura da tela: 360px ou 1920px)? [Clarity, Spec §Movimento, §FR-016]
+- [x] CHK016 - Está definido como a revelação "palavra a palavra em no máximo 1,5s" se ajusta se a frase de posicionamento crescer (duração por palavra × número de palavras)? [Clarity, Spec §FR-015]
+- [x] CHK017 - "Destaque visual" das métricas de impacto (FR-006) está especificado (cor, peso, posição no cartão), considerando que os campos nascem vazios? [Clarity, Spec §FR-006, §Assumptions]
+- [x] CHK018 - "Não deixar espaço quebrado" quando o badge falha (FR-011) está definido em termos observáveis (ícone de imagem quebrada, texto alternativo visível, elemento removido)? [Clarity, Spec §FR-011]
+- [x] CHK019 - O limiar de contraste para títulos (3:1 em "títulos ≥ 24px") considera peso da fonte e o valor mínimo do `clamp` em 360px para cada nível de título? [Clarity, Spec §FR-022, §Tipografia]
 
 ## Requirement Consistency
 
-- [ ] CHK020 - O SC-003 (identificar nome, cargo e contato em 5s) é compatível com a tela de boot de até 5s em toda visita, que cobre a página nesse intervalo? [Conflict, Spec §SC-003, §FR-031, §Assumptions]
-- [ ] CHK021 - O SC-007 ("nenhum elemento se move após o carregamento") é consistente com o cursor piscante do logo-prompt (FR-030) e com o realce do hover, que segue o cursor mesmo com movimento reduzido? [Conflict, Spec §SC-007, §FR-030, §FR-014]
-- [ ] CHK022 - O FR-008 ("MUST conter" as 7 seções) é consistente com o edge case que omite a seção e o item de menu quando a coleção está vazia? [Conflict, Spec §FR-008, §Edge Cases]
-- [ ] CHK023 - As durações de hover/foco (150–250ms) e de entrada (300–800ms) são as mesmas em FR-017, Design System › Movimento e no plano, sem valores divergentes? [Consistency, Spec §FR-017, §Movimento]
-- [ ] CHK024 - O teto da tela de boot é o mesmo em todos os artefatos (5s na spec, 4,8s no research/contract) e está claro qual valor é o requisito e qual é a margem de implementação? [Consistency, Spec §FR-031, Research §R7, Contract §booting]
-- [ ] CHK025 - A lista de efeitos desligados com movimento reduzido é idêntica em FR-020, US4 cenário 5, FR-032 e Design System › Movimento (incluindo `v-reveal`, cursor e transições de hover)? [Consistency, Spec §FR-020, §US4]
+- [x] CHK020 - O SC-003 (identificar nome, cargo e contato em 5s) é compatível com a tela de boot de até 5s em toda visita, que cobre a página nesse intervalo? [Conflict, Spec §SC-003, §FR-031, §Assumptions]
+- [x] CHK021 - O SC-007 ("nenhum elemento se move após o carregamento") é consistente com o cursor piscante do logo-prompt (FR-030) e com o realce do hover, que segue o cursor mesmo com movimento reduzido? [Conflict, Spec §SC-007, §FR-030, §FR-014]
+- [x] CHK022 - O FR-008 ("MUST conter" as 7 seções) é consistente com o edge case que omite a seção e o item de menu quando a coleção está vazia? [Conflict, Spec §FR-008, §Edge Cases]
+- [x] CHK023 - As durações de hover/foco (150–250ms) e de entrada (300–800ms) são as mesmas em FR-017, Design System › Movimento e no plano, sem valores divergentes? [Consistency, Spec §FR-017, §Movimento]
+- [x] CHK024 - O teto da tela de boot é o mesmo em todos os artefatos (5s na spec, 4,8s no research/contract) e está claro qual valor é o requisito e qual é a margem de implementação? [Consistency, Spec §FR-031, Research §R7, Contract §booting]
+- [x] CHK025 - A lista de efeitos desligados com movimento reduzido é idêntica em FR-020, US4 cenário 5, FR-032 e Design System › Movimento (incluindo `v-reveal`, cursor e transições de hover)? [Consistency, Spec §FR-020, §US4]
 
 ## Acceptance Criteria Quality
 
-- [ ] CHK026 - A "auditoria padrão de qualidade web" do SC-005 está identificada (ferramenta, versão, preset) e em qual estado da página roda (com ou sem boot, desktop ou mobile)? [Measurability, Spec §SC-005]
-- [ ] CHK027 - O SC-003 define critérios de recrutamento e procedimento do teste com 3 pessoas (dispositivo, se a pessoa conhece o autor, o que conta como "acertar")? [Measurability, Spec §SC-003]
-- [ ] CHK028 - O SC-004 especifica como "sem contar a tela de boot" é medido (boot pulado, movimento reduzido ou subtração do tempo)? [Measurability, Spec §SC-004]
-- [ ] CHK029 - O requisito de foco visível (FR-021, contraste 3:1) define contra quais fundos o anel deve ser medido (`--bg`, `--bg-alt`, `--surface`, `--surface` + `--spotlight`)? [Measurability, Spec §FR-021, §Tokens]
+- [x] CHK026 - A "auditoria padrão de qualidade web" do SC-005 está identificada (ferramenta, versão, preset) e em qual estado da página roda (com ou sem boot, desktop ou mobile)? [Measurability, Spec §SC-005]
+- [x] CHK027 - O SC-003 define critérios de recrutamento e procedimento do teste com 3 pessoas (dispositivo, se a pessoa conhece o autor, o que conta como "acertar")? [Measurability, Spec §SC-003]
+- [x] CHK028 - O SC-004 especifica como "sem contar a tela de boot" é medido (boot pulado, movimento reduzido ou subtração do tempo)? [Measurability, Spec §SC-004]
+- [x] CHK029 - O requisito de foco visível (FR-021, contraste 3:1) define contra quais fundos o anel deve ser medido (`--bg`, `--bg-alt`, `--surface`, `--surface` + `--spotlight`)? [Measurability, Spec §FR-021, §Tokens]
 
 ## Scenario Coverage
 
-- [ ] CHK030 - Há requisito de mecanismo para pausar/parar conteúdo que se move por mais de 5s e não depende de hover (faixa contínua, chuva matrix, prompt em loop), para quem não usa mouse e não ativou "reduzir movimento"? [Gap, Spec §FR-016, §FR-032, WCAG 2.2.2]
-- [ ] CHK031 - Os requisitos limitam o efeito glitch a no máximo 3 flashes por segundo ou abaixo do limiar de flash? [Gap, Spec §FR-032, WCAG 2.3.1]
-- [ ] CHK032 - O cenário "JS carrega o script inline (`html.motion`) mas o bundle falha" está coberto, de modo que estados iniciais escondidos (`opacity: 0`, `html.booting`) não fiquem permanentes? [Coverage, Exception Flow, Spec §FR-018, Contract §motion/booting]
-- [ ] CHK033 - O contraste do texto está especificado também sobre a área iluminada pelo `--spotlight` e sobre os chips/faixa de tecnologias, e não só sobre os fundos sólidos? [Coverage, Spec §FR-022, §FR-034]
-- [ ] CHK034 - Os requisitos cobrem navegadores que não suportam `prefers-reduced-motion` ou com a preferência mudando durante a visita (o efeito para na hora)? [Coverage, Alternate Flow, Spec §FR-020]
+- [x] CHK030 - Há requisito de mecanismo para pausar/parar conteúdo que se move por mais de 5s e não depende de hover (faixa contínua, chuva matrix, prompt em loop), para quem não usa mouse e não ativou "reduzir movimento"? [Gap, Spec §FR-016, §FR-032, WCAG 2.2.2]
+- [x] CHK031 - Os requisitos limitam o efeito glitch a no máximo 3 flashes por segundo ou abaixo do limiar de flash? [Gap, Spec §FR-032, WCAG 2.3.1]
+- [x] CHK032 - O cenário "JS carrega o script inline (`html.motion`) mas o bundle falha" está coberto, de modo que estados iniciais escondidos (`opacity: 0`, `html.booting`) não fiquem permanentes? [Coverage, Exception Flow, Spec §FR-018, Contract §motion/booting]
+- [x] CHK033 - O contraste do texto está especificado também sobre a área iluminada pelo `--spotlight` e sobre os chips/faixa de tecnologias, e não só sobre os fundos sólidos? [Coverage, Spec §FR-022, §FR-034]
+- [x] CHK034 - Os requisitos cobrem navegadores que não suportam `prefers-reduced-motion` ou com a preferência mudando durante a visita (o efeito para na hora)? [Coverage, Alternate Flow, Spec §FR-020]
 
 ## Edge Case Coverage
 
-- [ ] CHK035 - A faixa de largura do FR-025 (360px a 1920px) cobre o reflow em 320px CSS (zoom de 400%) e larguras acima de 1920px? [Edge Case, Gap, Spec §FR-025, WCAG 1.4.10]
-- [ ] CHK036 - Há requisito para zoom de texto em 200% e para espaçamento de texto aumentado sem perda de conteúdo (chips, timeline, janelas de terminal)? [Edge Case, Gap, Spec §FR-025, WCAG 1.4.4/1.4.12]
-- [ ] CHK037 - O comportamento em modo de alto contraste do sistema (`forced-colors`) está definido para anel de foco, bordas de cartões, selos e scanlines? [Edge Case, Gap]
-- [ ] CHK038 - Está definido o comportamento da tela de boot quando a visita chega por âncora direta (`/#projetos`): o boot aparece e a rolagem para a seção acontece depois? [Edge Case, Spec §FR-031, §Edge Cases]
+- [x] CHK035 - A faixa de largura do FR-025 (360px a 1920px) cobre o reflow em 320px CSS (zoom de 400%) e larguras acima de 1920px? [Edge Case, Gap, Spec §FR-025, WCAG 1.4.10]
+- [x] CHK036 - Há requisito para zoom de texto em 200% e para espaçamento de texto aumentado sem perda de conteúdo (chips, timeline, janelas de terminal)? [Edge Case, Gap, Spec §FR-025, WCAG 1.4.4/1.4.12]
+- [x] CHK037 - O comportamento em modo de alto contraste do sistema (`forced-colors`) está definido para anel de foco, bordas de cartões, selos e scanlines? [Edge Case, Gap]
+- [x] CHK038 - Está definido o comportamento da tela de boot quando a visita chega por âncora direta (`/#projetos`): o boot aparece e a rolagem para a seção acontece depois? [Edge Case, Spec §FR-031, §Edge Cases]
 
 ## Dependencies & Assumptions
 
-- [ ] CHK039 - A premissa de que `SpotlightCard`, `BlurText` e `LogoLoop` podem ter raio, cores e estado inicial sobrescritos (ex.: `rounded-3xl` → 8px; texto invisível no SSR) está registrada como restrição na spec, e não só no research? [Assumption, Spec §Mapeamento, Research §R3/R6]
-- [ ] CHK040 - A premissa de que trechos em inglês (nomes de tecnologias, `whoami`, comandos) não precisam de marcação de idioma está explícita, dado o `lang="pt-BR"` do FR-023? [Assumption, Spec §FR-023, §Assumptions]
+- [x] CHK039 - A premissa de que `SpotlightCard`, `BlurText` e `LogoLoop` podem ter raio, cores e estado inicial sobrescritos (ex.: `rounded-3xl` → 8px; texto invisível no SSR) está registrada como restrição na spec, e não só no research? [Assumption, Spec §Mapeamento, Research §R3/R6]
+- [x] CHK040 - A premissa de que trechos em inglês (nomes de tecnologias, `whoami`, comandos) não precisam de marcação de idioma está explícita, dado o `lang="pt-BR"` do FR-023? [Assumption, Spec §FR-023, §Assumptions]
 
 ## Notes
 
