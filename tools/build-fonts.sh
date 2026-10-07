@@ -25,6 +25,18 @@ FEATURES="calt,clig,liga,rlig,ccmp,mark,mkmk,kern,locl"
 # .hl-purple, 700 .section-title/.card-role, 800 .glitch)
 TARGETS="iosevka:400 iosevka:600 iosevka:700 iosevka:800 iosevka-aile:400 iosevka-aile:700"
 
+# O peso 800 só desenha o nome no <h1> do hero, que é o elemento de LCP. Com o subset
+# completo ele pesa 32 KB; só com as letras do nome, ~3 KB, o que tirou o LCP móvel de
+# 2,8 s para 2,4 s (SC-004, research R12). O nome vem de src/data/resume.ts; os caracteres
+# usados ficam registrados em tools/iosevka-800.chars, que tests/unit/fonts.spec.ts compara
+# com o nome atual: mudou o nome, rode este script de novo.
+NAME="$(sed -n "s/^    name: '\(.*\)',\$/\1/p" "$ROOT/src/data/resume.ts" | head -1)"
+if [ -z "$NAME" ]; then
+  echo "não achei profile.name em src/data/resume.ts" >&2
+  exit 1
+fi
+NAME_CHARS="$(printf '%s' "$NAME" | grep -o . | sort -u | tr -d '\n')"
+
 # pyftsubset: usa o do PATH se existir, senão cria um venv descartável.
 if command -v pyftsubset >/dev/null 2>&1; then
   PYFTSUBSET=pyftsubset
@@ -57,11 +69,18 @@ for target in $TARGETS; do
   # alternativos junto — 3626 glifos e 108 KB por peso, contra 971 e 32 KB.
   # Para desligar as ligaduras, use font-variant-ligatures no CSS em vez de
   # regerar sem a feature.
+  if [ "$family:$weight" = "iosevka:800" ]; then
+    subset=(--text="$NAME_CHARS")
+    printf '%s\n' "$NAME_CHARS" > "$ROOT/tools/iosevka-800.chars"
+  else
+    subset=(--unicodes="$UNICODES")
+  fi
+
   "$PYFTSUBSET" "$src" \
     --output-file="$dst" \
     --flavor=woff2 \
     --layout-features="$FEATURES" \
-    --unicodes="$UNICODES"
+    "${subset[@]}"
 
   printf '   %-24s %8s -> %s\n' "$(basename "$dst")" \
     "$(du -h "$src" | cut -f1)" "$(du -h "$dst" | cut -f1)"

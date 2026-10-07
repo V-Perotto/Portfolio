@@ -7,22 +7,32 @@
     Antes de qualquer CSS: marca o que o JS vai fazer, para que estados escondidos de animação só
     existam quando o próprio JS confirmou que vai animar (FR-012, FR-018, research R6/R7).
     js      → JS executou
-    motion  → e o visitante não pediu movimento reduzido
-    booting → tela de boot ativa; teto de 4,8 s mesmo que o bundle falhe (FR-031)
+    motion  → há movimento: o visitante escolheu "on" no controle (FR-035) ou, sem escolha salva,
+              não pediu movimento reduzido no sistema
+    booting → tela de boot ativa. Teto contado do início da navegação (performance.now()): a capa
+              sai em 4,2 s mesmo que o bundle falhe ou atrase, e o BootScreen usa o mesmo prazo
+              + 550 ms de fade, então a página fica descoberta antes de 5 s (FR-018, FR-031).
+              Os estados escondidos do v-reveal só existem depois que o app monta, então um bundle
+              que falha não deixa nada invisível.
   -->
   <script>
     (function () {
       var root = document.documentElement;
       root.classList.add('js');
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      var choice = null;
+      try { choice = localStorage.getItem('motion'); } catch (e) {}
+      var motion = choice ? choice === 'on' : !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (motion) {
         root.classList.add('motion', 'booting');
-        setTimeout(function () { root.classList.remove('booting'); }, 4800);
+        setTimeout(function () { root.classList.remove('booting'); }, Math.max(0, 4200 - performance.now()));
       }
     })();
   </script>
-  <!-- crossorigin é obrigatório em preload de fonte mesmo na mesma origem; o Vite aplica o base -->
+  <!-- crossorigin é obrigatório em preload de fonte mesmo na mesma origem; o Vite aplica o base.
+       O peso 800 (só as letras do nome, ~4 KB) desenha o <h1>, elemento de LCP: prioridade alta (SC-004) -->
   <link rel="preload" href="/fonts/iosevka-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/iosevka-aile-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/iosevka-800.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>&gt;_</text></svg>">
 </head>
 <body>
