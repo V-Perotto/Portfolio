@@ -10,7 +10,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUT="$ROOT/fonts"
+OUT="$ROOT/public/fonts"
 VERSION="5.3.0"
 
 # ASCII + Latin-1/Ext-A (acentos PT/IT/EN, © ·) + pontuação tipográfica +
