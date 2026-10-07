@@ -23,7 +23,7 @@ const ordered = computed(() => byStartYearDesc(props.education))
 .edu-list {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: calc(var(--spacing) * 4.8);
   list-style: none;
 }
 </style>

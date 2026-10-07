@@ -9,6 +9,18 @@ const canvas = ref<HTMLCanvasElement | null>(null)
 const CHARS = 'アイウエオカキクケコ01<>[]{}$#@&%*+=;/\\|~^'
 const FONT_SIZE = 15
 
+/** Cores do canvas vindas dos tokens (Princípio V): o canvas não entende `var()`, então lê os
+ *  valores calculados uma vez, na montagem. */
+const colors = { purple: '', green: '', bg: '' }
+
+function readColors() {
+  const css = getComputedStyle(document.documentElement)
+  const token = (name: string) => css.getPropertyValue(name).trim()
+  colors.purple = token('--purple-light')
+  colors.green = token('--green-light')
+  colors.bg = token('--bg')
+}
+
 let drops: number[] = []
 let frame: number | null = null
 let last = 0
@@ -25,13 +37,16 @@ function resize() {
 }
 
 function draw(ctx: CanvasRenderingContext2D, el: HTMLCanvasElement) {
-  ctx.fillStyle = 'rgba(10, 6, 18, 0.12)'
+  // rastro: o fundo da página com 12% de opacidade apaga aos poucos os caracteres anteriores
+  ctx.globalAlpha = 0.12
+  ctx.fillStyle = colors.bg
   ctx.fillRect(0, 0, el.width, el.height)
+  ctx.globalAlpha = 1
   ctx.font = `${FONT_SIZE}px monospace`
   for (let i = 0; i < drops.length; i++) {
     const char = CHARS[Math.floor(Math.random() * CHARS.length)] ?? '0'
     // alterna verde/roxo entre colunas para casar com a paleta
-    ctx.fillStyle = i % 3 === 0 ? '#7b3fb3' : '#2fa876'
+    ctx.fillStyle = i % 3 === 0 ? colors.purple : colors.green
     const y = drops[i] ?? 0
     ctx.fillText(char, i * FONT_SIZE, y * FONT_SIZE)
     drops[i] = y * FONT_SIZE > el.height && Math.random() > 0.975 ? 0 : y + 1
@@ -59,6 +74,7 @@ function setup() {
   const el = canvas.value
   const host = el?.parentElement
   if (!el || !host) return
+  readColors()
   resize()
   resizeObserver = new ResizeObserver(resize)
   resizeObserver.observe(host)

@@ -24,6 +24,19 @@ test.describe('links', () => {
     await expect(page.locator('#sobre')).toBeInViewport()
   })
 
+  test('Esc fecha o menu mobile e devolve o foco ao botão (FR-009)', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 800 })
+    await page.goto('./')
+    const toggle = page.locator('.nav-toggle')
+    await toggle.focus()
+    await page.keyboard.press('Enter')
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    await page.keyboard.press('Tab') // foco entra no menu
+    await page.keyboard.press('Escape')
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await expect(toggle).toBeFocused()
+  })
+
   test('links externos abrem em nova aba isolada', async ({ page }) => {
     await page.goto('./')
     const external = page.locator('a[href^="http"]')

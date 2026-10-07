@@ -3,8 +3,9 @@ import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 /**
  * Tela de boot SSH (FR-031) — porte da sequência anterior. Só existe no cliente e só quando o
- * script inline marcou `html.booting` (há movimento). Termina sozinha em até 4,8 s ou com
- * qualquer tecla/clique, e remove `html.booting`, liberando a capa que cobre a página.
+ * script inline marcou `html.booting` (há movimento). Termina sozinha no prazo ou com qualquer
+ * tecla/clique, e remove `html.booting`, liberando a capa que cobre a página. É decorativa: fica
+ * fora da árvore de acessibilidade e não mexe no foco (FR-036).
  */
 interface Part {
   cls?: string
@@ -18,6 +19,15 @@ const lines = ref<Part[][]>([])
 let finished = false
 const timers: ReturnType<typeof setTimeout>[] = []
 const schedule = (delay: number, fn: () => void) => timers.push(setTimeout(fn, delay))
+
+/** Prazo contado do início da navegação: + o fade, a página fica descoberta em ~4,75 s, com folga
+ *  para timers atrasados sob carga antes dos 5 s (FR-031). É o mesmo prazo do script inline de
+ *  `index.html`. */
+const DEADLINE_MS = 4200
+/** Duração do fade de saída (a transição do CSS tem 0,5 s). */
+const FADE_MS = 550
+/** Com menos que isto de prazo (bundle atrasado), o boot nem aparece: só piscaria. */
+const MIN_VISIBLE_MS = 1000
 
 const PROMPT = (user: string, host: string): Part[] => [
   { cls: 'prompt-user', text: user },
@@ -58,16 +68,22 @@ function finish() {
   hiding.value = true
   setTimeout(() => {
     active.value = false
-  }, 600)
+  }, FADE_MS)
 }
 
 onMounted(async () => {
-  if (!document.documentElement.classList.contains('booting')) return
+  const root = document.documentElement
+  if (!root.classList.contains('booting')) return
+  const remaining = DEADLINE_MS - performance.now()
+  if (remaining < MIN_VISIBLE_MS) {
+    root.classList.remove('booting')
+    return
+  }
   active.value = true
   await nextTick()
 
   document.addEventListener('keydown', finish)
-  schedule(4800, finish) // teto: nunca passa de 5 s
+  schedule(remaining, finish)
 
   addLine(PROMPT('anon', '127.0.0.1'))
   typeInto('ssh viper@portfolio', 42, undefined, () => {
@@ -100,8 +116,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="active" :class="['boot-screen', { 'boot-hidden': hiding }]" @click="finish">
-    <div class="boot-body mono" aria-hidden="true">
+  <div v-if="active" :class="['boot-screen', { 'boot-hidden': hiding }]" aria-hidden="true" @click="finish">
+    <div class="boot-body mono">
       <p v-for="(line, i) in lines" :key="i" class="boot-line">
         <span v-for="(part, j) in line" :key="j" :class="part.cls">{{ part.text }}</span><span v-if="i === lines.length - 1" class="cursor">▊</span>
       </p>
@@ -120,7 +136,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: calc(var(--spacing) * 6);
 }
 
 .boot-screen.boot-hidden {

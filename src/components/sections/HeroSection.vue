@@ -41,8 +41,8 @@ defineProps<{ profile: Profile }>()
   padding: var(--hero-pad);
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 30% 20%, rgba(70, 32, 102, 0.25), transparent 55%),
-    radial-gradient(ellipse at 75% 80%, rgba(32, 94, 68, 0.18), transparent 55%),
+    radial-gradient(ellipse at 30% 20%, color-mix(in srgb, var(--purple) 25%, transparent), transparent 55%),
+    radial-gradient(ellipse at 75% 80%, color-mix(in srgb, var(--green) 18%, transparent), transparent 55%),
     var(--bg);
 }
 
@@ -50,8 +50,8 @@ defineProps<{ profile: Profile }>()
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(123, 63, 179, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(123, 63, 179, 0.07) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--purple-light) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--purple-light) 7%, transparent) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
@@ -66,13 +66,13 @@ defineProps<{ profile: Profile }>()
 .hero-boot {
   color: var(--green-light);
   font-size: 0.8rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: calc(var(--spacing) * 4.8);
   opacity: 0.8;
 }
 
 
 .hero-terminal {
-  margin-top: 1.4rem;
+  margin-top: calc(var(--spacing) * 5.6);
   font-size: clamp(0.95rem, 2.4vw, 1.25rem);
   color: var(--text);
   min-height: 1.8em;
@@ -80,7 +80,7 @@ defineProps<{ profile: Profile }>()
 
 
 .hero-sub {
-  margin-top: 1.2rem;
+  margin-top: calc(var(--spacing) * 4.8);
   color: var(--text-dim);
   font-size: 1.02rem;
   max-width: 560px;
@@ -89,45 +89,45 @@ defineProps<{ profile: Profile }>()
 }
 
 .hero-actions {
-  margin-top: 2.2rem;
+  margin-top: calc(var(--spacing) * 8.8);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: calc(var(--spacing) * 4);
 }
 
 .btn {
   font-family: var(--font-mono);
   font-size: 0.92rem;
   text-decoration: none;
-  padding: 0.7rem 1.4rem;
+  padding: calc(var(--spacing) * 2.8) calc(var(--spacing) * 5.6);
   border-radius: var(--radius-btn);
   transition: all 0.25s;
 }
 
 .btn-primary {
   background: var(--purple);
-  color: #fff;
+  color: var(--on-accent);
   border: 1px solid var(--purple-light);
-  box-shadow: 0 0 18px rgba(70, 32, 102, 0.55);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--purple) 55%, transparent);
 }
 
 .btn-primary:hover {
   background: var(--purple-light);
-  box-shadow: 0 0 28px rgba(123, 63, 179, 0.75);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--purple-light) 75%, transparent);
   transform: translateY(-2px);
 }
 
 .btn-ghost {
   color: var(--green-bright);
   border: 1px solid var(--green);
-  background: rgba(32, 94, 68, 0.12);
+  background: color-mix(in srgb, var(--green) 12%, transparent);
 }
 
 .btn-ghost:hover {
   background: var(--green);
-  color: #fff;
-  box-shadow: 0 0 22px rgba(47, 168, 118, 0.5);
+  color: var(--on-accent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--green-light) 50%, transparent);
   transform: translateY(-2px);
 }
 

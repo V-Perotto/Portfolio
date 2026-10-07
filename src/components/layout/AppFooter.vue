@@ -11,7 +11,7 @@ onMounted(() => {
 <template>
   <footer class="footer mono">
     <p>
-      <span class="prompt-dollar">$ </span>echo "© {{ year }} Vittorio Perotto — feito com Vue, Tailwind e Vue Bits"
+      <span class="prompt-dollar" aria-hidden="true">$ </span>echo "© {{ year }} Vittorio Perotto — feito com Vue, Tailwind e Vue Bits"
     </p>
     <p class="footer-exit">process finished with <span class="hl-green">exit code 0</span></p>
   </footer>
@@ -19,8 +19,8 @@ onMounted(() => {
 
 <style scoped>
 .footer {
-  margin-top: 5rem;
-  padding: 2.2rem 1.5rem;
+  margin-top: calc(var(--spacing) * 20);
+  padding: calc(var(--spacing) * 8.8) calc(var(--spacing) * 6);
   border-top: 1px solid var(--border);
   text-align: center;
   color: var(--text-dim);
@@ -29,5 +29,5 @@ onMounted(() => {
 }
 
 /* sem o opacity: 0.7 anterior, que deixava o texto em 3,1:1 (FR-022) */
-.footer-exit { margin-top: 0.5rem; }
+.footer-exit { margin-top: calc(var(--spacing) * 2); }
 </style>

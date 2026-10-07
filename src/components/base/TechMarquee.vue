@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import LogoLoop from '@/components/vendor/vue-bits/LogoLoop.vue'
+import { useMotion } from '@/composables/useMotion'
 import type { SkillGroup } from '@/types/resume'
 
 /**
  * Faixa contínua com as skills `featured` (FR-016), via LogoLoop do Vue Bits. Decorativa: a lista
  * acessível são os cartões de skills, então a faixa fica fora da árvore de acessibilidade e da
- * tabulação. O LogoLoop já para sozinho com prefers-reduced-motion.
+ * tabulação. Sem movimento (HTML pré-renderizado, preferência do sistema ou controle desligado,
+ * FR-020/FR-035), mostra a primeira cópia parada no lugar do LogoLoop.
  */
 const props = defineProps<{ groups: readonly SkillGroup[] }>()
+const motion = useMotion()
 
 const logos = computed(() =>
   props.groups.flatMap((g) => g.items.filter((i) => i.featured).map((i) => ({ node: i.name, title: i.name }))),
@@ -18,6 +21,7 @@ const logos = computed(() =>
 <template>
   <div class="tech-marquee" aria-hidden="true">
     <LogoLoop
+      v-if="motion"
       :logos="logos"
       :speed="60"
       :gap="12"
@@ -31,12 +35,25 @@ const logos = computed(() =>
         <span class="marquee-chip">{{ 'node' in item ? item.node : '' }}</span>
       </template>
     </LogoLoop>
+    <ul v-else class="marquee-static">
+      <li v-for="logo in logos" :key="logo.node"><span class="marquee-chip">{{ logo.node }}</span></li>
+    </ul>
   </div>
 </template>
 
 <style scoped>
 .tech-marquee {
-  margin-bottom: 2rem;
+  margin-bottom: calc(var(--spacing) * 8);
+}
+
+/* mesma faixa, parada: uma linha só, cortada nas bordas com o mesmo esmaecimento do LogoLoop */
+.marquee-static {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  list-style: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
 }
 
 /* mesmo visual do TagChip */
@@ -46,9 +63,9 @@ const logos = computed(() =>
   font-size: 0.75rem;
   line-height: 1.6;
   color: var(--green-bright);
-  background: rgba(32, 94, 68, 0.16);
-  border: 1px solid rgba(47, 168, 118, 0.35);
-  padding: 0.22rem 0.6rem;
+  background: color-mix(in srgb, var(--green) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green-light) 35%, transparent);
+  padding: calc(var(--spacing) * 0.88) calc(var(--spacing) * 2.4);
   border-radius: var(--radius-pill);
   white-space: nowrap;
 }

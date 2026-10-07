@@ -17,7 +17,7 @@
     overflow-x: hidden;
   }
 
-  ::selection { background: var(--purple-light); color: #fff; }
+  ::selection { background: var(--purple-light); color: var(--on-accent); }
 
   /* barra de rolagem temática */
   ::-webkit-scrollbar { width: 10px; }
@@ -43,6 +43,9 @@
 
 @layer components {
   .mono { font-family: var(--font-mono); }
+
+  /* controles que só funcionam com JS (ex.: controle de movimento, FR-035) */
+  html:not(.js) .js-only { display: none; }
 
   .sr-only {
     position: absolute;
@@ -72,70 +75,73 @@
 
   .tag-now {
     background: var(--green);
-    color: #eafff4;
-    padding: 0.1rem 0.5rem;
+    color: var(--on-green);
+    padding: calc(var(--spacing) * 0.4) calc(var(--spacing) * 2);
     border-radius: var(--radius-tag);
     font-size: 0.7rem;
-    margin-left: 0.5rem;
+    margin-left: calc(var(--spacing) * 2);
     letter-spacing: 0.06em;
     animation: pulse-glow 2.4s ease-in-out infinite;
   }
 
-  .card-date { color: var(--text-dim); font-size: 0.78rem; margin-bottom: 0.5rem; }
-  .card-role { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
-  .card-company { color: var(--purple-glow); font-size: 0.82rem; margin-bottom: 0.8rem; }
-  .card-desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 1rem; }
+  .card-date { color: var(--text-dim); font-size: 0.78rem; margin-bottom: calc(var(--spacing) * 2); }
+  .card-role { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: calc(var(--spacing) * 0.8); }
+  .card-company { color: var(--purple-glow); font-size: 0.82rem; margin-bottom: calc(var(--spacing) * 3.2); }
+  .card-desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: calc(var(--spacing) * 4); }
 
-  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; }
+  .chips { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 2); list-style: none; }
 }
 
-/* v-reveal (src/directives/reveal.ts): a classe pendente só é aplicada pelo JS */
+/* v-reveal (src/directives/reveal.ts): a classe pendente só é aplicada pelo JS, e só esconde
+   enquanto há movimento — desligar o controle (FR-035) mostra tudo no estado final */
 .reveal { transition: opacity 0.6s ease, transform 0.6s ease; }
-.reveal.reveal-pending { opacity: 0; transform: translateY(24px); }
+html.motion .reveal.reveal-pending { opacity: 0; transform: translateY(24px); }
 
 @keyframes blink { 50% { opacity: 0; } }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 4px rgba(74, 222, 155, 0.4); }
-  50% { box-shadow: 0 0 14px rgba(74, 222, 155, 0.85); }
+  0%, 100% { box-shadow: 0 0 4px color-mix(in srgb, var(--green-bright) 40%, transparent); }
+  50% { box-shadow: 0 0 14px color-mix(in srgb, var(--green-bright) 85%, transparent); }
 }
 
 /* ============================================================
-   ACESSIBILIDADE — reduz movimento (FR-020)
+   ACESSIBILIDADE — sem movimento (FR-020, FR-035)
+   `html.motion` é decidida pelo script inline (preferência do sistema ou escolha salva no
+   controle) e alternada pelo controle de movimento; sem ela, nada anima: cursor e selos ficam
+   estáticos no estado final, transições de hover/foco viram instantâneas.
    ============================================================ */
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+html:not(.motion) { scroll-behavior: auto; }
 
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+html:not(.motion) *,
+html:not(.motion) *::before,
+html:not(.motion) *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }
 
 /* ============================================================
-   IMPRESSÃO (FR-027): tema claro trocando os tokens, sem decoração
+   ALTO CONTRASTE DO SISTEMA (FR-037): o navegador troca as cores pelas do sistema e apaga
+   sombras e fundos; foco, bordas de cartões e selos continuam visíveis, a decoração sai
+   ============================================================ */
+@media (forced-colors: active) {
+  :focus-visible { outline: 2px solid Highlight; }
+
+  /* !important: vence os seletores com escopo dos componentes */
+  .base-card, .terminal-window, .tag-now, .chip, .marquee-chip {
+    border: 1px solid CanvasText !important;
+  }
+
+  .scanlines, .matrix, .spotlight-layer, .hero-grid, .section-decor { display: none !important; }
+}
+
+/* ============================================================
+   IMPRESSÃO (FR-027): tema claro (tokens em tokens.css), sem decoração
    nem animação, todo o conteúdo visível e URLs dos links por extenso
    ============================================================ */
 @media print {
-  :root {
-    --bg: #fff;
-    --bg-alt: #fff;
-    --surface: #fff;
-    --surface-2: #f3f1f6;
-    --border: #c9c3d3;
-    --purple: #5b2a8a;
-    --purple-light: #5b2a8a;
-    --purple-glow: #5b2a8a;
-    --green: #1d6b4b;
-    --green-light: #1d6b4b;
-    --green-bright: #1d6b4b;
-    --text: #111;
-    --text-dim: #444;
-    --spotlight: transparent;
-  }
-
-  html, body { background: #fff !important; color: var(--text) !important; }
+  /* as cores claras da impressão estão em tokens.css (@media print) */
+  html, body { background: var(--bg) !important; color: var(--text) !important; }
 
   *, *::before, *::after {
     animation: none !important;
@@ -159,9 +165,8 @@
     clip: auto; clip-path: none; white-space: normal;
   }
 
-  .hero { min-height: auto !important; padding: 1rem 0 !important; background: none !important; }
+  .hero { min-height: auto !important; padding: calc(var(--spacing) * 4) 0 !important; background: none !important; }
   .btn { display: none !important; }
-  .neon-sith { color: #b00000 !important; }
 
   a { color: inherit; }
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; word-break: break-all; }

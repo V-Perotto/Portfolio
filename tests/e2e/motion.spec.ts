@@ -4,11 +4,32 @@ import { expect, test } from '@playwright/test'
 test.use({ reducedMotion: 'no-preference' })
 
 test.describe('efeitos com movimento', () => {
-  test('boot some sozinho em até 5 s', async ({ page }) => {
+  // instante (desde o início da navegação) em que a página fica descoberta: sem capa e sem boot
+  const uncoveredAt = (page: import('@playwright/test').Page) =>
+    page
+      .waitForFunction(
+        () =>
+          !document.documentElement.classList.contains('booting') &&
+          !document.querySelector('.boot-screen') &&
+          performance.now(),
+        null,
+        { polling: 20, timeout: 7000 },
+      )
+      .then((handle) => handle.jsonValue() as Promise<number>)
+
+  test('boot some sozinho, com o fade, em até 5 s do início da navegação (FR-031)', async ({ page }) => {
     await page.goto('./')
     await expect(page.locator('.boot-screen')).toBeVisible()
-    await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 5500 })
-    expect(await page.evaluate(() => document.documentElement.classList.contains('booting'))).toBe(false)
+    expect(await uncoveredAt(page)).toBeLessThanOrEqual(5000)
+  })
+
+  test('com o bundle atrasado, a página fica descoberta em até 5 s (FR-031)', async ({ page }) => {
+    await page.route('**/assets/*.js', async (route) => {
+      await new Promise((r) => setTimeout(r, 3000))
+      await route.continue()
+    })
+    await page.goto('./', { waitUntil: 'commit' })
+    expect(await uncoveredAt(page)).toBeLessThanOrEqual(5000)
   })
 
   test('boot é pulado com qualquer tecla', async ({ page }) => {

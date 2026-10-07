@@ -34,7 +34,8 @@ test.describe('sem JS', () => {
       const walker = document.createTreeWalker(document.getElementById('app')!, NodeFilter.SHOW_TEXT)
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const el = node.parentElement
-        if (!el || !node.textContent?.trim() || el.closest('[aria-hidden="true"]')) continue
+        // `.js-only`: controles que só existem com JS (FR-035), ocultos de propósito
+        if (!el || !node.textContent?.trim() || el.closest('[aria-hidden="true"], .js-only')) continue
         // sobe a árvore: qualquer ancestral escondido esconde o texto
         for (let cur: Element | null = el; cur; cur = cur.parentElement) {
           const style = getComputedStyle(cur)
@@ -59,5 +60,34 @@ test.describe('sem JS', () => {
     await page.goto('./')
     await expect(page.locator('.boot-screen')).toHaveCount(0)
     await expect(page.locator('.hero-terminal')).toContainText('Desenvolvedor Full-Stack')
+  })
+})
+
+// FR-018: o script inline rodou, mas o JavaScript principal falhou — nada fica escondido
+test.describe('JS principal falhou', () => {
+  test.use({ javaScriptEnabled: true, reducedMotion: 'no-preference' })
+
+  test('em até 5 s todo o texto aparece no estado final', async ({ page }) => {
+    await page.route('**/assets/*.js', (route) => route.abort())
+    await page.goto('./')
+    await page.waitForFunction(() => performance.now() > 5000, null, { timeout: 8000 })
+    expect(await page.evaluate(() => document.documentElement.classList.contains('booting'))).toBe(false)
+    const hidden = await page.evaluate(() => {
+      const offenders: string[] = []
+      const walker = document.createTreeWalker(document.getElementById('app')!, NodeFilter.SHOW_TEXT)
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        const el = node.parentElement
+        if (!el || !node.textContent?.trim() || el.closest('[aria-hidden="true"], .sr-only')) continue
+        for (let cur: Element | null = el; cur; cur = cur.parentElement) {
+          const style = getComputedStyle(cur)
+          if (style.opacity === '0' || style.visibility === 'hidden') {
+            offenders.push(node.textContent.trim().slice(0, 40))
+            break
+          }
+        }
+      }
+      return offenders
+    })
+    expect(hidden).toEqual([])
   })
 })

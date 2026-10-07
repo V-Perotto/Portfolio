@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
+import MotionToggle from '@/components/layout/MotionToggle.vue'
 import PromptLogo from '@/components/terminal/PromptLogo.vue'
 import { useActiveSection } from '@/composables/useActiveSection'
 import type { NavSection } from '@/lib/sections'
@@ -7,11 +8,26 @@ import type { NavSection } from '@/lib/sections'
 const props = defineProps<{ sections: readonly NavSection[] }>()
 
 const open = ref(false)
+const toggle = ref<HTMLButtonElement | null>(null)
 const active = useActiveSection(() => props.sections.map((s) => s.id))
 
 const close = () => {
   open.value = false
 }
+
+// Esc fecha o menu aberto e devolve o foco ao botão (FR-009); o foco nunca fica preso no menu
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape') return
+  close()
+  toggle.value?.focus()
+}
+
+watch(open, (isOpen) => {
+  if (isOpen) document.addEventListener('keydown', onKeydown)
+  else document.removeEventListener('keydown', onKeydown)
+})
+
+onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
@@ -19,6 +35,7 @@ const close = () => {
     <div class="nav-inner">
       <a href="#home" class="nav-logo"><PromptLogo /></a>
       <button
+        ref="toggle"
         type="button"
         :class="['nav-toggle', { open }]"
         aria-controls="navLinks"
@@ -37,6 +54,7 @@ const close = () => {
             @click="close"
           >{{ section.label }}</a>
         </li>
+        <li class="nav-motion"><MotionToggle /></li>
       </ul>
     </div>
   </nav>
@@ -49,7 +67,7 @@ const close = () => {
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(10, 6, 18, 0.85);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
 }
@@ -57,11 +75,11 @@ const close = () => {
 .nav-inner {
   max-width: var(--container-page);
   margin: 0 auto;
-  padding: 0.9rem 1.5rem;
+  padding: calc(var(--spacing) * 3.6) calc(var(--spacing) * 6);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: calc(var(--spacing) * 4);
 }
 
 .nav-logo {
@@ -73,7 +91,8 @@ const close = () => {
 
 .nav-links {
   display: flex;
-  gap: 0.9rem;
+  align-items: center;
+  gap: calc(var(--spacing) * 3.6);
   list-style: none;
 }
 
@@ -84,14 +103,14 @@ const close = () => {
   text-decoration: none;
   /* mesma métrica do .nav-cta para o destaque .active não deslocar o layout */
   border: 1px solid transparent;
-  padding: 0.25rem 0.7rem;
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2.8);
   border-radius: var(--radius-nav);
   transition: color 0.2s, text-shadow 0.2s, border-color 0.2s, background 0.2s;
 }
 
 .nav-links a:hover {
   color: var(--green-bright);
-  text-shadow: 0 0 12px rgba(74, 222, 155, 0.6);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--green-bright) 60%, transparent);
 }
 
 .nav-links a.nav-cta {
@@ -102,8 +121,8 @@ const close = () => {
 
 .nav-links a.nav-cta:hover {
   background: var(--purple);
-  color: #fff;
-  box-shadow: 0 0 16px rgba(123, 63, 179, 0.5);
+  color: var(--on-accent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--purple-light) 50%, transparent);
   text-shadow: none;
 }
 
@@ -112,19 +131,19 @@ const close = () => {
 .nav-links a.nav-cta.active {
   color: var(--green-bright);
   border-color: var(--green);
-  background: rgba(32, 94, 68, 0.12);
-  box-shadow: 0 0 14px rgba(47, 168, 118, 0.35);
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--green-light) 35%, transparent);
   text-shadow: none;
 }
 
 .nav-toggle {
   display: none;
   flex-direction: column;
-  gap: 5px;
+  gap: calc(var(--spacing) * 1.25);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px;
+  padding: calc(var(--spacing) * 1.5);
 }
 
 .nav-toggle span {
@@ -138,7 +157,8 @@ const close = () => {
 .nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-@media (max-width: 760px) {
+/* recolhe até 960px: os 6 links + o controle de movimento precisam de ~930px em linha */
+@media (max-width: 960px) {
   /* menu recolhível só quando há JS para abri-lo */
   html.js .nav-toggle { display: flex; }
 
@@ -148,8 +168,9 @@ const close = () => {
     left: 0;
     right: 0;
     flex-direction: column;
+    align-items: stretch;
     gap: 0;
-    background: rgba(10, 6, 18, 0.97);
+    background: color-mix(in srgb, var(--bg) 97%, transparent);
     border-bottom: 1px solid var(--border);
     max-height: 0;
     overflow: hidden;
@@ -159,7 +180,7 @@ const close = () => {
   }
 
   html.js .nav-links.open {
-    max-height: 340px;
+    max-height: 420px;
     visibility: visible;
     transition: max-height 0.3s ease;
   }
@@ -168,14 +189,16 @@ const close = () => {
 
   html.js .nav-links a {
     display: block;
-    padding: 0.9rem 1.5rem;
+    padding: calc(var(--spacing) * 3.6) calc(var(--spacing) * 6);
   }
 
-  html.js .nav-links a.nav-cta { border: none; border-radius: 0; padding: 0.9rem 1.5rem; }
+  html.js .nav-links a.nav-cta { border: none; border-radius: 0; padding: calc(var(--spacing) * 3.6) calc(var(--spacing) * 6); }
+
+  html.js .nav-motion { padding: calc(var(--spacing) * 2.8) calc(var(--spacing) * 6); }
 
   /* sem JS: a navegação fica no fluxo, com os links expostos em linhas */
   html:not(.js) .navbar { position: static; }
   html:not(.js) .nav-inner { flex-wrap: wrap; }
-  html:not(.js) .nav-links { flex-wrap: wrap; gap: 0.4rem; }
+  html:not(.js) .nav-links { flex-wrap: wrap; gap: calc(var(--spacing) * 1.6); }
 }
 </style>

@@ -6,3 +6,5 @@ test-results/
 playwright-report/
 .vite/
 specs/001-vue-resume-refactor/baseline/
+*.log
+.env*

@@ -25,13 +25,50 @@
   --font-mono: "Iosevka", ui-monospace, monospace;
   --font-sans: "Iosevka Aile", ui-sans-serif, sans-serif;
 
-  /* realce do SpotlightCard (novo) */
-  --spotlight: rgb(160 106 224 / 0.18);
+  /* realce do SpotlightCard (novo). Alfa 0,10 × opacidade 0,6 da camada = 6% de --purple-glow no
+     pico: mantém --text-dim ≥ 4,5:1 sobre --surface (4,76:1) e sobre a barra --surface-2 das janelas
+     de projeto (4,52:1); com 0,18 caía para 4,49:1 e 4,25:1 (FR-022, research R4) */
+  --spotlight: rgb(160 106 224 / 0.1);
+
+  /* texto sobre fundos de destaque (botões e chips em hover, selo "atual", botão fechar da janela) */
+  --on-accent: #fff;
+  --on-green: #eafff4;
+  --on-purple: #e6ddf2;
+
+  /* sombras */
+  --shadow: #000;
+
+  /* tema "Shadow Lord" (vermelho Sith) do cartão de temas VS Code. --sith é o texto (4,75:1 contra o
+     próprio brilho, FR-022); --sith-glow e --sith-deep, o brilho neon */
+  --sith: #ff6b6b;
+  --sith-glow: #ff5b5b;
+  --sith-deep: #d90404;
 
   /* espaçamentos de layout */
   --section-pad: 5rem 1.5rem 2rem;
   --hero-pad: 6rem 1.5rem 4rem;
   --nav-height: 4.5rem;
+}
+
+/* impressão (FR-027): tema claro, mesmos nomes de token */
+@media print {
+  :root {
+    --bg: #fff;
+    --bg-alt: #fff;
+    --surface: #fff;
+    --surface-2: #f3f1f6;
+    --border: #c9c3d3;
+    --purple: #5b2a8a;
+    --purple-light: #5b2a8a;
+    --purple-glow: #5b2a8a;
+    --green: #1d6b4b;
+    --green-light: #1d6b4b;
+    --green-bright: #1d6b4b;
+    --text: #111;
+    --text-dim: #444;
+    --sith: #b00000;
+    --spotlight: transparent;
+  }
 }
 
 /* expõe os tokens como utilitários do Tailwind (bg-bg, text-purple-glow, rounded-card, max-w-page…) */
@@ -55,6 +92,10 @@
 }
 
 @theme static {
+  /* escala de espaçamento (a do Tailwind, base 4px): os componentes usam
+     calc(var(--spacing) * N) nos espaçamentos internos, como os utilitários p-N/gap-N */
+  --spacing: 0.25rem;
+
   --radius-window: 10px;
   --radius-card: 8px;
   --radius-btn: 6px;

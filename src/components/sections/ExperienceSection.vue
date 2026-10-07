@@ -23,7 +23,7 @@ const ordered = computed(() => byStartDesc(props.experiences))
 <style scoped>
 .timeline {
   position: relative;
-  padding-left: 2rem;
+  padding-left: calc(var(--spacing) * 8);
   list-style: none;
 }
 
@@ -35,12 +35,12 @@ const ordered = computed(() => byStartDesc(props.experiences))
   bottom: 6px;
   width: 2px;
   background: linear-gradient(180deg, var(--purple-light), var(--green-light));
-  box-shadow: 0 0 10px rgba(123, 63, 179, 0.5);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--purple-light) 50%, transparent);
 }
 
 .timeline-item {
   position: relative;
-  margin-bottom: 2rem;
+  margin-bottom: calc(var(--spacing) * 8);
 }
 
 .timeline-marker {
@@ -52,11 +52,11 @@ const ordered = computed(() => byStartDesc(props.experiences))
   border-radius: 50%;
   background: var(--bg);
   border: 3px solid var(--green-bright);
-  box-shadow: 0 0 12px rgba(74, 222, 155, 0.7);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--green-bright) 70%, transparent);
 }
 
 @media (max-width: 760px) {
-  .timeline { padding-left: 1.6rem; }
+  .timeline { padding-left: calc(var(--spacing) * 6.4); }
   .timeline-marker { left: -1.6rem; width: 13px; height: 13px; }
 }
 </style>

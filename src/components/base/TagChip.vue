@@ -7,9 +7,9 @@
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--green-bright);
-  background: rgba(32, 94, 68, 0.16);
-  border: 1px solid rgba(47, 168, 118, 0.35);
-  padding: 0.22rem 0.6rem;
+  background: color-mix(in srgb, var(--green) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green-light) 35%, transparent);
+  padding: calc(var(--spacing) * 0.88) calc(var(--spacing) * 2.4);
   border-radius: var(--radius-pill);
   transition: all 0.2s;
   cursor: default;
@@ -17,8 +17,8 @@
 
 .chip:hover {
   background: var(--green);
-  color: #fff;
-  box-shadow: 0 0 14px rgba(47, 168, 118, 0.55);
+  color: var(--on-accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--green-light) 55%, transparent);
   transform: translateY(-2px);
 }
 </style>

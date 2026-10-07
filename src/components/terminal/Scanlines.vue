@@ -13,8 +13,8 @@
     0deg,
     transparent 0px,
     transparent 3px,
-    rgba(0, 0, 0, 0.08) 3px,
-    rgba(0, 0, 0, 0.08) 4px
+    color-mix(in srgb, var(--shadow) 8%, transparent) 3px,
+    color-mix(in srgb, var(--shadow) 8%, transparent) 4px
   );
   mix-blend-mode: multiply;
 }

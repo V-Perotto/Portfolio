@@ -28,31 +28,31 @@ defineProps<{ profile: Profile }>()
 
 <style scoped>
 .about-window {
-  margin-top: 1.5rem;
+  margin-top: calc(var(--spacing) * 6);
   border: 1px solid var(--border);
   border-radius: var(--radius-window);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(123, 63, 179, 0.08);
-  transition: box-shadow 0.3s, border-color 0.3s;
+  box-shadow: 0 8px 40px color-mix(in srgb, var(--shadow) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--purple-light) 8%, transparent);
+  transition: box-shadow 0.25s, border-color 0.25s;
 }
 
 .about-window:hover {
   border-color: var(--purple-light);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(123, 63, 179, 0.25);
+  box-shadow: 0 8px 40px color-mix(in srgb, var(--shadow) 50%, transparent), 0 0 24px color-mix(in srgb, var(--purple-light) 25%, transparent);
 }
 
 .badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: calc(var(--spacing) * 2.4);
   list-style: none;
-  margin-bottom: 1rem;
+  margin-bottom: calc(var(--spacing) * 4);
 }
 
 .badge {
   border: 1px solid var(--green);
-  background: rgba(32, 94, 68, 0.15);
+  background: color-mix(in srgb, var(--green) 15%, transparent);
   color: var(--green-bright);
-  padding: 0.3rem 0.7rem;
+  padding: calc(var(--spacing) * 1.2) calc(var(--spacing) * 2.8);
   border-radius: var(--radius-nav);
   font-size: 0.78rem;
 }

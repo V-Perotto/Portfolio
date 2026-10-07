@@ -33,7 +33,7 @@ defineProps<{ title: string }>()
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 0.45rem 0.6rem;
+  padding: calc(var(--spacing) * 1.8) calc(var(--spacing) * 2.4);
   background: var(--surface-2);
   border-bottom: 1px solid var(--border);
 }
@@ -49,7 +49,7 @@ defineProps<{ title: string }>()
 
 .t-controls {
   display: flex;
-  gap: 6px;
+  gap: calc(var(--spacing) * 1.5);
 }
 
 .t-btn {
@@ -68,22 +68,22 @@ defineProps<{ title: string }>()
 .t-btn:hover { filter: brightness(1.35); }
 
 .t-min, .t-max {
-  background: rgba(32, 94, 68, 0.15);
+  background: color-mix(in srgb, var(--green) 15%, transparent);
   border: 1px solid var(--green);
   color: var(--green-bright);
 }
 
 /* o glifo □ assenta na baseline e fica visualmente baixo dentro do círculo */
-.t-max { padding-bottom: 3px; }
+.t-max { padding-bottom: calc(var(--spacing) * 0.75); }
 
 .t-close {
   background: var(--purple);
   border: 1px solid var(--purple-light);
-  color: #e6ddf2;
+  color: var(--on-purple);
 }
 
 .terminal-body {
-  padding: 1.3rem 1.4rem;
+  padding: calc(var(--spacing) * 5.2) calc(var(--spacing) * 5.6);
   font-size: 0.9rem;
   display: flex;
   flex-direction: column;
@@ -91,6 +91,6 @@ defineProps<{ title: string }>()
 }
 
 @media (max-width: 760px) {
-  .terminal-body { padding: 1rem; font-size: 0.82rem; }
+  .terminal-body { padding: calc(var(--spacing) * 4); font-size: 0.82rem; }
 }
 </style>

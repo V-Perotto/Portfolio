@@ -30,8 +30,8 @@ defineProps<{ experience: Experience }>()
 .metrics {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1.2rem;
+  gap: calc(var(--spacing) * 1.6) calc(var(--spacing) * 4.8);
   list-style: none;
-  margin-bottom: 1rem;
+  margin-bottom: calc(var(--spacing) * 4);
 }
 </style>

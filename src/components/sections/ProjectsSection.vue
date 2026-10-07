@@ -22,8 +22,8 @@ defineProps<{ projects: readonly Project[] }>()
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
-  gap: 1.4rem;
-  margin-top: 1.5rem;
+  gap: calc(var(--spacing) * 5.6);
+  margin-top: calc(var(--spacing) * 6);
   list-style: none;
 }
 </style>

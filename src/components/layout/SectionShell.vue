@@ -27,9 +27,9 @@ defineProps<{
       >
     </div>
     <h2 class="section-title mono">
-      <span class="title-hash">##</span> {{ title }}<span class="title-slash">/</span>
+      <span class="title-hash" aria-hidden="true">##</span> {{ title }}<span class="title-slash" aria-hidden="true">/</span>
     </h2>
-    <p v-if="lead" class="section-lead mono">$ {{ lead }}</p>
+    <p v-if="lead" class="section-lead mono"><span aria-hidden="true">$ </span>{{ lead }}</p>
     <slot />
   </section>
 </template>
@@ -62,8 +62,8 @@ defineProps<{
   max-width: 75%;
   opacity: 0.12;
   /* fade contido em 50%x50% do box: alpha chega a ~0 antes de qualquer borda ou corte da seção */
-  -webkit-mask-image: radial-gradient(ellipse 50% 50% at center, black 0%, rgba(0, 0, 0, 0.7) 40%, transparent 88%);
-  mask-image: radial-gradient(ellipse 50% 50% at center, black 0%, rgba(0, 0, 0, 0.7) 40%, transparent 88%);
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at center, black 0%, color-mix(in srgb, var(--shadow) 70%, transparent) 40%, transparent 88%);
+  mask-image: radial-gradient(ellipse 50% 50% at center, black 0%, color-mix(in srgb, var(--shadow) 70%, transparent) 40%, transparent 88%);
 }
 
 /* tint: neutraliza a cor original e reaplica o matiz do tema */
@@ -78,16 +78,16 @@ defineProps<{
   font-size: clamp(1.5rem, 4vw, 2.1rem);
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 0.6rem;
+  margin-bottom: calc(var(--spacing) * 2.4);
 }
 
-.title-hash { color: var(--purple-glow); margin-right: 0.5rem; }
+.title-hash { color: var(--purple-glow); margin-right: calc(var(--spacing) * 2); }
 .title-slash { color: var(--green-bright); }
 
 .section-lead {
   color: var(--text-dim);
   font-size: 0.85rem;
-  margin-bottom: 2rem;
+  margin-bottom: calc(var(--spacing) * 8);
 }
 
 @media (max-width: 760px) {

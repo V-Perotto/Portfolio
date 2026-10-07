@@ -15,7 +15,7 @@ defineProps<{ metric: Metric }>()
 .metric {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.4rem;
+  gap: calc(var(--spacing) * 1.6);
   font-size: 0.85rem;
 }
 

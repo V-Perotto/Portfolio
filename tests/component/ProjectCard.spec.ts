@@ -16,15 +16,34 @@ const base = {
 } as const
 
 describe('ProjectCard', () => {
-  it('sem evidência mostra o motivo e nenhum link', () => {
-    const project: Project = { ...base, stack: ['Vue'], evidence: [], noEvidenceReason: 'Código privado' }
+  it('confidencial sem evidência mostra o motivo e nenhum link', () => {
+    const project: Project = {
+      ...base,
+      stack: ['Vue'],
+      evidence: [],
+      confidential: true,
+      noEvidenceReason: 'Projeto confidencial, sem link público.',
+    }
     const wrapper = mount(ProjectCard, { props: { project } })
-    expect(wrapper.text()).toContain('Código privado')
+    expect(wrapper.text()).toContain('Projeto confidencial, sem link público.')
     expect(wrapper.findAll('a')).toHaveLength(0)
   })
 
+  it('métricas vêm logo depois da descrição', () => {
+    const project: Project = {
+      ...base,
+      stack: ['Vue'],
+      evidence: [],
+      confidential: true,
+      noEvidenceReason: 'x',
+      highlights: [{ value: '-40%', label: 'tempo de pesquisa' }],
+    }
+    const wrapper = mount(ProjectCard, { props: { project } })
+    expect(wrapper.get('.t-desc').element.nextElementSibling?.classList.contains('metrics')).toBe(true)
+  })
+
   it('sem métricas não renderiza o bloco de resultados nem texto vazio', () => {
-    const project: Project = { ...base, stack: ['Vue'], evidence: [], noEvidenceReason: 'x' }
+    const project: Project = { ...base, stack: ['Vue'], evidence: [], confidential: true, noEvidenceReason: 'x' }
     const wrapper = mount(ProjectCard, { props: { project } })
     expect(wrapper.find('.metrics').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('undefined')
@@ -44,7 +63,7 @@ describe('ProjectCard', () => {
   })
 
   it('exibe stack, papel e tipo', () => {
-    const project: Project = { ...base, stack: ['Vue', 'TS'], evidence: [], noEvidenceReason: 'x' }
+    const project: Project = { ...base, stack: ['Vue', 'TS'], evidence: [], confidential: true, noEvidenceReason: 'x' }
     const text = mount(ProjectCard, { props: { project } }).text()
     expect(text).toContain('Vue')
     expect(text).toContain('TS')

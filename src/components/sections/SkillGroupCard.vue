@@ -22,12 +22,14 @@ defineProps<{ group: SkillGroup }>()
   color: var(--purple-glow);
   font-size: 0.95rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: calc(var(--spacing) * 4);
+  /* ids longos (linguagens_frameworks) quebram com texto ampliado em vez de vazar (FR-025) */
+  overflow-wrap: anywhere;
 }
 
 .skill-icon {
   color: var(--green-bright);
-  margin-right: 0.5rem;
+  margin-right: calc(var(--spacing) * 2);
   font-size: 1.35rem;
   vertical-align: -0.12em;
 }

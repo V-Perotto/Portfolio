@@ -4,8 +4,9 @@
   idêntico a DavidHDev/vue-bits@07c0f76d5567db022c2e3185dd97a2311e056c0c
   src/content/Components/SpotlightCard/SpotlightCard.vue
   Licença: MIT + Commons Clause — Copyright (c) 2025 David Haz
-  Modificação local: `duration-500` → `duration-200` na camada de brilho (spec, Design System:
-  hover/foco em 150–250ms).
+  Modificações locais: `duration-500` → `duration-200` na camada de brilho (spec, Design System:
+  hover/foco em 150–250ms); classe `spotlight-layer` na camada de brilho, para o BaseCard acendê-la
+  no foco por teclado e apagá-la em telas de toque (FR-014).
 -->
 <template>
   <div
@@ -18,7 +19,7 @@
     :class="['relative rounded-3xl border overflow-hidden p-8', className]"
   >
     <div
-      class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 ease-in-out"
+      class="spotlight-layer pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 ease-in-out"
       :style="{
         opacity,
         background: `radial-gradient(circle at ${position.x}px ${position.y}px, ${spotlightColor}, transparent 80%)`

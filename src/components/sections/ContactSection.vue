@@ -31,31 +31,31 @@ const display = (contact: Contact) => contact.label ?? contact.url.replace(/^htt
 
 <style scoped>
 .contact-window {
-  margin: 1.5rem auto 0;
+  margin: calc(var(--spacing) * 6) auto 0;
   max-width: 720px;
   border: 1px solid var(--border);
   border-radius: var(--radius-window);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(123, 63, 179, 0.08);
-  transition: box-shadow 0.3s, border-color 0.3s;
+  box-shadow: 0 8px 40px color-mix(in srgb, var(--shadow) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--purple-light) 8%, transparent);
+  transition: box-shadow 0.25s, border-color 0.25s;
 }
 
 .contact-window:hover {
   border-color: var(--purple-light);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(123, 63, 179, 0.25);
+  box-shadow: 0 8px 40px color-mix(in srgb, var(--shadow) 50%, transparent), 0 0 24px color-mix(in srgb, var(--purple-light) 25%, transparent);
 }
 
 .contact-list {
   list-style: none;
-  margin: 0.4rem 0 1.4rem;
+  margin: calc(var(--spacing) * 1.6) 0 calc(var(--spacing) * 5.6);
 }
 
 .contact-list li {
-  margin-bottom: 0.55rem;
+  margin-bottom: calc(var(--spacing) * 2.2);
   overflow-wrap: anywhere;
 }
 
 .c-key { color: var(--purple-glow); }
-.c-sep { color: var(--text-dim); margin: 0 0.4rem; }
+.c-sep { color: var(--text-dim); margin: 0 calc(var(--spacing) * 1.6); }
 
 .c-val {
   color: var(--green-bright);
@@ -66,6 +66,6 @@ const display = (contact: Contact) => contact.label ?? contact.url.replace(/^htt
 
 .c-val:hover {
   border-bottom-color: var(--green-bright);
-  text-shadow: 0 0 12px rgba(74, 222, 155, 0.7);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--green-bright) 70%, transparent);
 }
 </style>

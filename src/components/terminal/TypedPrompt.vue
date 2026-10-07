@@ -4,7 +4,8 @@ import { useMotion } from '@/composables/useMotion'
 
 /**
  * Prompt que digita e apaga as frases em loop (FR-032) — porte do efeito anterior. No HTML
- * pré-renderizado e com movimento reduzido mostra a frase estática.
+ * pré-renderizado e sem movimento mostra a frase estática. Leitores de tela leem sempre só a frase
+ * estática (cargo principal); a digitação fica oculta deles (FR-036).
  */
 const props = defineProps<{ phrases: readonly string[]; staticIndex: number }>()
 
@@ -55,7 +56,7 @@ onBeforeUnmount(() => clearTimeout(timer))
 </script>
 
 <template>
-  <span class="typed">{{ shown }}</span>
+  <span class="sr-only">{{ phrases[staticIndex] }}</span><span class="typed" aria-hidden="true">{{ shown }}</span>
 </template>
 
 <style scoped>

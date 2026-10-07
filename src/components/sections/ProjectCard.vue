@@ -25,15 +25,15 @@ const KIND_LABEL: Record<ProjectKind, string> = {
         <span class="hl-purple">{{ project.name }}</span> — {{ project.subtitle }}
       </h3>
       <p class="t-output t-desc">{{ project.purpose }}</p>
+      <ul v-if="project.highlights?.length" class="metrics" aria-label="Resultados">
+        <MetricBadge v-for="metric in project.highlights" :key="metric.label" :metric="metric" />
+      </ul>
       <dl class="project-meta">
         <div><dt>papel</dt><dd>{{ project.role }}</dd></div>
         <div><dt>tipo</dt><dd>{{ KIND_LABEL[project.kind] }}</dd></div>
       </dl>
       <ul class="chips project-stack" aria-label="Stack">
         <TagChip v-for="tech in project.stack" :key="tech">{{ tech }}</TagChip>
-      </ul>
-      <ul v-if="project.highlights?.length" class="metrics" aria-label="Resultados">
-        <MetricBadge v-for="metric in project.highlights" :key="metric.label" :metric="metric" />
       </ul>
       <ul v-if="project.evidence.length" class="t-badges">
         <EvidenceLink v-for="evidence in project.evidence" :key="evidence.url" :evidence="evidence" />
@@ -51,41 +51,41 @@ const KIND_LABEL: Record<ProjectKind, string> = {
   font-size: inherit;
   font-weight: 400;
   color: var(--text-dim);
-  margin: 0 0 1rem 0;
+  margin: 0 0 calc(var(--spacing) * 4) 0;
 }
 
 .t-desc {
   color: var(--text);
   font-family: var(--font-sans);
-  margin: 0 0 1rem 0;
+  margin: 0 0 calc(var(--spacing) * 4) 0;
 }
 
 .project-meta {
-  margin-bottom: 0.8rem;
+  margin-bottom: calc(var(--spacing) * 3.2);
   font-size: 0.82rem;
 }
 
-.project-meta div { display: flex; gap: 0.4rem; }
+.project-meta div { display: flex; gap: calc(var(--spacing) * 1.6); }
 .project-meta dt { color: var(--purple-glow); flex-shrink: 0; white-space: nowrap; }
 .project-meta dt::after { content: " ="; color: var(--text-dim); }
 .project-meta dd { color: var(--text); }
 
-.project-stack { margin-bottom: 1rem; }
+.project-stack { margin-bottom: calc(var(--spacing) * 4); }
 
 .metrics {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 1.2rem;
+  gap: calc(var(--spacing) * 1.6) calc(var(--spacing) * 4.8);
   list-style: none;
-  margin-bottom: 1rem;
+  margin-bottom: calc(var(--spacing) * 4);
 }
 
 .t-badges {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.9rem;
-  margin-bottom: 1rem;
+  gap: calc(var(--spacing) * 3.6);
+  margin-bottom: calc(var(--spacing) * 4);
   list-style: none;
 }
 
@@ -97,5 +97,5 @@ const KIND_LABEL: Record<ProjectKind, string> = {
   margin-bottom: 0;
 }
 
-.t-exit { color: var(--text-dim); font-size: 0.8rem; margin-left: 0.6rem; }
+.t-exit { color: var(--text-dim); font-size: 0.8rem; margin-left: calc(var(--spacing) * 2.4); }
 </style>

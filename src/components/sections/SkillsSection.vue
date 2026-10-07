@@ -28,7 +28,7 @@ defineProps<{ groups: readonly SkillGroup[] }>()
 .skills-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.2rem;
+  gap: calc(var(--spacing) * 4.8);
   list-style: none;
 }
 </style>

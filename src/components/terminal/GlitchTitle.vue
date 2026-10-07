@@ -19,7 +19,7 @@ defineProps<{ text: string }>()
   letter-spacing: -0.02em;
   line-height: 1.6;
   color: var(--text);
-  text-shadow: 0 0 30px rgba(160, 106, 224, 0.35);
+  text-shadow: 0 0 30px color-mix(in srgb, var(--purple-glow) 35%, transparent);
 }
 
 .glitch::before,

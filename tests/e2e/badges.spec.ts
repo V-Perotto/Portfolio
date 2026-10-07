@@ -8,7 +8,7 @@ const card = (page: import('@playwright/test').Page) => page.locator('#projetos 
 test('cartão de temas sem badges', async ({ page }) => {
   await page.goto('./#projetos')
   await page.waitForLoadState('networkidle')
-  const withBadges = (await card(page).boundingBox())?.height
+  const withBadges = await card(page).boundingBox()
 
   await page.route('**/img.shields.io/**', (route) => route.abort())
   await page.reload()
@@ -18,5 +18,14 @@ test('cartão de temas sem badges', async ({ page }) => {
   await expect(card(page).getByText('Shadow Lord - Son of Dathomir Theme')).toBeVisible()
   const links = card(page).locator('a[href*="open-vsx.org"]')
   await expect(links).toHaveCount(2)
-  expect((await card(page).boundingBox())?.height).toBe(withBadges)
+  const without = await card(page).boundingBox()
+  expect(without?.height).toBe(withBadges?.height)
+  expect(without?.width).toBe(withBadges?.width)
+
+  // FR-011: nenhum ícone de imagem quebrada; no lugar do badge, o domínio como texto do link
+  const broken = await card(page).locator('img').evaluateAll((imgs) =>
+    imgs.filter((img) => (img as HTMLImageElement).naturalWidth === 0 && getComputedStyle(img).display !== 'none').length,
+  )
+  expect(broken).toBe(0)
+  await expect(links.first()).toContainText('open-vsx.org')
 })

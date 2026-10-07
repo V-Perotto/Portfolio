@@ -1,17 +1,43 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 import ExternalLink from '@/components/base/ExternalLink.vue'
 import type { Evidence } from '@/types/resume'
 
-defineProps<{ evidence: Evidence }>()
+const props = defineProps<{ evidence: Evidence }>()
+
+/**
+ * Badge dinâmico (FR-011): ocupa sempre a mesma caixa, carregue ou não. Se a imagem falhar, no lugar
+ * dela aparece o domínio da evidência como texto do link, sem ícone de imagem quebrada.
+ */
+const badge = ref<HTMLImageElement | null>(null)
+const badgeFailed = ref(false)
+const host = new URL(props.evidence.url).host
+
+onMounted(() => {
+  // o erro pode ter acontecido antes da hidratação, quando ainda não havia ouvinte
+  const img = badge.value
+  if (img?.complete && img.naturalWidth === 0) badgeFailed.value = true
+})
 </script>
 
 <template>
   <li class="t-theme">
     <p class="t-theme-name">
-      <span class="prompt-dollar">&gt; </span><span :class="evidence.accent ? ['neon', `neon-${evidence.accent}`] : 'hl-green'" :data-text="evidence.label">{{ evidence.label }}</span>
+      <span class="prompt-dollar" aria-hidden="true">&gt; </span><span :class="evidence.accent ? ['neon', `neon-${evidence.accent}`] : 'hl-green'" :data-text="evidence.label">{{ evidence.label }}</span>
     </p>
     <ExternalLink :href="evidence.url" :class="['evidence-link', evidence.accent && `evidence-${evidence.accent}`]">
-      <img v-if="evidence.badge" :src="evidence.badge.src" :alt="evidence.badge.alt" loading="lazy" decoding="async">
+      <span v-if="evidence.badge" class="badge-box">
+        <span v-if="badgeFailed" class="evidence-url">{{ host }}</span>
+        <img
+          v-else
+          ref="badge"
+          :src="evidence.badge.src"
+          :alt="evidence.badge.alt"
+          loading="lazy"
+          decoding="async"
+          @error="badgeFailed = true"
+        >
+      </span>
       <span v-else class="evidence-url">{{ evidence.url.replace(/^https?:\/\//, '') }}</span>
     </ExternalLink>
   </li>
@@ -20,7 +46,7 @@ defineProps<{ evidence: Evidence }>()
 <style scoped>
 .t-theme-name {
   color: var(--text);
-  margin-bottom: 0.35rem;
+  margin-bottom: calc(var(--spacing) * 1.4);
 }
 
 /* letreiro neon nos nomes dos temas. O texto fica estável (contraste ≥ 4,5:1, FR-022); só o
@@ -42,21 +68,21 @@ defineProps<{ evidence: Evidence }>()
 
 .neon-grape::after {
   text-shadow:
-    0 0 4px rgba(74, 222, 155, 0.9),
-    0 0 10px rgba(74, 222, 155, 0.6),
-    0 0 18px rgba(160, 106, 224, 0.75),
-    0 0 32px rgba(160, 106, 224, 0.5);
+    0 0 4px color-mix(in srgb, var(--green-bright) 90%, transparent),
+    0 0 10px color-mix(in srgb, var(--green-bright) 60%, transparent),
+    0 0 18px color-mix(in srgb, var(--purple-glow) 75%, transparent),
+    0 0 32px color-mix(in srgb, var(--purple-glow) 50%, transparent);
 }
 
-/* #ff5b5b original ficava em 4,3:1 contra o próprio brilho; #ff6b6b atinge 4,75:1 (FR-022) */
-.neon-sith { color: #ff6b6b; }
+/* o vermelho original (--sith-glow) ficava em 4,3:1 contra o próprio brilho; --sith atinge 4,75:1 (FR-022) */
+.neon-sith { color: var(--sith); }
 
 .neon-sith::after {
   text-shadow:
-    0 0 4px rgba(255, 91, 91, 0.9),
-    0 0 10px rgba(217, 4, 4, 0.75),
-    0 0 18px rgba(217, 4, 4, 0.55),
-    0 0 32px rgba(217, 4, 4, 0.4);
+    0 0 4px color-mix(in srgb, var(--sith-glow) 90%, transparent),
+    0 0 10px color-mix(in srgb, var(--sith-deep) 75%, transparent),
+    0 0 18px color-mix(in srgb, var(--sith-deep) 55%, transparent),
+    0 0 32px color-mix(in srgb, var(--sith-deep) 40%, transparent);
   animation: neon-flicker 2.9s linear infinite reverse;
 }
 
@@ -71,31 +97,40 @@ defineProps<{ evidence: Evidence }>()
 }
 
 .evidence-link {
-  display: inline-block;
+  /* bloco, não inline: a altura não depende da linha de base do badge ou do texto (FR-011) */
+  display: flex;
+  width: fit-content;
   transition: transform 0.2s, filter 0.2s;
 }
 
 .evidence-link:hover,
 .evidence-link:focus-visible {
   transform: translateY(-2px);
-  filter: drop-shadow(0 0 8px rgba(123, 63, 179, 0.55));
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--purple-light) 55%, transparent));
 }
 
 /* o badge do Shadow Lord brilha em vermelho, na cor do tema */
 .evidence-sith:hover,
 .evidence-sith:focus-visible {
-  filter: drop-shadow(0 0 8px rgba(217, 4, 4, 0.65));
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--sith-deep) 65%, transparent));
 }
 
-/* altura reservada: se o serviço de badges falhar, o cartão não muda de tamanho (SC-011) */
-.evidence-link img {
+/* caixa reservada do badge (FR-011, SC-011): os badges "for-the-badge" têm 28px de altura e ~174px
+   de largura (varia com o número de downloads); a caixa não muda se a imagem carregar, atrasar ou
+   falhar */
+.badge-box {
+  display: flex;
+  align-items: center;
+  width: 190px;
+  max-width: 100%;
+  height: 28px;
+}
+
+.badge-box img {
   display: block;
   height: 28px;
   width: auto;
   max-width: 100%;
-  overflow: hidden;
-  font-size: 0.75rem;
-  color: var(--text-dim);
 }
 
 .evidence-url { color: var(--green-bright); }
