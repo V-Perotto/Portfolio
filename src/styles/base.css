@@ -1,0 +1,171 @@
+/* ============================================================
+   Base: reset, documento e classes compartilhadas entre componentes.
+   Porte do css/style.css da versão HTML/CSS/JS anterior (base, prompt, chip, tag-now, cursor,
+   acessibilidade) + foco e impressão.
+   ============================================================ */
+
+@layer base {
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: var(--nav-height); }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  ::selection { background: var(--purple-light); color: #fff; }
+
+  /* barra de rolagem temática */
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg-alt); }
+  ::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--purple-light); }
+
+  :focus-visible {
+    outline: 2px solid var(--purple-glow);
+    outline-offset: 2px;
+  }
+
+  /* boot: enquanto html.booting existir, uma capa cobre a página (o BootScreen fica acima, z 9999) */
+  html.booting { overflow: hidden; }
+  html.booting::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    background: var(--bg);
+  }
+}
+
+@layer components {
+  .mono { font-family: var(--font-mono); }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* cores de prompt reutilizadas */
+  .prompt-user { color: var(--green-bright); }
+  .prompt-at, .prompt-colon { color: var(--text-dim); }
+  .prompt-host { color: var(--purple-glow); }
+  .prompt-path { color: var(--green-light); }
+  .prompt-dollar { color: var(--purple-glow); }
+  .hl-green { color: var(--green-bright); }
+  .hl-purple { color: var(--purple-glow); font-weight: 600; }
+
+  .cursor {
+    color: var(--green-bright);
+    animation: blink 1s steps(1) infinite;
+  }
+
+  .tag-now {
+    background: var(--green);
+    color: #eafff4;
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius-tag);
+    font-size: 0.7rem;
+    margin-left: 0.5rem;
+    letter-spacing: 0.06em;
+    animation: pulse-glow 2.4s ease-in-out infinite;
+  }
+
+  .card-date { color: var(--text-dim); font-size: 0.78rem; margin-bottom: 0.5rem; }
+  .card-role { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+  .card-company { color: var(--purple-glow); font-size: 0.82rem; margin-bottom: 0.8rem; }
+  .card-desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 1rem; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; }
+}
+
+/* v-reveal (src/directives/reveal.ts): a classe pendente só é aplicada pelo JS */
+.reveal { transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.reveal-pending { opacity: 0; transform: translateY(24px); }
+
+@keyframes blink { 50% { opacity: 0; } }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(74, 222, 155, 0.4); }
+  50% { box-shadow: 0 0 14px rgba(74, 222, 155, 0.85); }
+}
+
+/* ============================================================
+   ACESSIBILIDADE — reduz movimento (FR-020)
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   IMPRESSÃO (FR-027): tema claro trocando os tokens, sem decoração
+   nem animação, todo o conteúdo visível e URLs dos links por extenso
+   ============================================================ */
+@media print {
+  :root {
+    --bg: #fff;
+    --bg-alt: #fff;
+    --surface: #fff;
+    --surface-2: #f3f1f6;
+    --border: #c9c3d3;
+    --purple: #5b2a8a;
+    --purple-light: #5b2a8a;
+    --purple-glow: #5b2a8a;
+    --green: #1d6b4b;
+    --green-light: #1d6b4b;
+    --green-bright: #1d6b4b;
+    --text: #111;
+    --text-dim: #444;
+    --spotlight: transparent;
+  }
+
+  html, body { background: #fff !important; color: var(--text) !important; }
+
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  /* decoração e navegação não vão para o papel */
+  .scanlines, canvas, .boot-screen, .section-decor, .hero-grid, .hero-scroll, .hero-boot,
+  .navbar, .tech-marquee, .t-controls, .glitch::before, .glitch::after, .neon::after,
+  .cursor, .nav-cursor, html.booting::before { display: none !important; }
+
+  /* tudo visível no estado final, mesmo o que ainda não foi revelado ou está no meio da animação */
+  .reveal-pending { opacity: 1 !important; transform: none !important; }
+  /* a revelação do BlurText anima em camadas do compositor: imprime o texto completo que já
+     existe para leitores de tela; o prompt que digita sai (pode estar no meio de uma frase) */
+  .reveal-text .blur-text, .hero-terminal { display: none !important; }
+  .reveal-text .sr-only {
+    position: static; width: auto; height: auto; margin: 0; overflow: visible;
+    clip: auto; clip-path: none; white-space: normal;
+  }
+
+  .hero { min-height: auto !important; padding: 1rem 0 !important; background: none !important; }
+  .btn { display: none !important; }
+  .neon-sith { color: #b00000 !important; }
+
+  a { color: inherit; }
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.8em; word-break: break-all; }
+  .evidence-link img { display: none !important; }
+
+  section, li, .terminal-window { break-inside: avoid; }
+}

@@ -1,0 +1,67 @@
+/* ============================================================
+   Tokens do tema Cybercore dark — valores idênticos aos da versão
+   anterior (css/style.css, no histórico do git). Único lugar com cores, fontes,
+   raios, larguras e espaçamentos de seção (Princípio V).
+   ============================================================ */
+
+:root {
+  --bg: #0a0612;
+  --bg-alt: #0d0a16;
+  --surface: #16101f;
+  --surface-2: #1c1428;
+  --border: #2c1d40;
+
+  --purple: #462066;
+  --purple-light: #7b3fb3;
+  --purple-glow: #a06ae0;
+
+  --green: #205e44;
+  --green-light: #2fa876;
+  --green-bright: #4ade9b;
+
+  --text: #d8d2e4;
+  --text-dim: #8a819e;
+
+  --font-mono: "Iosevka", ui-monospace, monospace;
+  --font-sans: "Iosevka Aile", ui-sans-serif, sans-serif;
+
+  /* realce do SpotlightCard (novo) */
+  --spotlight: rgb(160 106 224 / 0.18);
+
+  /* espaçamentos de layout */
+  --section-pad: 5rem 1.5rem 2rem;
+  --hero-pad: 6rem 1.5rem 4rem;
+  --nav-height: 4.5rem;
+}
+
+/* expõe os tokens como utilitários do Tailwind (bg-bg, text-purple-glow, rounded-card, max-w-page…) */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-alt: var(--bg-alt);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-purple: var(--purple);
+  --color-purple-light: var(--purple-light);
+  --color-purple-glow: var(--purple-glow);
+  --color-green: var(--green);
+  --color-green-light: var(--green-light);
+  --color-green-bright: var(--green-bright);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+
+  --font-mono: var(--font-mono);
+  --font-sans: var(--font-sans);
+}
+
+@theme static {
+  --radius-window: 10px;
+  --radius-card: 8px;
+  --radius-btn: 6px;
+  --radius-nav: 4px;
+  --radius-tag: 3px;
+  --radius-pill: 999px;
+
+  --container-page: 1100px;
+  --container-hero: 820px;
+}
