@@ -1,21 +1,17 @@
 <!--
 Sync Impact Report
-- Version change: 1.0.0 → 2.0.0 (MAJOR: Princípio III redefinido de forma incompatível — framework e
-  etapa de build, antes proibidos, passam a ser permitidos)
+- Version change: 2.0.0 → 2.1.0 (MINOR: exceção do Princípio II ampliada — experiência acadêmica
+  sem artefato público passa a poder aparecer sem evidência, com aviso explícito)
 - Modified principles:
-  - III. Simplicidade Estática → III. Saída Estática (redefinido: framework/bundler/build permitidos;
-    exige saída 100% estática, conteúdo pré-renderizado legível sem JavaScript e build reproduzível)
-  - V. Identidade Visual Coerente (ajuste de redação: tokens no arquivo central do projeto, não mais
-    fixos em `css/style.css`; reuso de componentes além de classes)
-- Modified sections:
-  - Restrições de Conteúdo e Tecnologia: stack deixa de ser "JavaScript vanilla" e remete ao
-    Princípio III
-  - Fluxo de Trabalho e Verificação: verificação no build de produção e com JavaScript desativado
+  - II. Projetos Demonstráveis (exceção à evidência pública: "trabalho confidencial" →
+    "trabalho confidencial ou experiência acadêmica sem artefato público")
 - Added sections: none
 - Removed sections: none
 - Templates: not modified by this command (dependent templates read the constitution at runtime)
-- Dependent artifacts: specs/001-vue-resume-refactor/spec.md já pressupõe esta emenda (FR-012,
-  FR-028); bloqueio do /speckit-plan removido
+- Dependent artifacts: specs/001-vue-resume-refactor/spec.md (FR-010, US2 cenário 4, Key Entities)
+  e o tipo `Project` (contracts/resume.schema.ts, src/types/resume.ts) precisam aceitar a nova
+  exceção — feito na T095 do /speckit-implement em andamento
+- Origem: decisão do autor em 2026-10-07 (projeto "Monitor de Curso", PUC-PR)
 - Follow-up TODOs: none
 -->
 
@@ -47,8 +43,9 @@ Os projetos são o núcleo do portfólio e MUST ser apresentados de forma verifi
 - Cada projeto exibido MUST informar: nome, problema resolvido ou propósito, stack utilizada e o
   papel do autor.
 - Cada projeto MUST ter ao menos uma evidência pública acessível (repositório, demo, página em
-  marketplace ou equivalente), exceto quando o trabalho for confidencial — nesse caso, isso MUST
-  ficar explícito e nenhum detalhe sigiloso pode ser exposto.
+  marketplace ou equivalente), com duas exceções, que MUST ficar explícitas no próprio projeto:
+  trabalho confidencial (sem expor nenhum detalhe sigiloso) e experiência acadêmica sem artefato
+  público (ex.: monitoria de disciplina).
 - Links externos MUST abrir com `target="_blank"` e `rel="noopener noreferrer"`; indicadores
   dinâmicos (badges de downloads, estrelas etc.) MUST ter texto alternativo descritivo.
 - Projetos são ordenados por relevância para o posicionamento profissional atual, não por data.
@@ -149,4 +146,4 @@ princípios acima; violações MUST ser corrigidas ou justificadas explicitament
 - **Revisão de conformidade**: a cada nova feature e sempre que o currículo for atualizado, o
   conteúdo do site MUST ser revisado contra os Princípios I e II.
 
-**Version**: 2.0.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-06
+**Version**: 2.1.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-07
