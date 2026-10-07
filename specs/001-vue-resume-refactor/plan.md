@@ -110,8 +110,11 @@ specs/001-vue-resume-refactor/
 ├── .github/workflows/pages.yml   # npm ci → test → build → deploy-pages
 ├── public/
 │   └── fonts/                    # 6 × .woff2 com subset (movidos de fonts/)
+├── README.md
 ├── tools/
-│   └── build-fonts.sh            # OUT passa a ser public/fonts
+│   ├── build-fonts.sh            # OUT passa a ser public/fonts; peso 800 só com o nome (R12)
+│   ├── iosevka-800.chars         # letras do subset do peso 800 (conferido por fonts.spec.ts)
+│   └── reencode-images.py        # reencoda as imagens decorativas (R12)
 ├── src/
 │   ├── main.ts                   # export const createApp = ViteSSG(App)
 │   ├── App.vue                   # composição das seções na ordem do FR-008
@@ -121,11 +124,14 @@ specs/001-vue-resume-refactor/
 │   │   └── resume.ts             # ÚNICO arquivo de conteúdo (satisfies Resume)
 │   ├── lib/
 │   │   ├── period.ts             # formatPeriod / formatYears (FR-005)
-│   │   └── sort.ts               # byStartDesc (FR-004)
+│   │   ├── sort.ts               # byStartDesc (FR-004)
+│   │   └── sections.ts           # visibleSections: seções com conteúdo, na ordem do FR-008
 │   ├── composables/
-│   │   ├── useMotion.ts          # lê html.motion / prefers-reduced-motion, reativo
+│   │   ├── useMotion.ts          # estado de movimento compartilhado (html.motion) + setMotion (FR-020, FR-035)
 │   │   ├── useActiveSection.ts   # IntersectionObserver → seção ativa no menu (FR-009)
-│   │   └── useHeadFromResume.ts  # useHead() com profile.seo (FR-029)
+│   │   ├── useHeadFromResume.ts  # useHead() com profile.seo (FR-029)
+│   │   ├── useBootDone.ts        # efeitos que esperam a tela de boot sair (revelação do hero)
+│   │   └── useHashAnchor.ts      # reposiciona /#secao depois do swap de fontes (SC-010)
 │   ├── directives/
 │   │   └── reveal.ts             # v-reveal: porta do .reveal atual (R6)
 │   ├── styles/
@@ -144,7 +150,7 @@ specs/001-vue-resume-refactor/
 │   │   ├── base/                 # wrappers do projeto sobre o vendor
 │   │   │   ├── BaseCard.vue      # SpotlightCard + :focus-within + spotlightColor do token
 │   │   │   ├── RevealText.vue    # texto puro no SSR → BlurText no cliente com motion
-│   │   │   ├── TechMarquee.vue   # LogoLoop com SkillItem.featured, aria-hidden
+│   │   │   ├── TechMarquee.vue   # LogoLoop com SkillItem.featured, aria-hidden; parada sem movimento
 │   │   │   ├── TagChip.vue
 │   │   │   ├── MetricBadge.vue
 │   │   │   ├── ExternalLink.vue
@@ -159,7 +165,8 @@ specs/001-vue-resume-refactor/
 │   │   │   ├── TerminalLine.vue  # "$ comando" e saídas
 │   │   │   └── Scanlines.vue
 │   │   ├── layout/
-│   │   │   ├── AppNav.vue        # nav fixa, menu mobile, seção ativa
+│   │   │   ├── AppNav.vue        # nav fixa, menu mobile (Esc fecha), seção ativa
+│   │   ├── MotionToggle.vue  # controle de movimento da navegação (FR-035)
 │   │   │   ├── SectionShell.vue  # <section id>, "## nome/", lead "$ ...", decor opcional
 │   │   │   └── AppFooter.vue     # ano (atualiza no mount) + crédito da nova stack
 │   │   └── sections/
@@ -179,16 +186,21 @@ specs/001-vue-resume-refactor/
 └── tests/
     ├── unit/
     │   ├── resume.data.spec.ts   # regras de validação + paridade (data-model)
-    │   └── period.spec.ts
+    │   ├── period.spec.ts
+    │   ├── sections.spec.ts      # seções visíveis e ordem (FR-008)
+    │   └── fonts.spec.ts         # subset do peso 800 cobre o nome (SC-004)
     ├── component/
     │   ├── RevealText.spec.ts    # SSR com texto puro
-    │   └── ProjectCard.spec.ts   # opcionais ausentes não geram blocos vazios
+    │   ├── ProjectCard.spec.ts   # opcionais ausentes não geram blocos vazios
+    │   └── ExperienceCard.spec.ts
     └── e2e/
-        ├── no-js.spec.ts
+        ├── no-js.spec.ts         # + JS principal que falha (FR-018)
         ├── reduced-motion.spec.ts
-        ├── a11y.spec.ts
-        ├── layout.spec.ts        # 4 larguras + console
-        ├── links.spec.ts         # âncoras + externos
+        ├── motion.spec.ts        # boot ≤ 5 s do início da navegação, efeitos
+        ├── motion-toggle.spec.ts # controle de movimento (FR-035)
+        ├── a11y.spec.ts          # axe, foco, leitores de tela, alto contraste
+        ├── layout.spec.ts        # 5 larguras + console, zoom, espaçamento de texto, toque
+        ├── links.spec.ts         # âncoras + externos + menu
         ├── badges.spec.ts
         └── weight.spec.ts        # orçamento R12
 ```
@@ -212,6 +224,7 @@ da biblioteca usado; "próprio" indica porte do código atual (motivo em researc
 | `#bootScreen` + `bootSequence()` | html + js §0 | `terminal/BootScreen.vue` | — próprio (R7) | — |
 | `.scanlines` | html + css | `terminal/Scanlines.vue` | — próprio | — |
 | `.navbar` + toggle mobile | html + js §4 | `layout/AppNav.vue` + `terminal/PromptLogo.vue` | — próprio | seções presentes |
+| *(novo)* controle de movimento | — | `layout/MotionToggle.vue` em `AppNav` | — próprio | `localStorage['motion']` |
 | `#matrixCanvas` + `matrixRain()` | html + js §1 | `terminal/MatrixRain.vue` | — próprio (`LetterGlitch` rejeitado, R7) | — |
 | `.hero-grid` | html + css | dentro de `HeroSection.vue` | — | — |
 | `.hero-boot` "[ OK ] Inicializando…" | html | `HeroSection.vue` | — | rótulo de UI |

@@ -59,6 +59,17 @@ Versões consultadas no registro npm em 2026-10-06. Código do Vue Bits lido no 
 | `BlurText` | `vue`, `motion-v` | **renderiza cada palavra com `opacity: 0` + `blur(10px)` no estado inicial** — no HTML pré-renderizado o texto fica invisível sem JS (ver R6) |
 | `LogoLoop` | só `vue` | aceita itens de texto (`node`), `pauseOnHover`, `ariaLabel`; marca cópias duplicadas com `aria-hidden`; já respeita `prefers-reduced-motion` |
 
+- **Ajustes feitos no código copiado (2026-10-07, T093)**, todos registrados no cabeçalho de cada
+  arquivo:
+  - `BlurText`: só tipos, para o `noUncheckedIndexedAccess` do projeto (filtro de `undefined` em
+    `buildKeyframes`, `entry?.` no observer), e `tag="span"` → `as="span"` no `Motion` — o motion-v
+    2.x usa `as`; com `tag`, cada palavra virava um `<div>` dentro do `<p>`.
+  - `SpotlightCard`: `duration-500` → `duration-200` (hover/foco em 150–250 ms) e a classe
+    `spotlight-layer` na camada de brilho, para o `BaseCard` acendê-la no foco por teclado e apagá-la
+    em telas de toque (FR-014).
+  - `LogoLoop`: sem mudanças. O `TechMarquee` troca o componente por uma faixa parada quando não há
+    movimento, em vez de depender só do `matchMedia` interno dele (FR-035).
+
 ## R4. Tailwind v4 com CSS Variables
 
 - **Decision**: configuração CSS-first do Tailwind v4. `src/styles/tokens.css` declara as variáveis
@@ -69,6 +80,13 @@ Versões consultadas no registro npm em 2026-10-06. Código do Vue Bits lido no 
   Tailwind, funcionam sem adaptação.
 - **Alternatives considered**: Tailwind v3 com `tailwind.config.js` — legado; CSS puro sem
   Tailwind — contraria o requisito do usuário e os componentes Vue Bits.
+- **Contraste sob o realce (FR-022, T097, 2026-10-07)**: a camada do `SpotlightCard` tem opacidade
+  0,6, então o brilho efetivo no pico é 0,6 × alfa do `--spotlight`. Com alfa 0,18 (10,8% de
+  `--purple-glow` misturado ao fundo), `--text-dim` caía para 4,49:1 sobre `--surface` e 4,25:1
+  sobre `--surface-2` (barra das janelas de projeto). O alfa passou a 0,10 (6% efetivo):
+  `--text-dim` 4,76:1 / 4,52:1, `--green-light` 5,82:1 / 5,53:1, `--purple-glow` 4,69:1 sobre
+  `--surface` (onde ele aparece como texto), `--text` ≥ 11:1. Cálculo: luminância relativa WCAG
+  sobre a mistura linear em sRGB do fundo com `#a06ae0`.
 
 ## R5. Porte do CSS atual (FR-030, paridade visual)
 
@@ -97,6 +115,21 @@ Versões consultadas no registro npm em 2026-10-06. Código do Vue Bits lido no 
      do `.reveal` atual, com fallback "visível" se o observer não existir.
 - **Rationale**: atende o FR-018 mesmo que um script falhe, sem flash: o estado escondido só existe
   quando o próprio JS confirmou que vai animar.
+- **Acréscimos na implementação (2026-10-07, T093/T096)**:
+  - `html.motion` virou a fonte única de "há movimento": o script inline a decide pela escolha
+    salva no controle de movimento (`localStorage['motion']`, FR-035) ou, sem escolha, pela
+    preferência do sistema. O CSS de movimento reduzido passou de `@media (prefers-reduced-motion)`
+    para `html:not(.motion)`, e `useMotion` é um estado compartilhado com `setMotion()`, que o
+    controle da navegação (`MotionToggle.vue`) alterna. Mudar a preferência do sistema durante a
+    visita vale na hora, se não houver escolha salva.
+  - `useBootDone`: a revelação da frase do hero espera a tela de boot sair, senão rodaria escondida
+    atrás dela.
+  - `useHashAnchor`: links diretos (`/#projetos`) reposicionam na âncora depois que as fontes
+    `font-display: swap` chegam e reflowam o texto, se o visitante ainda não rolou; sem isso o
+    SC-010 falhava de forma intermitente.
+  - O prazo da tela de boot é contado do início da navegação (`performance.now()`), no script
+    inline e no `BootScreen`: a página fica descoberta antes de 5 s mesmo com o bundle atrasado, e o
+    boot nem aparece se sobrar menos de 1 s (FR-031).
 - **Alternatives considered**: Vue Bits `FadeContent`/`AnimatedContent` para a revelação — ambos
   dependem de GSAP + ScrollTrigger (~70 KB) para algo que a diretiva resolve; `<ClientOnly>` no
   hero — o texto sumiria do HTML estático.
@@ -171,3 +204,11 @@ Versões consultadas no registro npm em 2026-10-06. Código do Vue Bits lido no 
   reduz o total da visita completa para ~400 KB + JS.
 - **Verificação**: teste e2e soma `transferSize` dos recursos no `load` sem rolagem, falha acima de
   500 KB; o build imprime o tamanho dos chunks.
+- **LCP móvel (SC-004, T089, 2026-10-07)**: Lighthouse 12, perfil móvel (4G simulado), Chrome com
+  `--force-prefers-reduced-motion` (sem a tela de boot, como pede o SC-004), 3 execuções sobre o
+  `vite preview`. O elemento de LCP é o `<h1>` do hero em Iosevka 800, com 84% do tempo em "render
+  delay": as 6 fontes entram no caminho crítico porque toda a página está no HTML pré-renderizado.
+  Antes: LCP 2,8 / 2,8 / 3,0 s. Opção 1 da T089 (peso 800 só com as letras do nome — 32 KB → 4 KB —
+  e `preload` com `fetchpriority="high"`): LCP 2,4 / 2,4 / 2,4 s, CLS 0,005, performance 0,98. As
+  opções 2 e 3 não foram necessárias. O subset sai de `tools/build-fonts.sh`, que lê o nome de
+  `src/data/resume.ts`; `tests/unit/fonts.spec.ts` acusa se o nome mudar sem regerar a fonte.
