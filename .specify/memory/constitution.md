@@ -1,17 +1,18 @@
 <!--
 Sync Impact Report
-- Version change: 2.0.0 → 2.1.0 (MINOR: exceção do Princípio II ampliada — experiência acadêmica
-  sem artefato público passa a poder aparecer sem evidência, com aviso explícito)
+- Version change: 2.1.0 → 2.2.0 (MINOR: Princípio II ampliado — nova exceção à evidência pública
+  para código em repositório privado, e stack dispensada em projeto não técnico)
 - Modified principles:
-  - II. Projetos Demonstráveis (exceção à evidência pública: "trabalho confidencial" →
-    "trabalho confidencial ou experiência acadêmica sem artefato público")
+  - II. Projetos Demonstráveis (exceções à evidência pública: 2 → 3, com "código em repositório
+    privado"; "stack utilizada" passa a valer só para projeto técnico)
 - Added sections: none
 - Removed sections: none
 - Templates: not modified by this command (dependent templates read the constitution at runtime)
-- Dependent artifacts: specs/001-vue-resume-refactor/spec.md (FR-010, US2 cenário 4, Key Entities)
-  e o tipo `Project` (contracts/resume.schema.ts, src/types/resume.ts) precisam aceitar a nova
-  exceção — feito na T095 do /speckit-implement em andamento
-- Origem: decisão do autor em 2026-10-07 (projeto "Monitor de Curso", PUC-PR)
+- Dependent artifacts: specs/002-projects-animated-terminals (FR-005, FR-006, FR-010, FR-019) e os
+  tipos `Project`/`Evidence` (src/types/resume.ts) precisam aceitar link privado e projeto sem
+  stack — a cargo do /speckit-plan e /speckit-implement da feature 002
+- Origem: decisão do autor em 2026-10-08 (feature 002: ItaliaMi, OCR_Para_BR, QClass-BOT e SRG com
+  repositórios privados; projeto comunitário da PUC-PR)
 - Follow-up TODOs: none
 -->
 
@@ -40,17 +41,21 @@ credibilidade que o site deveria construir.
 
 Os projetos são o núcleo do portfólio e MUST ser apresentados de forma verificável.
 
-- Cada projeto exibido MUST informar: nome, problema resolvido ou propósito, stack utilizada e o
-  papel do autor.
+- Cada projeto exibido MUST informar: nome, problema resolvido ou propósito e o papel do autor.
+  Projeto técnico MUST informar também a stack utilizada; projeto não técnico (ex.: projeto
+  comunitário ou de extensão) dispensa a stack.
 - Cada projeto MUST ter ao menos uma evidência pública acessível (repositório, demo, página em
-  marketplace ou equivalente), com duas exceções, que MUST ficar explícitas no próprio projeto:
-  trabalho confidencial (sem expor nenhum detalhe sigiloso) e experiência acadêmica sem artefato
-  público (ex.: monitoria de disciplina).
+  marketplace ou equivalente), com três exceções, que MUST ficar explícitas no próprio projeto:
+  trabalho confidencial (sem expor nenhum detalhe sigiloso), experiência acadêmica sem artefato
+  público (ex.: monitoria de disciplina) e código em repositório privado. Na última, o projeto
+  MUST ter link para o repositório, e cada link privado MUST avisar, antes do clique, que o
+  repositório é privado e pode não abrir para o visitante.
 - Links externos MUST abrir com `target="_blank"` e `rel="noopener noreferrer"`; indicadores
   dinâmicos (badges de downloads, estrelas etc.) MUST ter texto alternativo descritivo.
 - Projetos são ordenados por relevância para o posicionamento profissional atual, não por data.
 
 **Racional**: o objetivo é que o visitante possa comprovar o trabalho, não apenas ler sobre ele.
+Quando o código é privado, o link avisado mostra que o repositório existe sem fingir que é público.
 
 ### III. Saída Estática
 
@@ -146,4 +151,4 @@ princípios acima; violações MUST ser corrigidas ou justificadas explicitament
 - **Revisão de conformidade**: a cada nova feature e sempre que o currículo for atualizado, o
   conteúdo do site MUST ser revisado contra os Princípios I e II.
 
-**Version**: 2.1.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-07
+**Version**: 2.2.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-08
