@@ -46,7 +46,7 @@ desejado.
   de dados única facilita a conferência contra o currículo. O "foco em métricas" da referência
   career-ops só se aplica a números que o currículo sustenta (ver FR-006).
 - **Princípio IV (Acessibilidade e Desempenho)**: mantido integralmente como requisito (FR-020 a
-  FR-027 e FR-035 a FR-037).
+  FR-027, FR-036 e FR-037).
 - **Princípio III (Simplicidade Estática)**: **conflita** com a v1.0.0 — o princípio proíbe
   framework, bundler e etapa de build obrigatória. Decidido emendá-lo para permitir build com saída
   100% estática (v2.0.0); a emenda é pré-requisito do `/speckit-plan`. Ver *Dependências e Riscos*.
@@ -80,13 +80,20 @@ desejado.
 - Q: Como alguém para o movimento contínuo (matrix, prompt digitando, faixa de tecnologias) sem ter
   ativado "reduzir movimento" no sistema? → A: Um controle de movimento alcançável por teclado (na
   navegação) que leva ao mesmo estado final do movimento reduzido; a escolha fica lembrada por
-  visitante (FR-035).
+  visitante (FR-035). *Revogado em 2026-10-08 — ver Session 2026-10-08.*
 - Q: Quais itens da revisão do `checklists/ux.md` viram mudança na spec? → A: 33 dos 40 (CHK001–006,
   008, 009, 011–019, 021, 025–029, 031–040), com a redação proposta na revisão; CHK007, 010, 020,
   022, 023, 024 e 030 ficam como estão.
 - Q: O projeto "Monitor de Curso" (experiência acadêmica, sem artefato público e não confidencial)
   pode continuar no site? → A: Sim. A constituição v2.1.0 ampliou a exceção do Princípio II para
   experiência acadêmica sem artefato público, dita explicitamente no card (FR-010).
+
+### Session 2026-10-08
+
+- Q: O controle "motion: on/off" da navegação (FR-035) continua? → A: Não, o autor pediu a remoção.
+  Fica o estado anterior: o movimento contínuo para com "reduzir movimento" no sistema (FR-020) e a
+  faixa de tecnologias pausa no hover (FR-016). A falta de um controle de pausa na página é uma
+  limitação aceita (ver Assumptions).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -193,9 +200,6 @@ ativada; conferir efeitos, foco visível e ausência de movimento quando reduzid
 7. **Given** o hero, **When** carregado, **Then** o nome tem efeito glitch, o prompt
    `viper@portfolio:~$` digita e apaga em loop as frases atuais (`whoami`, cargos e o `echo` da stack)
    e a chuva matrix roda ao fundo, como hoje.
-8. **Given** os efeitos em execução e "reduzir movimento" desligado no sistema, **When** o visitante
-   aciona o controle de movimento por teclado, toque ou mouse, **Then** matrix, glitch, digitação e
-   faixa param no mesmo estado final do movimento reduzido, e a escolha vale nas visitas seguintes.
 
 ---
 
@@ -277,7 +281,7 @@ ativada; conferir efeitos, foco visível e ausência de movimento quando reduzid
   palavras se ajusta ao tamanho da frase).
 - **FR-016**: A seção de skills MUST ter uma faixa de tecnologias em rolagem contínua, com
   velocidade constante de no máximo 60 px/s, alimentada pela mesma fonte de dados, que pausa no
-  hover, para com o controle do FR-035 e é ignorada por leitores de tela e pela ordem de tabulação
+  hover e é ignorada por leitores de tela e pela ordem de tabulação
   (a lista acessível é a das categorias).
 - **FR-017**: Seções MAY ter animação de entrada ao rolar, com duração entre 300ms e 800ms e
   deslocamento máximo de 24px.
@@ -310,11 +314,7 @@ ativada; conferir efeitos, foco visível e ausência de movimento quando reduzid
 - **FR-026**: O console do navegador MUST ficar sem erros nem avisos em produção.
 - **FR-027**: A versão impressa MUST sair em fundo claro, sem animações e com todos os links
   visíveis como texto.
-- **FR-035**: A navegação MUST ter um controle de movimento, operável por teclado e toque, com
-  estado (ligado/desligado) anunciado a tecnologias assistivas. Desligado, a página fica no mesmo
-  estado do FR-020 para os efeitos contínuos (chuva matrix, glitch, digitação, faixa de
-  tecnologias, cursor piscando). A escolha MUST ser lembrada por visitante entre visitas; com "reduzir movimento"
-  ativo no sistema, o movimento já começa desligado. Sem JavaScript, o controle não aparece.
+- **FR-035**: *Removido em 2026-10-08 (controle de movimento na navegação; ver Clarifications).*
 - **FR-036**: Os enfeites de terminal (`##` e `/` dos títulos, `$` e `>` dos prompts) MUST ficar
   ocultos de tecnologias assistivas, para que cada título seja lido só com o nome da seção; os
   comandos de abertura continuam legíveis. A tela de boot MUST ficar oculta de tecnologias
@@ -487,8 +487,7 @@ Todos os pares texto/fundo MUST ser validados contra o FR-022 antes do merge.
 - Entrada de seção: 300–800ms, deslocamento ≤ 24px, disparada uma vez por seção.
 - Revelação do hero: ≤ 1,5s no total.
 - Faixa contínua: velocidade constante de no máximo 60 px/s, pausa no hover.
-- Movimento reduzido ou controle de movimento desligado: vale a lista do FR-020 (e do FR-035 para
-  o controle).
+- Movimento reduzido: vale a lista do FR-020.
 
 ### Estados
 
@@ -516,7 +515,7 @@ com texto equivalente para tecnologias assistivas (FR-011).
 - **SC-005**: Zero violações críticas ou sérias no axe e nota de acessibilidade ≥ 95 no
   Lighthouse, em celular e desktop.
 - **SC-006**: Todas as seções, links e o menu são operáveis só com teclado, com foco sempre visível.
-- **SC-007**: Com "reduzir movimento" ativo, ou depois de desligar o controle de movimento (FR-035),
+- **SC-007**: Com "reduzir movimento" ativo,
   nenhum elemento se move sozinho, sem interação do visitante: o cursor não pisca; o realce sob o
   ponteiro continua permitido.
 - **SC-008**: Nenhuma rolagem horizontal em 320px, 360px, 768px, 1280px e 1920px de largura.
@@ -542,6 +541,10 @@ com texto equivalente para tecnologias assistivas (FR-011).
   código do projeto, versionado e ajustável: raio, cores, duração e estado inicial podem ser
   alterados no código copiado (ex.: `rounded-3xl` → 8px; texto da revelação visível no HTML
   pré-renderizado).
+- Limitação aceita (2026-10-08): quem não ativou "reduzir movimento" no sistema não tem como pausar,
+  na própria página, a chuva matrix, o prompt digitando e o glitch; a faixa de tecnologias pausa só
+  no hover. Isso deixa o critério de "pausar, parar ou ocultar" (WCAG 2.2.2) sem cobertura
+  completa, por decisão do autor.
 - Termos técnicos em inglês de uso corrente (`whoami`, nomes de tecnologias, comandos) ficam sem
   marcação de idioma própria, sob o `lang="pt-BR"` da página (Princípio V).
 - Os destinos dos links atuais (GitHub `V-Perotto`, LinkedIn `vittorioperotto`, Open VSX
@@ -567,3 +570,4 @@ com texto equivalente para tecnologias assistivas (FR-011).
 - Internacionalização (i18n) e alternância de tema claro/escuro na interface.
 - Download do PDF do currículo (o PDF não é versionado).
 - Analytics e cookies.
+- Controle de movimento na própria página (ligar/desligar animações): removido em 2026-10-08.
