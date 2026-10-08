@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
-import MotionToggle from '@/components/layout/MotionToggle.vue'
 import PromptLogo from '@/components/terminal/PromptLogo.vue'
 import { useActiveSection } from '@/composables/useActiveSection'
 import type { NavSection } from '@/lib/sections'
@@ -54,7 +53,6 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
             @click="close"
           >{{ section.label }}</a>
         </li>
-        <li class="nav-motion"><MotionToggle /></li>
       </ul>
     </div>
   </nav>
@@ -157,8 +155,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 .nav-toggle.open span:nth-child(2) { opacity: 0; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-/* recolhe até 960px: os 6 links + o controle de movimento precisam de ~930px em linha */
-@media (max-width: 960px) {
+/* recolhe até 840px: os 6 links precisam de ~815px em linha (com 760px, cortavam entre 761 e ~835px) */
+@media (max-width: 840px) {
   /* menu recolhível só quando há JS para abri-lo */
   html.js .nav-toggle { display: flex; }
 
@@ -180,7 +178,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   }
 
   html.js .nav-links.open {
-    max-height: 420px;
+    max-height: 340px;
     visibility: visible;
     transition: max-height 0.3s ease;
   }
@@ -193,8 +191,6 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   }
 
   html.js .nav-links a.nav-cta { border: none; border-radius: 0; padding: calc(var(--spacing) * 3.6) calc(var(--spacing) * 6); }
-
-  html.js .nav-motion { padding: calc(var(--spacing) * 2.8) calc(var(--spacing) * 6); }
 
   /* sem JS: a navegação fica no fluxo, com os links expostos em linhas */
   html:not(.js) .navbar { position: static; }

@@ -116,12 +116,11 @@ Versões consultadas no registro npm em 2026-10-06. Código do Vue Bits lido no 
 - **Rationale**: atende o FR-018 mesmo que um script falhe, sem flash: o estado escondido só existe
   quando o próprio JS confirmou que vai animar.
 - **Acréscimos na implementação (2026-10-07, T093/T096)**:
-  - `html.motion` virou a fonte única de "há movimento": o script inline a decide pela escolha
-    salva no controle de movimento (`localStorage['motion']`, FR-035) ou, sem escolha, pela
-    preferência do sistema. O CSS de movimento reduzido passou de `@media (prefers-reduced-motion)`
-    para `html:not(.motion)`, e `useMotion` é um estado compartilhado com `setMotion()`, que o
-    controle da navegação (`MotionToggle.vue`) alterna. Mudar a preferência do sistema durante a
-    visita vale na hora, se não houver escolha salva.
+  - `html.motion` virou a fonte única de "há movimento": o script inline a decide pela
+    preferência do sistema, e o CSS de movimento reduzido passou de `@media (prefers-reduced-motion)`
+    para `html:not(.motion)`. `useMotion` é um estado compartilhado que acompanha mudanças da
+    preferência durante a visita. (Entre 2026-10-07 e 2026-10-08 houve também um controle
+    "motion: on/off" na navegação com escolha salva, FR-035; removido a pedido do autor.)
   - `useBootDone`: a revelação da frase do hero espera a tela de boot sair, senão rodaria escondida
     atrás dela.
   - `useHashAnchor`: links diretos (`/#projetos`) reposicionam na âncora depois que as fontes

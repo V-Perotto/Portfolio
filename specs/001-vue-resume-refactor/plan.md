@@ -127,7 +127,7 @@ specs/001-vue-resume-refactor/
 │   │   ├── sort.ts               # byStartDesc (FR-004)
 │   │   └── sections.ts           # visibleSections: seções com conteúdo, na ordem do FR-008
 │   ├── composables/
-│   │   ├── useMotion.ts          # estado de movimento compartilhado (html.motion) + setMotion (FR-020, FR-035)
+│   │   ├── useMotion.ts          # estado de movimento compartilhado (html.motion), segue a preferência do sistema (FR-020)
 │   │   ├── useActiveSection.ts   # IntersectionObserver → seção ativa no menu (FR-009)
 │   │   ├── useHeadFromResume.ts  # useHead() com profile.seo (FR-029)
 │   │   ├── useBootDone.ts        # efeitos que esperam a tela de boot sair (revelação do hero)
@@ -165,8 +165,7 @@ specs/001-vue-resume-refactor/
 │   │   │   ├── TerminalLine.vue  # "$ comando" e saídas
 │   │   │   └── Scanlines.vue
 │   │   ├── layout/
-│   │   │   ├── AppNav.vue        # nav fixa, menu mobile (Esc fecha), seção ativa
-│   │   ├── MotionToggle.vue  # controle de movimento da navegação (FR-035)
+│   │   │   ├── AppNav.vue        # nav fixa, menu mobile até 840px (Esc fecha), seção ativa
 │   │   │   ├── SectionShell.vue  # <section id>, "## nome/", lead "$ ...", decor opcional
 │   │   │   └── AppFooter.vue     # ano (atualiza no mount) + crédito da nova stack
 │   │   └── sections/
@@ -195,9 +194,8 @@ specs/001-vue-resume-refactor/
     │   └── ExperienceCard.spec.ts
     └── e2e/
         ├── no-js.spec.ts         # + JS principal que falha (FR-018)
-        ├── reduced-motion.spec.ts
+        ├── reduced-motion.spec.ts # inclui mudar a preferência com a página aberta
         ├── motion.spec.ts        # boot ≤ 5 s do início da navegação, efeitos
-        ├── motion-toggle.spec.ts # controle de movimento (FR-035)
         ├── a11y.spec.ts          # axe, foco, leitores de tela, alto contraste
         ├── layout.spec.ts        # 5 larguras + console, zoom, espaçamento de texto, toque
         ├── links.spec.ts         # âncoras + externos + menu
@@ -224,7 +222,6 @@ da biblioteca usado; "próprio" indica porte do código atual (motivo em researc
 | `#bootScreen` + `bootSequence()` | html + js §0 | `terminal/BootScreen.vue` | — próprio (R7) | — |
 | `.scanlines` | html + css | `terminal/Scanlines.vue` | — próprio | — |
 | `.navbar` + toggle mobile | html + js §4 | `layout/AppNav.vue` + `terminal/PromptLogo.vue` | — próprio | seções presentes |
-| *(novo)* controle de movimento | — | `layout/MotionToggle.vue` em `AppNav` | — próprio | `localStorage['motion']` |
 | `#matrixCanvas` + `matrixRain()` | html + js §1 | `terminal/MatrixRain.vue` | — próprio (`LetterGlitch` rejeitado, R7) | — |
 | `.hero-grid` | html + css | dentro de `HeroSection.vue` | — | — |
 | `.hero-boot` "[ OK ] Inicializando…" | html | `HeroSection.vue` | — | rótulo de UI |

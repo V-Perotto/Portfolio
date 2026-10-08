@@ -44,9 +44,6 @@
 @layer components {
   .mono { font-family: var(--font-mono); }
 
-  /* controles que só funcionam com JS (ex.: controle de movimento, FR-035) */
-  html:not(.js) .js-only { display: none; }
-
   .sr-only {
     position: absolute;
     width: 1px;
@@ -93,7 +90,7 @@
 }
 
 /* v-reveal (src/directives/reveal.ts): a classe pendente só é aplicada pelo JS, e só esconde
-   enquanto há movimento — desligar o controle (FR-035) mostra tudo no estado final */
+   enquanto há movimento — ativar "reduzir movimento" mostra tudo no estado final */
 .reveal { transition: opacity 0.6s ease, transform 0.6s ease; }
 html.motion .reveal.reveal-pending { opacity: 0; transform: translateY(24px); }
 
@@ -105,10 +102,10 @@ html.motion .reveal.reveal-pending { opacity: 0; transform: translateY(24px); }
 }
 
 /* ============================================================
-   ACESSIBILIDADE — sem movimento (FR-020, FR-035)
-   `html.motion` é decidida pelo script inline (preferência do sistema ou escolha salva no
-   controle) e alternada pelo controle de movimento; sem ela, nada anima: cursor e selos ficam
-   estáticos no estado final, transições de hover/foco viram instantâneas.
+   ACESSIBILIDADE — sem movimento (FR-020)
+   `html.motion` é decidida pelo script inline pela preferência do sistema e acompanha mudanças
+   dela durante a visita (useMotion); sem ela, nada anima: cursor e selos ficam estáticos no estado
+   final, transições de hover/foco viram instantâneas.
    ============================================================ */
 html:not(.motion) { scroll-behavior: auto; }
 

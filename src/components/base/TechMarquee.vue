@@ -7,8 +7,8 @@ import type { SkillGroup } from '@/types/resume'
 /**
  * Faixa contínua com as skills `featured` (FR-016), via LogoLoop do Vue Bits. Decorativa: a lista
  * acessível são os cartões de skills, então a faixa fica fora da árvore de acessibilidade e da
- * tabulação. Sem movimento (HTML pré-renderizado, preferência do sistema ou controle desligado,
- * FR-020/FR-035), mostra a primeira cópia parada no lugar do LogoLoop.
+ * tabulação. Sem movimento (HTML pré-renderizado ou "reduzir movimento" no sistema, FR-020),
+ * mostra a primeira cópia parada no lugar do LogoLoop.
  */
 const props = defineProps<{ groups: readonly SkillGroup[] }>()
 const motion = useMotion()

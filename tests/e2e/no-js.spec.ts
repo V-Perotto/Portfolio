@@ -34,8 +34,7 @@ test.describe('sem JS', () => {
       const walker = document.createTreeWalker(document.getElementById('app')!, NodeFilter.SHOW_TEXT)
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const el = node.parentElement
-        // `.js-only`: controles que só existem com JS (FR-035), ocultos de propósito
-        if (!el || !node.textContent?.trim() || el.closest('[aria-hidden="true"], .js-only')) continue
+        if (!el || !node.textContent?.trim() || el.closest('[aria-hidden="true"]')) continue
         // sobe a árvore: qualquer ancestral escondido esconde o texto
         for (let cur: Element | null = el; cur; cur = cur.parentElement) {
           const style = getComputedStyle(cur)

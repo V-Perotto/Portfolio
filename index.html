@@ -7,8 +7,7 @@
     Antes de qualquer CSS: marca o que o JS vai fazer, para que estados escondidos de animação só
     existam quando o próprio JS confirmou que vai animar (FR-012, FR-018, research R6/R7).
     js      → JS executou
-    motion  → há movimento: o visitante escolheu "on" no controle (FR-035) ou, sem escolha salva,
-              não pediu movimento reduzido no sistema
+    motion  → e o visitante não pediu movimento reduzido (FR-020)
     booting → tela de boot ativa. Teto contado do início da navegação (performance.now()): a capa
               sai em 4,2 s mesmo que o bundle falhe ou atrase, e o BootScreen usa o mesmo prazo
               + 550 ms de fade, então a página fica descoberta antes de 5 s (FR-018, FR-031).
@@ -19,10 +18,7 @@
     (function () {
       var root = document.documentElement;
       root.classList.add('js');
-      var choice = null;
-      try { choice = localStorage.getItem('motion'); } catch (e) {}
-      var motion = choice ? choice === 'on' : !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (motion) {
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         root.classList.add('motion', 'booting');
         setTimeout(function () { root.classList.remove('booting'); }, Math.max(0, 4200 - performance.now()));
       }

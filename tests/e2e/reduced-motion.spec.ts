@@ -20,4 +20,17 @@ test.describe('movimento reduzido', () => {
     const second = await page.screenshot()
     expect(Buffer.compare(first, second)).toBe(0)
   })
+
+  test('ativar "reduzir movimento" com a página aberta para tudo na hora (FR-020)', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.goto('./')
+    await page.keyboard.press('Escape') // pula o boot
+    await expect(page.locator('#home canvas')).toHaveCount(1)
+
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await expect(page.locator('html')).not.toHaveClass(/\bmotion\b/)
+    await expect(page.locator('#home canvas')).toHaveCount(0)
+    await expect(page.locator('.hero-terminal .typed')).toHaveText('Desenvolvedor Full-Stack')
+    await expect(page.locator('.marquee-static')).toHaveCount(1)
+  })
 })
