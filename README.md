@@ -39,9 +39,23 @@ As fontes Iosevka em `public/fonts/` são geradas com subset por `tools/build-fo
 
 Os ícones de tecnologia (chips e loops de skills) vêm de um sprite SVG versionado em
 `src/assets/tech-icons/sprite.svg`, gerado por `node tools/build-tech-icons.mjs` a partir do
-devicon, do vectorlogo.zone e do Lucide, em uma cor só. Rode o script só quando um ícone novo
+devicon, do vectorlogo.zone, do homarr-labs/dashboard-icons (o logotipo do Valkey) e do Lucide, em
+uma cor só. Rode o script só quando um ícone novo
 entrar no manifesto dele; precisa de rede e do `npx` (o svgo roda com versão fixa). Origem e
 licença de cada ícone ficam em `src/assets/tech-icons/NOTICE.md`.
+
+## Terminal e efeitos
+
+Depois da tela de boot, a dock no centro de baixo abre um terminal (também por Ctrl+Alt+T; no
+Ubuntu e em outros Linux esse atalho é do sistema, então lá use a dock). `help` lista os comandos, e
+`find <seção>` leva até a seção. Os fundos animados do boot (Faulty Terminal) e do hero (CRT Warp
+com a chuva Matrix) vêm do Vue Bits, adaptados para rodar num Web Worker com WebGL, sem
+dependência nova. Sem WebGL, com "reduzir movimento" ou sem JavaScript, o site fica com os fundos
+estáticos.
+
+Nos testes e2e, o projeto `webgl` do Playwright roda os arquivos que dependem de WebGL (boot, hero,
+`motion` e peso), com os testes de cada arquivo em série. Os demais rodam no projeto `chromium` com
+WebGL desligado.
 
 ## Publicação
 
@@ -53,5 +67,6 @@ Cada push na `main` roda `.github/workflows/pages.yml`: instala, testa, faz o bu
 Especificação, plano, decisões e cenários de validação de cada feature em `specs/`:
 [`001-vue-resume-refactor/`](specs/001-vue-resume-refactor/) (a refatoração para Vue, com o roteiro
 de validação completo em [`quickstart.md`](specs/001-vue-resume-refactor/quickstart.md)),
-[`002-projects-animated-terminals/`](specs/002-projects-animated-terminals/) e
-[`003-devicons-skill-loops/`](specs/003-devicons-skill-loops/).
+[`002-projects-animated-terminals/`](specs/002-projects-animated-terminals/),
+[`003-devicons-skill-loops/`](specs/003-devicons-skill-loops/) e
+[`004-dock-windows-crt/`](specs/004-dock-windows-crt/).
