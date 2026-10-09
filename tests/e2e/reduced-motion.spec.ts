@@ -33,4 +33,32 @@ test.describe('movimento reduzido', () => {
     await expect(page.locator('.hero-terminal .typed')).toHaveText('Desenvolvedor Full-Stack')
     await expect(page.locator('.marquee-static')).toHaveCount(1)
   })
+
+  test('janelas de terminal aparecem completas, sem digitar (FR-029, SC-006)', async ({ page }) => {
+    await page.goto('./')
+    for (const id of ['#sobre', '#projetos', '#contato']) {
+      await page.locator(id).scrollIntoViewIfNeeded()
+      await page.waitForTimeout(300)
+    }
+    await expect(page.locator('[data-t-anim], .t-typed')).toHaveCount(0)
+    expect(await page.locator('[data-t-state]:not([data-t-state="done"])').count()).toBe(0)
+    await expect(page.locator('#contato .contact-list')).toHaveCSS('opacity', '1')
+  })
+
+  test('ativar "reduzir movimento" no meio da digitação completa a janela na hora (FR-029)', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.goto('./')
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 1500 })
+    await page.locator('#sobre').scrollIntoViewIfNeeded()
+    await page.waitForFunction(() => document.querySelector('#sobre [data-t-state="typing"]'), null, { polling: 20 })
+
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    // o CSS só esconde sob html.motion: a saída aparece assim que a classe sai
+    await expect(page.locator('html')).not.toHaveClass(/\bmotion\b/)
+    await expect(page.locator('#sobre .terminal-body > [data-t-state]:not([data-t-cmd])').first()).toHaveCSS('opacity', '1')
+    // e o JS completa a janela bem antes do fim natural da digitação (~1,9 s)
+    await expect(page.locator('#sobre [data-t-state]:not([data-t-state="done"])')).toHaveCount(0, { timeout: 1000 })
+    await expect(page.locator('#sobre .t-typed')).toHaveCount(0)
+  })
 })

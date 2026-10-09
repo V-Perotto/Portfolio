@@ -44,6 +44,11 @@
   --sith-glow: #ff5b5b;
   --sith-deep: #d90404;
 
+  /* tamanhos de ícone (FR-036): junto ao texto (cadeado dos links privados), proporcional à fonte */
+  --icon-inline: 1em;
+  /* ícone do título de cada grupo de skills */
+  --icon-skill: 1.4rem;
+
   /* espaçamentos de layout */
   --section-pad: 5rem 1.5rem 2rem;
   --hero-pad: 6rem 1.5rem 4rem;

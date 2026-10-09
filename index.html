@@ -9,7 +9,7 @@
     js      → JS executou
     motion  → e o visitante não pediu movimento reduzido (FR-020)
     booting → tela de boot ativa. Teto contado do início da navegação (performance.now()): a capa
-              sai em 4,2 s mesmo que o bundle falhe ou atrase, e o BootScreen usa o mesmo prazo
+              sai em 3,9 s mesmo que o bundle falhe ou atrase, e o BootScreen usa o mesmo prazo
               + 550 ms de fade, então a página fica descoberta antes de 5 s (FR-018, FR-031).
               Os estados escondidos do v-reveal só existem depois que o app monta, então um bundle
               que falha não deixa nada invisível.
@@ -20,7 +20,7 @@
       root.classList.add('js');
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         root.classList.add('motion', 'booting');
-        setTimeout(function () { root.classList.remove('booting'); }, Math.max(0, 4200 - performance.now()));
+        setTimeout(function () { root.classList.remove('booting'); }, Math.max(0, 3900 - performance.now()));
       }
     })();
   </script>

@@ -31,7 +31,7 @@ const shows = (id: string) => sections.some((s) => s.id === id)
     <AboutSection v-if="shows('sobre')" :profile="resume.profile" />
     <ExperienceSection v-if="shows('experiencia')" :experiences="resume.experiences" />
     <SkillsSection v-if="shows('skills')" :groups="resume.skillGroups" />
-    <ProjectsSection v-if="shows('projetos')" :projects="resume.projects" />
+    <ProjectsSection v-if="shows('projetos')" :projects="resume.projects" :challenges="resume.challenges" :community="resume.community" />
     <EducationSection v-if="shows('educacao')" :education="resume.education" />
     <ContactSection v-if="shows('contato')" :contacts="resume.contacts" />
   </main>

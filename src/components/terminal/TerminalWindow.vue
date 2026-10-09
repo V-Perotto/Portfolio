@@ -1,9 +1,17 @@
 <script setup lang="ts">
-defineProps<{ title: string }>()
+import { ref } from 'vue'
+import { useTerminalTyping } from '@/composables/useTerminalTyping'
+
+/** Janela de terminal. Com `animate` (padrão), digita os comandos ao entrar na tela (FR-025). */
+const props = withDefaults(defineProps<{ title: string; animate?: boolean }>(), { animate: true })
+
+const win = ref<HTMLElement | null>(null)
+const body = ref<HTMLElement | null>(null)
+if (props.animate) useTerminalTyping(win, body)
 </script>
 
 <template>
-  <div class="terminal-window">
+  <div ref="win" class="terminal-window">
     <div class="terminal-bar">
       <span class="terminal-title mono">{{ title }}</span>
       <div class="t-controls" aria-hidden="true">
@@ -12,7 +20,7 @@ defineProps<{ title: string }>()
         <span class="t-btn t-close">✕</span>
       </div>
     </div>
-    <div class="terminal-body mono">
+    <div ref="body" class="terminal-body mono">
       <slot />
     </div>
   </div>

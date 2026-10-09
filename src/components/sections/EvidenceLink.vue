@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Lock } from '@lucide/vue'
 import { onMounted, ref } from 'vue'
 import ExternalLink from '@/components/base/ExternalLink.vue'
 import type { Evidence } from '@/types/resume'
@@ -12,6 +13,7 @@ const props = defineProps<{ evidence: Evidence }>()
 const badge = ref<HTMLImageElement | null>(null)
 const badgeFailed = ref(false)
 const host = new URL(props.evidence.url).host
+const path = props.evidence.url.replace(/^https?:\/\//, '')
 
 onMounted(() => {
   // o erro pode ter acontecido antes da hidratação, quando ainda não havia ouvinte
@@ -25,7 +27,15 @@ onMounted(() => {
     <p class="t-theme-name">
       <span class="prompt-dollar" aria-hidden="true">&gt; </span><span :class="evidence.accent ? ['neon', `neon-${evidence.accent}`] : 'hl-green'" :data-text="evidence.label">{{ evidence.label }}</span>
     </p>
-    <ExternalLink :href="evidence.url" :class="['evidence-link', evidence.accent && `evidence-${evidence.accent}`]">
+    <!-- repositório privado (FR-005, FR-006): cadeado e "privado" visíveis antes do clique; o nome
+         acessível fica "… repositório privado, pode não abrir (abre em nova aba)" -->
+    <ExternalLink v-if="evidence.private" :href="evidence.url" class="evidence-link evidence-private">
+      <Lock class="private-lock" aria-hidden="true" />
+      <span class="evidence-url">{{ path }}</span>
+      <span class="private-tag" aria-hidden="true">privado</span>
+      <span class="sr-only"> repositório privado, pode não abrir</span>
+    </ExternalLink>
+    <ExternalLink v-else :href="evidence.url" :class="['evidence-link', evidence.accent && `evidence-${evidence.accent}`]">
       <span v-if="evidence.badge" class="badge-box">
         <span v-if="badgeFailed" class="evidence-url">{{ host }}</span>
         <img
@@ -38,7 +48,7 @@ onMounted(() => {
           @error="badgeFailed = true"
         >
       </span>
-      <span v-else class="evidence-url">{{ evidence.url.replace(/^https?:\/\//, '') }}</span>
+      <span v-else class="evidence-url">{{ path }}</span>
     </ExternalLink>
   </li>
 </template>
@@ -134,4 +144,33 @@ onMounted(() => {
 }
 
 .evidence-url { color: var(--green-bright); }
+
+/* link privado: cadeado, caminho e etiqueta numa linha que quebra em telas estreitas (FR-039) */
+.evidence-private {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.6);
+  max-width: 100%;
+}
+
+.evidence-private .evidence-url {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.private-lock {
+  width: var(--icon-inline);
+  height: var(--icon-inline);
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+
+.private-tag {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-nav);
+  padding: 0 calc(var(--spacing) * 1.6);
+}
 </style>

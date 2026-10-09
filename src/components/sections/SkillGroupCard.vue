@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BaseCard from '@/components/base/BaseCard.vue'
 import TagChip from '@/components/base/TagChip.vue'
+import { SKILL_ICONS } from '@/lib/icons'
 import type { SkillGroup } from '@/types/resume'
 
 defineProps<{ group: SkillGroup }>()
@@ -9,7 +10,7 @@ defineProps<{ group: SkillGroup }>()
 <template>
   <BaseCard variant="skill">
     <h3 class="skill-cat mono">
-      <span class="skill-icon" aria-hidden="true">{{ group.icon }}</span> {{ group.id }}/
+      <component :is="SKILL_ICONS[group.icon]" class="skill-icon" aria-hidden="true" /> {{ group.id }}/
     </h3>
     <ul class="chips">
       <TagChip v-for="item in group.items" :key="item.name">{{ item.name }}</TagChip>
@@ -27,10 +28,13 @@ defineProps<{ group: SkillGroup }>()
   overflow-wrap: anywhere;
 }
 
+/* ícone Lucide (SVG em currentColor): cor e tamanho dos tokens, alinhado ao texto (FR-036) */
 .skill-icon {
+  display: inline-block;
+  width: var(--icon-skill);
+  height: var(--icon-skill);
   color: var(--green-bright);
   margin-right: calc(var(--spacing) * 2);
-  font-size: 1.35rem;
-  vertical-align: -0.12em;
+  vertical-align: -0.35em;
 }
 </style>

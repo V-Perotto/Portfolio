@@ -20,10 +20,11 @@ let finished = false
 const timers: ReturnType<typeof setTimeout>[] = []
 const schedule = (delay: number, fn: () => void) => timers.push(setTimeout(fn, delay))
 
-/** Prazo contado do início da navegação: + o fade, a página fica descoberta em ~4,75 s, com folga
- *  para timers atrasados sob carga antes dos 5 s (FR-031). É o mesmo prazo do script inline de
- *  `index.html`. */
-const DEADLINE_MS = 4200
+/** Prazo contado do início da navegação: + o fade, a página fica descoberta em ~4,45 s. A folga até
+ *  os 5 s (FR-031) cobre o reflow do fim do boot e timers atrasados sob carga: com 4,2 s, um celular
+ *  lento (CPU 4× mais lenta) passava dos 5 s (research R13 da 002). É o mesmo prazo do script inline
+ *  de `index.html`. */
+const DEADLINE_MS = 3900
 /** Duração do fade de saída (a transição do CSS tem 0,5 s). */
 const FADE_MS = 550
 /** Com menos que isto de prazo (bundle atrasado), o boot nem aparece: só piscaria. */

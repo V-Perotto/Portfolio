@@ -19,6 +19,11 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
         }
       })
       await page.waitForTimeout(800)
+      // janelas que ainda digitam têm texto transparente de propósito (FR-030): audita o estado final
+      await page.waitForFunction(() => !document.querySelector('[data-t-state]:not([data-t-state="done"])'), null, {
+        polling: 50,
+        timeout: 5000,
+      })
 
       const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
       const serious = violations
@@ -87,4 +92,23 @@ test('a11y: alto contraste mantém foco e esconde a decoração (FR-037)', async
   })
   expect(outline.style).not.toBe('none')
   expect(outline.width).toBeGreaterThan(0)
+})
+
+test('a11y: ícones Lucide das skills decorativos e sem requisição externa (FR-034, FR-035, SC-008)', async ({ page }) => {
+  const external: string[] = []
+  page.on('request', (request) => {
+    const url = new URL(request.url())
+    if (url.hostname !== 'localhost' && url.hostname !== 'img.shields.io') external.push(url.href)
+  })
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('./#skills', { waitUntil: 'load' })
+  await page.waitForTimeout(1500) // janela para requisições tardias (lazy, fontes)
+
+  const icons = page.locator('#skills h3 svg.lucide')
+  await expect(icons).toHaveCount(5)
+  for (const icon of await icons.all()) await expect(icon).toHaveAttribute('aria-hidden', 'true')
+  const ids = ['linguagens_frameworks', 'conceitos_web', 'gestao_de_dados', 'desenho_de_processos', 'devops_qualidade']
+  const headings = page.locator('#skills h3')
+  for (const [i, id] of ids.entries()) await expect(headings.nth(i)).toHaveAccessibleName(new RegExp(`^${id}/?$`))
+  expect(external).toEqual([])
 })

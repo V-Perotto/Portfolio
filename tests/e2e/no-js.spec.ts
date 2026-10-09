@@ -23,6 +23,17 @@ test.describe('sem JS', () => {
       'Técnico em Análise e Desenvolvimento de Sistemas',
       'github.com/V-Perotto',
       'www.linkedin.com/in/vittorioperotto/',
+      // feature 002 (FR-037)
+      'Demonstrativo de Aluguéis',
+      'EM DESENVOLVIMENTO',
+      'OCR de Prontuários',
+      'QClass-BOT',
+      'github.com/V-Perotto/ItaliaMi-Back',
+      'CIEE-PR',
+      'github.com/V-Perotto/AxyaTest_API',
+      'Gincana Junina',
+      '1º Empregotech',
+      'Prime Control, uma das patrocinadoras',
     ]
     for (const text of texts) await expect(page.getByText(text, { exact: false }).first()).toBeVisible()
   })
@@ -59,6 +70,13 @@ test.describe('sem JS', () => {
     await page.goto('./')
     await expect(page.locator('.boot-screen')).toHaveCount(0)
     await expect(page.locator('.hero-terminal')).toContainText('Desenvolvedor Full-Stack')
+  })
+
+  test('janelas de terminal completas, sem estado de digitação (FR-029, SC-006)', async ({ page }) => {
+    await page.goto('./')
+    await expect(page.locator('[data-t-state], [data-t-anim], .t-typed')).toHaveCount(0)
+    await expect(page.locator('#sobre [data-t-cmd]').first()).toHaveText('$ cat sobre.txt')
+    await expect(page.locator('#contato .contact-list')).toBeVisible()
   })
 })
 

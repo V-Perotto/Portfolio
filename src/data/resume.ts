@@ -15,10 +15,17 @@
  *   artefato público (`kind: 'academico'`) fica sem evidência — `evidence: []` exige um
  *   `noEvidenceReason` que diga qual é o caso, sem detalhes sigilosos. Projetos aparecem na
  *   ordem deste arquivo (relevância).
+ * - Repositório privado: `private: true` na evidência (só com `kind: 'repositorio'`). O cartão
+ *   mostra o cadeado, "privado" e o aviso de que o link pode não abrir para o visitante.
+ * - `inProgress: true` num projeto mostra o selo EM DESENVOLVIMENTO, sem data. `relatedTo` mostra a
+ *   empresa ligada ao projeto (`contexto = ...`).
+ * - Challenges aparecem pela data de criação (`created`, mais recente primeiro), não pela ordem
+ *   deste arquivo. Projetos comunitários não têm stack.
+ * - Formação: `note` (observação) e `sources` (links de fonte) são opcionais.
  * - Campo obrigatório faltando ou com tipo errado quebra o `npm run build` apontando a linha do
  *   item (cada item tem `satisfies <Tipo>`) e o nome do campo.
  */
-import type { Education, Experience, Project, Resume, SkillGroup } from '@/types/resume'
+import type { Challenge, CommunityProject, Education, Experience, Project, Resume, SkillGroup } from '@/types/resume'
 
 const data = {
   profile: {
@@ -115,7 +122,7 @@ const data = {
   skillGroups: [
     {
       id: 'linguagens_frameworks',
-      icon: '</>',
+      icon: 'code-xml',
       items: [
         { name: 'Python (Flask)', featured: true },
         { name: 'Java (Quarkus)', featured: true },
@@ -129,12 +136,12 @@ const data = {
     } satisfies SkillGroup,
     {
       id: 'conceitos_web',
-      icon: '⌁',
+      icon: 'globe',
       items: [{ name: 'Programação Web' }, { name: 'APIs REST' }],
     } satisfies SkillGroup,
     {
       id: 'gestao_de_dados',
-      icon: '▤',
+      icon: 'database',
       items: [
         { name: 'MongoDB', featured: true },
         { name: 'PostgreSQL', featured: true },
@@ -143,7 +150,7 @@ const data = {
     } satisfies SkillGroup,
     {
       id: 'desenho_de_processos',
-      icon: '⬡',
+      icon: 'workflow',
       items: [
         { name: 'Design Patterns' },
         { name: 'Singleton' },
@@ -155,7 +162,7 @@ const data = {
     } satisfies SkillGroup,
     {
       id: 'devops_qualidade',
-      icon: '⚙',
+      icon: 'server-cog',
       items: [
         { name: 'Git' },
         { name: 'Docker', featured: true },
@@ -172,32 +179,24 @@ const data = {
 
   projects: [
     {
-      id: 'italiami',
-      name: 'ItaliaMi',
-      subtitle: 'Sistema de Agendamento',
-      command: './run italiami --describe',
+      id: 'srg',
+      name: 'SRG',
+      subtitle: 'Demonstrativo de Aluguéis',
+      command: './run srg --status',
       purpose:
-        'Sistema para otimização de processos de agendamento de passaportes, reduzindo o tempo de pesquisa manual e sugerindo melhorias na jornada do usuário.',
-      stack: ['Angular', 'C#', '.NET'],
-      role: 'Automatizou o processo de agendamento do passaporte italiano',
+        'Sistema de demonstrativo de aluguéis: imóveis, inquilinos, despesas e resultados num painel, com um console de administração separado para operar a plataforma.',
+      stack: ['Vue 3', 'TypeScript', 'NestJS', 'PostgreSQL', 'Prisma', 'Valkey', 'Docker', 'Nginx'],
+      role: 'Autor: front-end, back-end e infraestrutura',
       kind: 'pessoal',
       tag: '[projeto pessoal]',
-      evidence: [],
-      confidential: true,
-      noEvidenceReason: 'Projeto confidencial, sem link público.',
-    } satisfies Project,
-    {
-      id: 'monitoria',
-      name: 'Monitor de Curso',
-      subtitle: 'PUC-PR, Curitiba',
-      command: './run monitoria --describe',
-      purpose: 'Mentorias de lógica de programação e pensamento matemático aplicadas à linguagem Java.',
-      stack: ['Java'],
-      role: 'Monitor da disciplina',
-      kind: 'academico',
-      tag: '[experiência acadêmica]',
-      evidence: [],
-      noEvidenceReason: 'Experiência acadêmica, sem artefato público',
+      inProgress: true,
+      evidence: [
+        { label: 'SRG-Vue · front-end', url: 'https://github.com/V-Perotto/SRG-Vue', kind: 'repositorio', private: true },
+        { label: 'SRG-Admin · console de administração', url: 'https://github.com/V-Perotto/SRG-Admin', kind: 'repositorio', private: true },
+        { label: 'SRG-Node · API', url: 'https://github.com/V-Perotto/SRG-Node', kind: 'repositorio', private: true },
+        { label: 'SRG-Core · núcleo compartilhado', url: 'https://github.com/V-Perotto/SRG-Core', kind: 'repositorio', private: true },
+        { label: 'SRG-DEVOPS · infraestrutura', url: 'https://github.com/V-Perotto/SRG-DEVOPS', kind: 'repositorio', private: true },
+      ],
     } satisfies Project,
     {
       id: 'vscode-themes',
@@ -232,6 +231,140 @@ const data = {
         },
       ],
     } satisfies Project,
+    {
+      id: 'italiami',
+      name: 'ItaliaMi',
+      subtitle: 'Sistema de Agendamento',
+      command: './run italiami --describe',
+      purpose:
+        'Sistema para otimização de processos de agendamento de passaportes, reduzindo o tempo de pesquisa manual e sugerindo melhorias na jornada do usuário.',
+      stack: ['Angular', 'C#', '.NET'],
+      role: 'Automatizou o processo de agendamento do passaporte italiano',
+      kind: 'pessoal',
+      tag: '[projeto pessoal]',
+      evidence: [
+        { label: 'ItaliaMi-Back · back-end', url: 'https://github.com/V-Perotto/ItaliaMi-Back', kind: 'repositorio', private: true },
+        { label: 'ItaliaMi-Front · front-end', url: 'https://github.com/V-Perotto/ItaliaMi-Front', kind: 'repositorio', private: true },
+        { label: 'ItaliaMi-BOT · bot', url: 'https://github.com/V-Perotto/ItaliaMi-BOT', kind: 'repositorio', private: true },
+      ],
+    } satisfies Project,
+    {
+      id: 'ocr-prontuarios',
+      name: 'OCR de Prontuários',
+      subtitle: 'Prontuários civil e criminal',
+      command: './run ocr_para_br --describe',
+      purpose: 'Leitura de prontuários civis e criminais via OCR, transformando documentos digitalizados em texto.',
+      stack: ['Python', 'OCR'],
+      role: 'Autor e desenvolvedor',
+      kind: 'profissional',
+      tag: '[privado · Quadritech]',
+      relatedTo: 'Quadritech Tecnologia',
+      evidence: [{ label: 'OCR_Para_BR', url: 'https://github.com/V-Perotto/OCR_Para_BR', kind: 'repositorio', private: true }],
+    } satisfies Project,
+    {
+      id: 'qclass-bot',
+      name: 'QClass-BOT',
+      subtitle: 'Aulas por CFC',
+      command: './run qclass-bot --describe',
+      purpose:
+        'Bot que coleta e analisa os dados das aulas realizadas em cada CFC (Centro de Formação de Condutores) registrado.',
+      stack: ['Python'],
+      role: 'Autor e desenvolvedor',
+      kind: 'profissional',
+      tag: '[privado · Quadritech]',
+      relatedTo: 'Quadritech Tecnologia',
+      evidence: [{ label: 'QClass-BOT', url: 'https://github.com/V-Perotto/QClass-BOT', kind: 'repositorio', private: true }],
+    } satisfies Project,
+    {
+      id: 'monitoria',
+      name: 'Monitor de Curso',
+      subtitle: 'PUC-PR, Curitiba',
+      command: './run monitoria --describe',
+      purpose: 'Mentorias de lógica de programação e pensamento matemático aplicadas à linguagem Java.',
+      stack: ['Java'],
+      role: 'Monitor da disciplina',
+      kind: 'academico',
+      tag: '[experiência acadêmica]',
+      evidence: [],
+      noEvidenceReason: 'Experiência acadêmica, sem artefato público',
+    } satisfies Project,
+  ],
+
+  // exibidos pela data de criação (`created`), do mais recente para o mais antigo; a ordem aqui não importa
+  challenges: [
+    {
+      id: 'axyatest_api',
+      name: 'Axya',
+      created: '2023-07',
+      summary: 'API REST de exemplo com testes automatizados (TDD).',
+      stack: ['Python', 'Flask', 'MySQL', 'Robot Framework'],
+      url: 'https://github.com/V-Perotto/AxyaTest_API',
+    } satisfies Challenge,
+    {
+      id: 'rpa_challenge-ny_times',
+      name: 'NY Times (RPA)',
+      created: '2024-01',
+      summary: 'Robô que busca notícias no site do NY Times por frase, seção e período e salva os resultados em Excel.',
+      stack: ['Python', 'Robocorp (RPA Framework)'],
+      url: 'https://github.com/V-Perotto/RPA_Challenge-NY_Times',
+    } satisfies Challenge,
+    {
+      id: 'teste-pandavideo',
+      name: 'PandaVideo',
+      created: '2024-10',
+      summary: 'Back-end e front-end que consomem a API da PandaVideo, com autenticação e rotas protegidas.',
+      stack: ['Node.js', 'Vue.js', 'MongoDB', 'Docker'],
+      url: 'https://github.com/V-Perotto/teste-pandavideo',
+    } satisfies Challenge,
+    {
+      id: 'executiva-service-tech-challenge',
+      name: 'Executiva Service',
+      created: '2025-10',
+      summary: 'Gerenciador de tarefas full-stack com autenticação de usuário.',
+      stack: ['React', 'Node.js', 'TypeScript', 'MongoDB'],
+      url: 'https://github.com/V-Perotto/executiva-service-tech-challenge',
+    } satisfies Challenge,
+    {
+      id: 'econet-challenge',
+      name: 'Econet',
+      created: '2026-01',
+      summary: 'Front-end para gerenciar empresas e seus usuários.',
+      stack: ['Vue 3', 'TypeScript', 'Vite', 'Axios', 'JSON Server'],
+      url: 'https://github.com/V-Perotto/econet-challenge',
+    } satisfies Challenge,
+    {
+      id: 'mobiis-challenge',
+      name: 'Mobiis',
+      created: '2026-02',
+      summary: 'API de cadastro de usuários com autenticação.',
+      stack: ['Node.js', 'TypeScript', 'MongoDB', 'Docker'],
+      url: 'https://github.com/V-Perotto/mobiis-challenge',
+    } satisfies Challenge,
+    {
+      id: 'cieepr-challenge',
+      name: 'CIEE-PR',
+      created: '2026-09',
+      summary: 'Cadastro e consulta de candidatos, com extração de nome, e-mail e telefone de currículos em PDF.',
+      stack: ['Angular', 'Node.js', 'TypeScript', 'SQL Server', 'Docker'],
+      url: 'https://github.com/V-Perotto/cieepr-challenge',
+    } satisfies Challenge,
+  ],
+
+  community: [
+    {
+      id: 'gincana-junina',
+      name: 'Gincana Junina',
+      institution: 'PUC-PR',
+      location: 'Curitiba - PR',
+      date: '2023-06',
+      summary:
+        'Projeto comunitário da PUC-PR: estudantes organizaram uma gincana junina na Escola Municipal Professora Nansyr Cecato Cavichiolo, no Parolin, com brincadeiras e distribuição de doces para as crianças.',
+      role: 'Um dos estudantes organizadores (Sistemas de Informação)',
+      source: {
+        label: 'pucpr.br',
+        url: 'https://www.pucpr.br/noticias/estudantes-da-pucpr-promovem-gincana-junina-em-escola-municipal-de-curitiba/',
+      },
+    } satisfies CommunityProject,
   ],
 
   education: [
@@ -250,6 +383,22 @@ const data = {
       startYear: 2020,
       endYear: 2024,
       status: 'concluido',
+    } satisfies Education,
+    {
+      course: '1º Empregotech',
+      institution: 'Prefeitura de Curitiba',
+      location: 'Curitiba - PR',
+      startYear: 2020,
+      endYear: 2020,
+      status: 'concluido',
+      note: 'Programa de capacitação em tecnologia para jovens. Foi por meio dele que entrou na Prime Control, uma das patrocinadoras do programa.',
+      sources: [
+        { label: 'overbr.com.br', url: 'https://overbr.com.br/educacao/1o-empregotech-em-curitiba-capacita-300-jovens' },
+        {
+          label: 'curitiba.pr.gov.br',
+          url: 'https://www.curitiba.pr.gov.br/noticias/1empregotech-comeca-no-domingo-com-seminario-na-opera-de-arame/54852',
+        },
+      ],
     } satisfies Education,
     {
       course: 'Técnico em Análise e Desenvolvimento de Sistemas',
