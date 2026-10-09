@@ -1,20 +1,26 @@
 <!--
 Sync Impact Report
-- Version change: 2.2.0 → 2.3.0 (MINOR: Princípio IV ganha uma exceção explícita — a tela de boot
-  pode não ser pulável, com teto próprio de 7 s; nenhuma regra existente deixa de valer para as
-  demais animações de entrada)
+- Version change: 2.3.0 → 3.0.0 (MAJOR: a exceção da tela de boot no Princípio IV é redefinida de
+  forma incompatível — deixa de garantir a página descoberta sem ação do visitante em até 7 s e de
+  ser omitida com movimento reduzido; vira uma porta de acesso que espera o visitante)
 - Modified principles:
-  - IV. Acessibilidade e Desempenho (animações de entrada: "puláveis e ≤ 5 s" passa a ter a exceção
-    da tela de boot — não pulável, página descoberta em ≤ 7 s desde o início da navegação, nunca
-    exibida cortada, omitida com movimento reduzido e sem JavaScript)
+  - IV. Acessibilidade e Desempenho (exceção da tela de boot: "não pulável, página descoberta em
+    ≤ 7 s do início da navegação, omitida com movimento reduzido e sem JavaScript" passa a "porta de
+    acesso: a página só é descoberta depois de uma ação do visitante, sem teto para essa ação;
+    depois dela, ≤ 4 s; operável por teclado e leitor de tela; fechar só encerra a tentativa; sem
+    JavaScript, sem porta; com movimento reduzido, porta sem nenhuma animação"; a lista de
+    animações decorativas troca "boot, matrix" por "porta de acesso, fundos animados")
 - Added sections: none
 - Removed sections: none
 - Templates: not modified by this command (dependent templates read the constitution at runtime)
-- Dependent artifacts: specs/004-dock-windows-crt (FR-031, FR-032) aplica a exceção; o FR-031 da
-  001 e o prazo de 3,9 s da 002 (research R13) ficam substituídos pela 004 — a cargo do
-  /speckit-plan e do /speckit-implement da feature 004 (script inline de `index.html` e BootScreen)
-- Origem: decisão do autor em 2026-10-09 (feature 004, item 12 "excluindo a possibilidade de clicar
-  para pular"; clarify: teto de 7 s, ritmo atual da digitação mantido)
+- Dependent artifacts: specs/005-access-gate-dotfield (FR-001 a FR-012, FR-019, FR-020) aplica a
+  exceção nova; o FR-032 e o FR-033 da 004 e o FR-031 da 001, quanto ao boot, ficam substituídos
+  pela 005 — a cargo do /speckit-plan e do /speckit-implement da 005 (script inline de `index.html`
+  e tela de boot). Princípio III sem mudança de texto: a consulta do IP do visitante é uma exceção
+  justificada já permitida, registrada no plano da 005.
+- Origem: decisão do autor em 2026-10-09 (feature 005, item 1 "fazendo com que o usuário tenha que
+  clicar"; specify Q1: emendar, porta sem teto; clarify: porta também com movimento reduzido, sem
+  animação)
 - Follow-up TODOs: none
 -->
 
@@ -86,13 +92,23 @@ resistente ao tempo; a saída estática preserva esses ganhos da versão anterio
 
 O conteúdo MUST ser acessível a qualquer visitante, em qualquer dispositivo.
 
-- Respeitar `prefers-reduced-motion`: animações decorativas (boot, matrix, glitch, digitação)
-  MUST ser desativadas ou reduzidas quando o usuário pedir.
+- Respeitar `prefers-reduced-motion`: animações decorativas (porta de acesso, fundos animados,
+  glitch, digitação) MUST ser desativadas ou reduzidas quando o usuário pedir.
 - Animações de entrada MUST ser puláveis e nunca bloquear o conteúdo por mais de 5 segundos, com uma
-  exceção, que MUST ficar explícita na especificação: a tela de boot pode não ser pulável, desde que
-  a página fique totalmente descoberta em no máximo 7 segundos contados do início da navegação, que
-  a sequência nunca apareça cortada (se o JavaScript chegar tarde demais para ela caber inteira no
-  teto, o boot não aparece) e que ela seja omitida com movimento reduzido e sem JavaScript.
+  exceção, que MUST ficar explícita na especificação: a tela de boot pode ser uma porta de acesso,
+  que só descobre a página depois de uma ação do visitante (abrir um ícone), sem teto de tempo para
+  essa ação, desde que:
+  - depois da ação, a sessão exibida na porta termine e a página fique totalmente descoberta em no
+    máximo 4 segundos; a sessão não é pulável e nunca aparece cortada;
+  - a porta seja operável por teclado e por leitor de tela (foco inicial no controle de acesso,
+    controles com nome acessível) e, enquanto ela estiver ativa, o resto da página fique
+    inalcançável;
+  - fechar a porta só encerre a tentativa: o visitante MUST poder tentar de novo sem recarregar a
+    página;
+  - sem JavaScript não haja porta, e, se o JavaScript chegar tarde demais, ela não apareça (a porta
+    nunca cobre de repente uma página que já estava visível);
+  - com movimento reduzido, a porta continue existindo, mas sem nenhuma animação (fundo estático,
+    sem transições, sessão exibida de uma vez).
 - Navegação MUST funcionar por teclado; elementos interativos MUST ter rótulos acessíveis;
   imagens informativas MUST ter `alt` e imagens decorativas MUST usar `alt=""`/`aria-hidden`.
 - Layout MUST funcionar em mobile e desktop sem rolagem horizontal.
@@ -101,8 +117,10 @@ O conteúdo MUST ser acessível a qualquer visitante, em qualquer dispositivo.
 - O console do navegador MUST ficar sem erros.
 
 **Racional**: a estética de terminal é um diferencial, mas não pode custar o acesso ao conteúdo
-que o visitante veio ver. A tela de boot é a assinatura do portfólio e só faz sentido inteira; o
-teto próprio e a omissão com movimento reduzido limitam o custo para quem só quer o conteúdo.
+que o visitante veio ver. A tela de boot é a assinatura do portfólio, e a porta de acesso faz do
+primeiro clique parte da metáfora; o teto de 4 s depois da ação, o acesso por teclado e por leitor
+de tela, a nova tentativa sem recarregar e a versão sem animação limitam o custo para quem só quer
+o conteúdo. Sem JavaScript, o conteúdo continua aberto (Princípio III).
 
 ### V. Identidade Visual Coerente
 
@@ -158,4 +176,4 @@ princípios acima; violações MUST ser corrigidas ou justificadas explicitament
 - **Revisão de conformidade**: a cada nova feature e sempre que o currículo for atualizado, o
   conteúdo do site MUST ser revisado contra os Princípios I e II.
 
-**Version**: 2.3.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-09
+**Version**: 3.0.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-09
