@@ -94,9 +94,10 @@ test.describe('toque', () => {
   test('tocar num cartão não acende o brilho (FR-014)', async ({ page }) => {
     await page.goto('./#experiencia')
     await enterPortfolio(page)
+    // o cartão da janela de editor da experiência (006; os cartões de cada vínculo ficam dentro dela)
     const card = page.locator('#experiencia .base-card').first()
     await card.tap()
-    const layer = card.locator('.spotlight-layer')
+    const layer = card.locator(':scope > .spotlight-layer')
     expect(await layer.evaluate((el) => getComputedStyle(el).display)).toBe('none')
   })
 })

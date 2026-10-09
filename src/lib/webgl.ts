@@ -1,8 +1,8 @@
 /**
  * Helper de WebGL para fundos de tela cheia (feature 004, research R1): um triângulo que cobre o
  * canvas e um fragment shader. Substitui o `ogl` do Faulty Terminal (fundo da porta de acesso), que só
- * usava isso da biblioteca. O CRT Warp do hero, que também o usava, saiu na feature 005 (Dot Field,
- * canvas 2D); `tokenRgb` serve também ao Dot Field.
+ * usava isso da biblioteca. O CRT Warp do hero, que também o usava, saiu na feature 005 (Dot Field, e
+ * depois Letter Glitch na 006, ambos em canvas 2D); `tokenRgb` serve também ao Letter Glitch.
  *
  * Sem WebGL (navegador sem suporte, contexto recusado, shader que não compila), `createFullscreenShader`
  * devolve `null` sem lançar nem escrever no console: quem chama cai no fundo estático (FR-033, FR-039).
@@ -200,6 +200,26 @@ export function hasWebGL(): boolean {
   } catch {
     return false
   }
+}
+
+let offscreen2d: boolean | null = null
+
+/**
+ * Canvas 2D num `OffscreenCanvas` transferível (o worker do Letter Glitch, feature 006, research R12).
+ * Não depende de WebGL: o Letter Glitch roda no worker também com o WebGL desligado.
+ */
+export function hasOffscreen2D(): boolean {
+  if (offscreen2d !== null) return offscreen2d
+  try {
+    offscreen2d =
+      typeof OffscreenCanvas !== 'undefined' &&
+      typeof Worker !== 'undefined' &&
+      'transferControlToOffscreen' in HTMLCanvasElement.prototype &&
+      !!new OffscreenCanvas(1, 1).getContext('2d')
+  } catch {
+    offscreen2d = false
+  }
+  return offscreen2d
 }
 
 /** WebGL num `OffscreenCanvas` (o que o worker de cena precisa) e canvas transferível. */

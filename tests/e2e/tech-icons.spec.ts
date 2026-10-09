@@ -30,6 +30,8 @@ test('todo chip tem o ícone antes do nome, do sprite do próprio site, na cor d
         sameColor: svg ? getComputedStyle(svg).color === getComputedStyle(el).color : false,
         iconHeight: svg?.getBoundingClientRect().height ?? 0,
         fontSize: parseFloat(getComputedStyle(el).fontSize),
+        // os chips dos cartões dentro das janelas de editor (006) só aparecem maximizados
+        rendered: el.getClientRects().length > 0,
       }
     }),
   )
@@ -39,15 +41,17 @@ test('todo chip tem o ícone antes do nome, do sprite do próprio site, na cor d
     expect(symbols.has(chip.href.split('#')[1]), chip.text).toBe(true)
     expect(new URL(chip.href, page.url()).origin, chip.text).toBe(new URL(page.url()).origin)
     expect(chip.sameColor, chip.text).toBe(true)
-    expect(Math.abs(chip.iconHeight - chip.fontSize), chip.text).toBeLessThanOrEqual(1) // FR-018: altura do texto
+    if (chip.rendered) expect(Math.abs(chip.iconHeight - chip.fontSize), chip.text).toBeLessThanOrEqual(1) // FR-018: altura do texto
   }
 })
 
 test('no hover do chip o ícone muda de cor junto com o texto (V6, FR-014)', async ({ page }) => {
   await page.goto('./')
   await enterPortfolio(page)
-  const chip = page.locator('#experiencia .chip').first()
-  await chip.scrollIntoViewIfNeeded()
+  // os cartões da experiência ficam na janela de editor maximizada (006)
+  await page.locator('#experiencia .editor-window').scrollIntoViewIfNeeded()
+  await page.locator('#experiencia button.t-max').click()
+  const chip = page.locator('.editor-frame.is-maximized .chip').first()
   const colors = () =>
     chip.evaluate((el) => ({ text: getComputedStyle(el).color, icon: getComputedStyle(el.querySelector('svg')!).color }))
   const rest = await colors()
@@ -60,7 +64,10 @@ test('no hover do chip o ícone muda de cor junto com o texto (V6, FR-014)', asy
 test('chip com ícone tem a mesma altura de antes (V6, FR-018)', async ({ page }) => {
   await page.goto('./')
   await enterPortfolio(page)
-  const heights = await page.locator('.chip').evaluateAll((els) => [...new Set(els.map((el) => el.getBoundingClientRect().height))])
+  const heights = await page
+    .locator('.chip')
+    .evaluateAll((els) => [...new Set(els.filter((el) => el.getClientRects().length > 0).map((el) => el.getBoundingClientRect().height))])
+  expect(heights.length).toBeGreaterThan(0)
   // medido antes da feature (2026-10-08): 28,22px (0.75rem × line-height 1.6 + padding + borda)
   for (const h of heights) expect(Math.abs(h - 28.22)).toBeLessThanOrEqual(1)
 })

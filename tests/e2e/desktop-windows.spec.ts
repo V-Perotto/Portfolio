@@ -87,6 +87,75 @@ test.describe('com movimento', () => {
   })
 })
 
+// Feature 006, US3 (quickstart V12; FR-023, FR-024, SC-005): reabrir uma janela fechada não pisca o
+// conteúdo. Do clique no ícone até o fim da digitação, cada quadro é amostrado: nenhuma saída pode ter
+// opacidade > 0 antes de o comando dela ser digitado nesta reabertura (ele passa por pending/typing e
+// chega a done).
+test.describe('reabrir sem piscar (006)', () => {
+  test.use({ reducedMotion: 'no-preference' })
+
+  test('as 11 janelas crescem vazias e só então digitam (V12, FR-023, SC-005)', async ({ page }) => {
+    test.setTimeout(120_000)
+    await page.goto('./')
+    await enterPortfolio(page)
+    const count = await page.locator('.desktop-window').count()
+    expect(count).toBe(11)
+    for (let i = 0; i < count; i++) {
+      const window = page.locator('.desktop-window').nth(i)
+      await window.scrollIntoViewIfNeeded()
+      await window.locator('button.t-close').click()
+      await expect(window).toHaveAttribute('data-window-state', 'closed')
+      const report = await window.evaluate(async (el) => {
+        const body = el.querySelector('.terminal-body')!
+        const steps: { cmd: Element; outputs: Element[] }[] = []
+        for (const child of body.children) {
+          if (child.hasAttribute('data-t-cmd')) steps.push({ cmd: child, outputs: [] })
+          else steps.at(-1)?.outputs.push(child)
+        }
+        const seen = new Map<Element, { typing: boolean; typed: boolean }>(steps.map((s) => [s.cmd, { typing: false, typed: false }]))
+        const violations: string[] = []
+        let frames = 0
+        el.querySelector<HTMLButtonElement>('button.desktop-icon')!.click()
+        const start = performance.now()
+        await new Promise<void>((resolve) => {
+          const sample = () => {
+            frames++
+            for (const { cmd, outputs } of steps) {
+              const mark = seen.get(cmd)!
+              const state = cmd.getAttribute('data-t-state')
+              if (state === 'pending' || state === 'typing') mark.typing = true
+              if (mark.typing && state === 'done') mark.typed = true
+              for (const out of outputs)
+                if (!mark.typed && Number(getComputedStyle(out).opacity) > 0.01)
+                  violations.push(`${Math.round(performance.now() - start)}ms: ${(out.textContent ?? '').trim().slice(0, 30)}`)
+            }
+            const done = steps.every(({ cmd }) => seen.get(cmd)!.typed)
+            if (done || performance.now() - start > 4000) resolve()
+            else requestAnimationFrame(sample)
+          }
+          requestAnimationFrame(sample)
+        })
+        return { violations, frames, typed: steps.every(({ cmd }) => seen.get(cmd)!.typed) }
+      })
+      const title = await window.locator('.terminal-title').textContent()
+      expect(report.violations, title ?? '').toEqual([])
+      expect(report.typed, title ?? '').toBe(true)
+      expect(report.frames).toBeGreaterThan(5)
+    }
+  })
+
+  test('minimizada reabre completa, sem digitar (V12, FR-024)', async ({ page }) => {
+    await page.goto('./#sobre')
+    await enterPortfolio(page)
+    const about = win(page, 'sobre.txt')
+    await about.scrollIntoViewIfNeeded()
+    await about.locator('button.t-min').click()
+    await about.locator('button.desktop-icon').click()
+    await expect(about).toHaveAttribute('data-window-state', 'open')
+    expect(await states(about)).toMatch(/^d+$/)
+  })
+})
+
 test('teclado: Tab até "Minimizar contato.sh", Enter, ícone, Enter (V11, FR-007)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('./#contato')
@@ -107,7 +176,9 @@ test('com "reduzir movimento", troca sem animação e janela fechada reabre comp
   await enterPortfolio(page)
   const about = win(page, 'sobre.txt')
   await about.locator('button.t-close').click()
-  expect(await page.evaluate(() => document.getAnimations().length)).toBe(0)
+  // só as animações da janela: o header pode estar em transição (a página volta ao topo no fim da
+  // porta, feature 006)
+  expect(await about.evaluate((el) => el.getAnimations({ subtree: true }).length)).toBe(0)
   await about.locator('button.desktop-icon').click()
   await expect(about).toHaveAttribute('data-window-state', 'open')
   expect(await states(about)).not.toMatch(/[pt]/)

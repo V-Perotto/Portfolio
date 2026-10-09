@@ -1,22 +1,34 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import SectionShell from '@/components/layout/SectionShell.vue'
+import EditorWindow from '@/components/terminal/EditorWindow.vue'
+import { experienceFolder } from '@/lib/editor-files'
 import { byStartDesc } from '@/lib/sort'
 import type { Experience } from '@/types/resume'
 import ExperienceCard from './ExperienceCard.vue'
 
+/**
+ * Experiência numa janela de editor (feature 006, FR-001, clarify Q1): `code ~/carreira`, a árvore com
+ * um arquivo YAML por vínculo e, maximizada, sem JavaScript ou na impressão, a linha do tempo de
+ * cartões de antes (Q2, FR-012).
+ */
 const props = defineProps<{ experiences: readonly Experience[] }>()
 const ordered = computed(() => byStartDesc(props.experiences))
+const folder = computed(() => experienceFolder(props.experiences))
 </script>
 
 <template>
   <SectionShell id="experiencia" title="experiencia" lead="git log --carreira --reverse=false">
-    <ol class="timeline">
-      <li v-for="exp in ordered" :key="exp.id" v-reveal class="timeline-item">
-        <div class="timeline-marker" aria-hidden="true" />
-        <ExperienceCard :experience="exp" />
-      </li>
-    </ol>
+    <EditorWindow v-reveal :folder="folder">
+      <template #cards>
+        <ol class="timeline">
+          <li v-for="exp in ordered" :key="exp.id" class="timeline-item" :data-card-id="exp.id">
+            <div class="timeline-marker" aria-hidden="true" />
+            <ExperienceCard :experience="exp" />
+          </li>
+        </ol>
+      </template>
+    </EditorWindow>
   </SectionShell>
 </template>
 

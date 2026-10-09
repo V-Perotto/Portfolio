@@ -55,8 +55,10 @@ test('rótulos dos links de projeto no roxo do ">"; nomes dos temas com o neon (
 test('todo link de conteúdo sublinhado em repouso; hover e foco só acendem o brilho (V5, FR-007, FR-008)', async ({ page }) => {
   await page.goto('./')
   await enterPortfolio(page)
-  const links = page.locator('a[target="_blank"]')
-  expect(await links.count()).toBeGreaterThanOrEqual(24)
+  // os links visíveis com JS: os dos cartões dentro das janelas de editor (006) só aparecem maximizados,
+  // e o mesmo endereço aparece no arquivo YAML aberto (que entra na conta)
+  const links = page.locator('a[target="_blank"]').filter({ visible: true })
+  expect(await links.count()).toBeGreaterThanOrEqual(16)
 
   await page.keyboard.press('Tab') // a partir daqui, focus() conta como foco de teclado (:focus-visible)
   for (const link of await links.all()) {
@@ -179,12 +181,35 @@ test('títulos das janelas só com o assunto, sem "bash —" (V3, FR-011)', asyn
   await enterPortfolio(page)
   await expect(page.locator('.terminal-title')).toHaveText([
     'sobre.txt',
+    '~/carreira',
     'SRG',
     'Temas VS Code',
     'ItaliaMi',
     'OCR de Prontuários',
     'QClass-BOT',
     'Monitor de Curso',
+    '~/projetos/challenges',
+    '~/projetos/comunitario',
     'contato.sh',
   ])
+})
+
+// Feature 006, US7 (quickstart V15; FR-028): o favicon é o ícone de terminal da dock, verde, com brilho
+// roxo, servido pelo próprio site.
+test('favicon: SVG verde com brilho roxo e as versões PNG (V15, FR-028)', async ({ page, request }) => {
+  await page.goto('./')
+  const links = await page.locator('link[rel="icon"], link[rel="apple-touch-icon"]').evaluateAll((els) =>
+    els.map((el) => ({ rel: el.getAttribute('rel'), href: (el as HTMLLinkElement).href, type: el.getAttribute('type') })),
+  )
+  expect(links.map((l) => new URL(l.href).pathname)).toEqual(['/Portfolio/favicon-32.png', '/Portfolio/favicon.svg', '/Portfolio/apple-touch-icon.png'])
+  for (const link of links) {
+    const response = await request.get(link.href)
+    expect(response.status(), link.href).toBe(200)
+    expect(response.headers()['content-type'], link.href).toMatch(link.href.endsWith('.svg') ? /image\/svg\+xml/ : /image\/png/)
+  }
+  const svg = await (await request.get(links[1]!.href)).text()
+  expect(svg).toContain('stroke="#4ade9b"') // --green-bright
+  expect(svg).toContain('fill="#0a0612"') // --bg
+  expect(svg).toContain('fill="#7b3fb3"') // --purple-light, o brilho
+  expect(svg).toContain('feGaussianBlur')
 })

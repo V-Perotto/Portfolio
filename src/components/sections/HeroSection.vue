@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
 import RevealText from '@/components/base/RevealText.vue'
 import GlitchTitle from '@/components/terminal/GlitchTitle.vue'
+import HeroLoader from '@/components/terminal/HeroLoader.vue'
 import PromptLogo from '@/components/terminal/PromptLogo.vue'
 import TypedPrompt from '@/components/terminal/TypedPrompt.vue'
 import { useBootDone } from '@/composables/useBootDone'
@@ -11,21 +12,26 @@ import type { Profile } from '@/types/resume'
 defineProps<{ profile: Profile }>()
 
 /**
- * Fundo Dot Field (feature 005, FR-028 a FR-033, research R12): pedaço à parte, carregado só no cliente,
- * com movimento, depois da porta de acesso. É canvas 2D: não depende de WebGL. Sem JS ou com "reduzir
- * movimento" (inclusive ligado no meio da visita), o fundo são os degradês estáticos do .hero; a grade de
- * quadrados saiu em todos os modos (004).
+ * Fundo Letter Glitch (feature 006, FR-029 a FR-034, research R12; no lugar do Dot Field da 005): pedaço
+ * à parte, carregado só no cliente, com movimento, depois da porta de acesso. É canvas 2D (num worker
+ * quando dá): não depende de WebGL. As vinhetas do próprio Letter Glitch são as únicas (a penumbra sob o
+ * texto saiu, FR-032). Sem JS ou com "reduzir movimento" (inclusive ligado no meio da visita), o fundo
+ * são os degradês estáticos do .hero.
  */
-const HeroDots = defineAsyncComponent(() => import('@/components/terminal/HeroDots.vue'))
+const HeroGlitch = defineAsyncComponent(() => import('@/components/terminal/HeroGlitch.vue'))
 const motion = useMotion()
 const bootDone = useBootDone()
+/** O fundo animado desenhou o primeiro quadro (ou falhou). Sem fundo animado no modo atual, pronto. */
+const glitchReady = ref(false)
+const heroBackgroundReady = computed(() => !motion.value || glitchReady.value)
 </script>
 
 <template>
   <header id="home" class="hero">
-    <HeroDots v-if="motion && bootDone" />
+    <HeroGlitch v-if="motion && bootDone" @ready="glitchReady = true" />
     <div class="hero-content">
-      <p class="hero-boot mono">[ OK ] Inicializando portfolio.service ...</p>
+      <!-- Lattice Loader no lugar do "[ OK ] Inicializando portfolio.service ..." (feature 006, FR-036) -->
+      <HeroLoader :background-ready="heroBackgroundReady" />
       <GlitchTitle :text="profile.name" />
       <p class="hero-terminal mono">
         <PromptLogo :cursor="false" />&nbsp;<TypedPrompt :phrases="profile.typedPhrases" :static-index="profile.staticPhraseIndex" /><span class="cursor" aria-hidden="true">▊</span>
@@ -63,24 +69,13 @@ const bootDone = useBootDone()
   max-width: var(--container-hero);
 }
 
-/* penumbra sob o texto: o contraste não depende do quadro do Dot Field (FR-032 da 005; FR-038 e R13 da
-   004). Só com movimento, quando o fundo animado pode existir; `closest-side` chega a transparente antes das bordas da caixa,
-   sem deixar linha visível */
-html.motion .hero-content::before {
-  content: "";
-  position: absolute;
-  inset: -7rem -8rem;
-  z-index: -1;
-  background: radial-gradient(closest-side, var(--hero-scrim) 70%, transparent);
-  pointer-events: none;
-}
-
 .hero-boot {
   color: var(--green-light);
   font-size: 0.8rem;
+  min-height: 1.6em;
   margin-bottom: calc(var(--spacing) * 4.8);
   /* sem o opacity: 0.8 anterior, que deixava a linha em ~4,5:1 no fundo liso e abaixo disso sobre
-     o fundo animado (FR-038 da 004, FR-032 da 005); o verde cheio dá 6,3:1 */
+     o fundo animado (FR-038 da 004, FR-032 da 005, FR-032 da 006); o verde cheio dá 6,3:1 */
 }
 
 
@@ -144,13 +139,15 @@ html.motion .hero-content::before {
   transform: translateY(-2px);
 }
 
+/* --text, e não --text-dim: perto da borda de baixo, a vinheta central do Letter Glitch não chega, e o
+   cinza ficava em 3,2:1 sobre as letras no celular (FR-032 da 006, research R12); assim, ≥ 6,7:1 */
 .hero-scroll {
   position: absolute;
   bottom: 1.6rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
-  color: var(--text-dim);
+  color: var(--text);
   text-decoration: none;
   font-size: 0.78rem;
   animation: float 2.2s ease-in-out infinite;

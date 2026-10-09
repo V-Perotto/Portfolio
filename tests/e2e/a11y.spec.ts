@@ -4,6 +4,9 @@ import { enterPortfolio } from './support/boot'
 import { gotoGate, openGate, uncoveredAt } from './support/gate'
 
 // SC-005, SC-006 (quickstart V7).
+// o axe na página inteira demora mais desde as janelas de editor (006: o DOM cresceu), e a suíte roda
+// muitos navegadores em paralelo
+test.describe.configure({ timeout: 60_000 })
 for (const reducedMotion of ['reduce', 'no-preference'] as const) {
   for (const width of [360, 1280]) {
     test(`a11y: axe sem violações críticas/sérias em ${width}px (${reducedMotion})`, async ({ page }) => {
@@ -186,8 +189,12 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
       if (m.type() === 'error') errors.push(m.text())
     })
     await page.emulateMedia({ reducedMotion })
-    const audit = async (label: string) => {
-      const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
+    // com a porta na tela, o resto da página é inerte: a auditoria da porta cabe na sessão (~2,7 s), que
+    // não espera (as janelas de editor da 006 deixaram a página inteira lenta de auditar)
+    const audit = async (label: string, include?: string) => {
+      const builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      if (include) builder.include(include)
+      const { violations } = await builder.analyze()
       const serious = violations
         .filter((v) => v.impact === 'critical' || v.impact === 'serious')
         .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
@@ -198,9 +205,12 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     if (reducedMotion === 'no-preference') {
       await page.locator('.gate-icon').click()
       await expect(page.locator('.gate-window')).toBeVisible()
-      await audit('janela aberta')
+      await audit('janela aberta', '.access-gate')
       await page.locator('.gate-window button.t-min').click()
-      await audit('janela minimizada')
+      // depois da animação de encolher (a janela semitransparente reprovaria o contraste no meio dela);
+      // minimizada, a sessão segue e termina sozinha (~2,7 s do clique): sob carga, pode acabar antes
+      await expect(page.locator('.gate-window')).toBeHidden()
+      if (await page.locator('.access-gate[data-gate-state="minimized"]').count()) await audit('janela minimizada', '.access-gate')
       await uncoveredAt(page)
     } else {
       await openGate(page)
@@ -212,3 +222,61 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     expect(errors).toEqual([])
   })
 }
+
+// Feature 006 (quickstart V23; SC-012): janelas de editor (normal, maximizada, minimizada), o loader do
+// hero nos dois estados e a dica da dock.
+test.describe('a11y da 006', () => {
+  test.use({ reducedMotion: 'no-preference' })
+
+  const audit = async (page: import('@playwright/test').Page, include?: string) => {
+    const builder = new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+    if (include) builder.include(include)
+    const { violations } = await builder.analyze()
+    return violations
+      .filter((v) => v.impact === 'critical' || v.impact === 'serious')
+      .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
+  }
+
+  test('janelas de editor: normal (arquivo do meio), Challenges maximizada e Experiência minimizada', async ({ page }) => {
+    test.setTimeout(60_000)
+    await page.goto('./')
+    await enterPortfolio(page)
+    for (const label of ['carreira', 'challenges', 'comunitario']) {
+      const win = page.locator(`.editor-window[data-editor="${label}"]`)
+      await win.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+      await expect(win.locator('.editor')).not.toHaveAttribute('data-t-state', /pending|typing/, { timeout: 5000 })
+      const files = win.locator('.bm-child')
+      await files.nth(Math.floor((await files.count()) / 2)).click()
+      expect(await audit(page, `.editor-window[data-editor="${label}"]`), label).toEqual([])
+    }
+
+    await page.locator('.editor-window[data-editor="challenges"] button.t-max').click()
+    await page.waitForTimeout(500)
+    expect(await audit(page), 'maximizada').toEqual([])
+    await page.keyboard.press('Escape')
+
+    const exp = page.locator('.editor-window[data-editor="carreira"]')
+    await exp.locator('button.t-min').click()
+    await expect(exp).toHaveAttribute('data-window-state', 'minimized')
+    // depois da animação de encolher (o quadro semitransparente reprovaria o contraste no meio dela)
+    await expect(exp.locator('.desktop-window-frame')).toBeHidden()
+    expect(await audit(page, '#experiencia'), 'minimizada').toEqual([])
+  })
+
+  for (const phase of ['working', 'done']) {
+    test(`hero com o loader ${phase}`, async ({ page }) => {
+      await page.goto('./')
+      await enterPortfolio(page)
+      await expect(page.locator('#home .hero-boot')).toHaveAttribute('data-loader', phase, { timeout: 6000 })
+      expect(await audit(page, '#home .hero-boot'), phase).toEqual([])
+    })
+  }
+
+  test('dica da dock visível', async ({ page }) => {
+    await page.goto('./')
+    await enterPortfolio(page)
+    await page.locator('.app-dock .dock-btn').hover()
+    await expect(page.locator('.app-dock .dock-tip')).toBeVisible()
+    expect(await audit(page, '.app-dock-root'), 'dica').toEqual([])
+  })
+})

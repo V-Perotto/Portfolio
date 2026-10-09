@@ -77,12 +77,6 @@
      Lord 3,5:1 sobre --surface, acima dos 3:1 de elemento gráfico */
   --grape: #852ffc;
   --sith-badge: #d90404;
-  /* penumbra sob o ícone e a dica da porta de acesso, sobre o Faulty Terminal (FR-001 da 005,
-     research R8; antes, o painel sob o texto do boot, R2 da 004): com 92%, o texto --text-dim fica
-     em 4,9:1 mesmo sobre o dígito mais aceso (com 85%, 4,3:1) */
-  --boot-panel: color-mix(in srgb, var(--bg) 92%, transparent);
-  /* penumbra sob o texto do hero, sobre o fundo animado (Dot Field, FR-032 da 005; R13 da 004) */
-  --hero-scrim: color-mix(in srgb, var(--bg) 80%, transparent);
   /* texto dos loops de skills: o dobro dos 0,85rem da 003 (FR-045) */
   --loop-font: 1.7rem;
 
@@ -91,14 +85,50 @@
   /* largura da janela acessar_portfolio.sh da porta de acesso (FR-005, research R4): a do painel do
      boot da 004 */
   --gate-window-width: 680px;
-  /* Dot Field do hero (FR-030, research R12): "gradient from" roxo, "gradient to" verde e "glow
-     color" roxo, com as transparências à parte (o canvas recebe rgba(), não color-mix) */
-  --dots-from: var(--purple-glow);
-  --dots-to: var(--green-bright);
-  --dots-glow: var(--purple-light);
-  --dots-from-alpha: 0.7;
-  --dots-to-alpha: 0.55;
-  --dots-glow-alpha: 0.4;
+
+  /* feature 006 ---------------------------------------------------------------------------------- */
+
+  /* janelas de editor (FR-002 a FR-011, research R3 e R4): linhas da árvore (Branched Menu), fundo do
+     painel de código, números de linha e as cores de sintaxe do YAML. Todas ≥ 4,5:1 sobre --editor-bg
+     (--text-dim 5,3:1; --purple-glow 5,2:1; --green-bright 11:1) */
+  --tree-line: var(--purple);
+  --editor-bg: var(--bg-alt);
+  --editor-gutter: var(--text-dim);
+  --syntax-key: var(--purple-glow);
+  --syntax-str: var(--text);
+  --syntax-date: var(--green-bright);
+  --syntax-punct: var(--text-dim);
+  --syntax-comment: var(--text-dim);
+  /* largura máxima da árvore: o padrão do componente (240px) cortaria 2025-10_executiva-service.yml
+     (29 caracteres + ícone + recuo ≈ 285px na Iosevka de 14px) */
+  --editor-tree-width: 300px;
+  /* janela maximizada (FR-015, research R5): fundo escurecido e desfoque da página por trás */
+  --maximize-scrim: color-mix(in srgb, var(--bg) 55%, transparent);
+  --maximize-blur: 6px;
+
+  /* Letter Glitch do hero (FR-030 a FR-032, research R12): as três "glitch colors" do componente
+     trocadas pelas do tema (uma escura e duas de destaque), a intensidade das letras e as duas
+     vinhetas. A vinheta das bordas é a do componente; a central é mais escura e maior que a do padrão
+     (0,8 → 0 aos 60%), calibrada junto com --glitch-alpha pela medição por pixel (clarify): o pior
+     texto do hero fica em 5,4:1 (a tagline), em 1366 e 390px, e as letras continuam visíveis no anel
+     fora do bloco de texto */
+  --glitch-dark: var(--green);
+  --glitch-green: var(--green-bright);
+  --glitch-purple: var(--purple-glow);
+  --glitch-alpha: 0.55;
+  --glitch-vignette-center: radial-gradient(circle, rgb(0 0 0 / 0.96) 0%, rgb(0 0 0 / 0.9) 40%, transparent 80%);
+  --glitch-vignette-outer: radial-gradient(circle, transparent 60%, #000 100%);
+
+  /* vinheta sob o nome do ícone e a dica da porta de acesso, no desenho da vinheta central do Letter
+     Glitch (FR-035, research R14; no lugar da penumbra --boot-panel da 005, sólida a 92% até 70%):
+     calibrada por pixel, a dica fica em 5,1:1 e o nome em 12,6:1, em 1366 e 390px. Em preto, como a do
+     Letter Glitch: sobre o canvas preto do Faulty Terminal, ela só apaga os dígitos (na cor do fundo,
+     aparecia como um halo arroxeado) */
+  --gate-vignette: radial-gradient(closest-side, rgb(0 0 0 / 0.94) 0%, rgb(0 0 0 / 0.9) 72%, transparent 100%);
+
+  /* Lattice Loader do hero (FR-038, research R13): roxo trabalhando (5,4:1 sobre --bg), verde pronto */
+  --loader-working: var(--purple-glow);
+  --loader-done: var(--green-bright);
 }
 
 /* impressão (FR-027): tema claro, mesmos nomes de token */
@@ -121,8 +151,10 @@
     --spotlight: transparent;
     /* a fita roxa misturada ao branco deixaria o verde da impressão em ~1,8:1 */
     --ribbon-bg: var(--surface-2);
-    --boot-panel: transparent;
-    --hero-scrim: transparent;
+    --maximize-scrim: transparent;
+    --gate-vignette: none;
+    --glitch-vignette-center: none;
+    --glitch-vignette-outer: none;
   }
 }
 

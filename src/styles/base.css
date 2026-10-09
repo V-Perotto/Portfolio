@@ -50,9 +50,12 @@
     background: var(--bg);
   }
 
-  /* alvo do foco no fim do acesso (o início da página ou a seção da âncora, FR-009 da 005): é só um
-     ponto de partida para o Tab e o leitor de tela, não um controle; o anel sai no primeiro blur */
-  [data-gate-focus]:focus { outline: none; }
+  /* janela de editor maximizada (feature 006, FR-015, research R5): a página por trás não rola, e a
+     faixa da barra de rolagem continua reservada (nada salta de largura sob o desfoque) */
+  html.window-maximized {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
 }
 
 @layer components {
@@ -136,6 +139,8 @@ html.motion .reveal.reveal-pending { opacity: 0; transform: translateY(24px); }
   }
 
   html.motion [data-t-anim] [data-t-state]:not([data-t-cmd]) { transition: opacity 0.2s ease; }
+  /* janela fechada que reabre (feature 006, research R7): a saída some na hora, sem transição */
+  html.motion [data-t-anim][data-t-instant] [data-t-state]:not([data-t-cmd]) { transition: none; }
   html.motion [data-t-anim] [data-t-state="pending"]:not([data-t-cmd]) { opacity: 0; }
 }
 
@@ -180,7 +185,7 @@ html:not(.motion) *::after {
     border: 1px solid CanvasText !important;
   }
 
-  .scanlines, .hero-dots, .gate-bg, .spotlight-layer { display: none !important; }
+  .scanlines, .hero-glitch, .gate-bg, .spotlight-layer { display: none !important; }
 }
 
 /* ============================================================

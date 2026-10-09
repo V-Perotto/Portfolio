@@ -10,7 +10,10 @@
  *   mesmo triângulo de tela cheia; o laço de animação virou uma cena sem DOM, que roda num Web Worker
  *   (src/workers/faulty.worker.ts) ou na thread principal (src/lib/scene-host.ts);
  * - sem a reação ao mouse (o autor a desligou): os uniforms continuam, com uUseMouse = 0;
- * - resolução limitada a 1× e no máximo 30 quadros por segundo (o boot tem prazo).
+ * - resolução limitada a 1× e no máximo 30 quadros por segundo (o boot tem prazo);
+ * - curvatura proporcional ao formato da tela (feature 006, FR-036, research R15): o shader curva em
+ *   coordenadas normalizadas, e numa tela alta e estreita (celular em retrato) as linhas se curvavam
+ *   ~4 vezes mais que no desktop; acima do 16:9, a curvatura cai na proporção.
  * O componente Vue fica em src/components/vendor/vue-bits/FaultyTerminal.vue.
  */
 import { createFullscreenShader } from '@/lib/webgl'
@@ -34,6 +37,19 @@ export interface FaultyOptions {
   brightness: number
   maxFps: number
   dpr: number
+}
+
+/** Formato de referência da curvatura: a do desktop 16:9 (1366 × 768), que não muda (FR-036). */
+export const CURVATURE_REF_ASPECT = 768 / 1366
+
+/**
+ * Curvatura efetiva para uma tela de `width` × `height` (research R15): o arqueamento de uma linha
+ * horizontal, em proporção da largura, é proporcional a `curvatura × altura / largura`; telas mais altas
+ * que o 16:9 recebem proporcionalmente menos, e nenhuma se curva mais que o desktop 16:9.
+ */
+export function curvatureFor(base: number, width: number, height: number): number {
+  if (width <= 0 || height <= 0) return base
+  return base * Math.min(1, (CURVATURE_REF_ASPECT * width) / height)
 }
 
 /** Duração da animação de carregamento do original (as células acendem aos poucos). */
@@ -278,6 +294,7 @@ export const startFaulty: SceneFactory<FaultyOptions> = (canvas, o, env) => {
     resize(width, height) {
       const [w, h] = shader.resize(width, height)
       shader.set('iResolution', [w, h, w / h])
+      shader.set('uCurvature', curvatureFor(o.curvature, width, height))
       sized = true
     },
     pointer() {},

@@ -42,3 +42,18 @@ test('nenhuma requisição a terceiros durante a visita', async ({ page }) => {
   await page.waitForLoadState('networkidle')
   expect(outside).toEqual([])
 })
+
+// Feature 006 (SC-011, research R17): HTML + CSS + JS iniciais comprimidos (gzip 9, o mesmo método da
+// linha de base da 005), sem os workers das cenas. Linha de base 91.642 B (commit 8f54bbb); teto da 006:
+// +18 KB (o +6 KB estimado no plano não se sustentou: três componentes do Vue Bits, as janelas de editor
+// e o CSS crítico que o beasties embute para eles; medido +15,9 KB).
+test('HTML + CSS + JS iniciais ≤ linha de base + 18 KB, comprimidos', async () => {
+  const { readFileSync } = await import('node:fs')
+  const { gzipSync } = await import('node:zlib')
+  const html = readFileSync('dist/index.html')
+  const refs = [...new Set([...html.toString().matchAll(/(?:src|href)="\/Portfolio\/([^"]+\.(?:js|css))"/g)].map((m) => m[1]!))]
+  const sizes = refs.filter((r) => !r.includes('worker')).map((r) => gzipSync(readFileSync(`dist/${r}`), { level: 9 }).length)
+  const total = gzipSync(html, { level: 9 }).length + sizes.reduce((a, b) => a + b, 0)
+  console.log(`HTML + CSS + JS iniciais: ${total} B gzip (+${total - 91642} B sobre a 005)`)
+  expect(total).toBeLessThanOrEqual(91642 + 18 * 1024)
+})

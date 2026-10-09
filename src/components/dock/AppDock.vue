@@ -12,6 +12,11 @@ import DockTerminal from './DockTerminal.vue'
  * Só existe no cliente e depois do boot (sem JavaScript, não há dock: FR-026). O terminal abre e fecha
  * pelo botão da dock e por Ctrl+Alt+T; também fecha por `exit`, pelo ✕ e por Esc (FR-019). Onde o
  * sistema operacional captura o Ctrl+Alt+T (Ubuntu e outros Linux), a dock é o caminho (clarify).
+ *
+ * A dica do botão (feature 006, FR-026, FR-027, research R10) é do próprio site, com o atalho
+ * `Ctrl + Alt + T`, no lugar da dica nativa (`title`): aparece com o mouse parado sobre o botão (150 ms)
+ * e com o foco pelo teclado; continua com o ponteiro sobre ela; some ao sair, com Esc e ao abrir o
+ * terminal; não existe no toque. O nome acessível do botão já cita o atalho: a dica é `aria-hidden`.
  */
 const props = defineProps<{ sections: readonly NavSection[] }>()
 
@@ -22,8 +27,59 @@ const open = ref(false)
 const button = ref<HTMLButtonElement | null>(null)
 const terminal = ref<InstanceType<typeof DockTerminal> | null>(null)
 
+/** Dica visível; o ponteiro (depois da espera) e o foco de teclado a pedem, Esc a dispensa. */
+const tip = ref(false)
+let hovered = false
+let focused = false
+let dismissed = false
+let hoverTimer: ReturnType<typeof setTimeout> | null = null
+const TIP_DELAY_MS = 150
+
+function onTipKeydown(e: KeyboardEvent) {
+  if (e.key !== 'Escape') return
+  dismissed = true
+  syncTip()
+}
+
+function syncTip() {
+  const show = !open.value && !dismissed && (hovered || focused)
+  if (show === tip.value) return
+  tip.value = show
+  if (show) document.addEventListener('keydown', onTipKeydown)
+  else document.removeEventListener('keydown', onTipKeydown)
+}
+
+function onPointerEnter(e: PointerEvent) {
+  if (e.pointerType === 'touch') return
+  if (hoverTimer) clearTimeout(hoverTimer)
+  hoverTimer = setTimeout(() => {
+    hovered = true
+    syncTip()
+  }, TIP_DELAY_MS)
+}
+
+function onPointerLeave() {
+  if (hoverTimer) clearTimeout(hoverTimer)
+  hoverTimer = null
+  hovered = false
+  if (!focused) dismissed = false
+  syncTip()
+}
+
+function onFocus() {
+  focused = !!button.value?.matches(':focus-visible')
+  syncTip()
+}
+
+function onBlur() {
+  focused = false
+  if (!hovered) dismissed = false
+  syncTip()
+}
+
 async function show() {
   open.value = true
+  syncTip()
   await nextTick()
   terminal.value?.focusInput()
 }
@@ -45,6 +101,8 @@ function goto(id: SectionId) {
 function onKeydown(e: KeyboardEvent) {
   if (!e.ctrlKey || !e.altKey || e.shiftKey || e.metaKey || e.code !== 'KeyT') return
   if (!mounted.value || !bootDone.value) return
+  // com uma janela de editor maximizada (diálogo modal), o terminal não abre por cima (feature 006)
+  if (document.documentElement.classList.contains('window-maximized')) return
   e.preventDefault()
   void toggle()
 }
@@ -59,6 +117,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('keydown', onTipKeydown)
+  if (hoverTimer) clearTimeout(hoverTimer)
   stopKeyboardOffset?.()
 })
 </script>
@@ -69,18 +129,24 @@ onBeforeUnmount(() => {
       <DockTerminal v-if="open" ref="terminal" class="dock-terminal-window" :sections="props.sections" @close="close" @goto="goto" />
     </Transition>
     <div class="app-dock">
-      <button
-        ref="button"
-        type="button"
-        :class="['dock-btn', { 'dock-btn-open': open }]"
-        :aria-label="open ? 'Fechar terminal (Ctrl+Alt+T)' : 'Abrir terminal (Ctrl+Alt+T)'"
-        :aria-expanded="open"
-        :aria-controls="open ? 'dock-terminal' : undefined"
-        title="viper@portfolio:~$"
-        @click="toggle"
-      >
-        <SquareTerminal class="dock-icon" aria-hidden="true" />
-      </button>
+      <div class="dock-item" @pointerenter="onPointerEnter" @pointerleave="onPointerLeave">
+        <button
+          ref="button"
+          type="button"
+          :class="['dock-btn', { 'dock-btn-open': open }]"
+          :aria-label="open ? 'Fechar terminal (Ctrl+Alt+T)' : 'Abrir terminal (Ctrl+Alt+T)'"
+          :aria-expanded="open"
+          :aria-controls="open ? 'dock-terminal' : undefined"
+          @click="toggle"
+          @focus="onFocus"
+          @blur="onBlur"
+        >
+          <SquareTerminal class="dock-icon" aria-hidden="true" />
+        </button>
+        <span class="dock-tip mono" aria-hidden="true" :data-show="tip || undefined">
+          <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd>
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -102,6 +168,67 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   box-shadow: 0 8px 32px color-mix(in srgb, var(--shadow) 55%, transparent);
+}
+
+.dock-item {
+  position: relative;
+  display: grid;
+}
+
+/* dica do botão (feature 006, FR-026, FR-027): acima dele, no estilo das janelas do site */
+.dock-tip {
+  position: absolute;
+  bottom: calc(100% + 0.75rem);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.55rem;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-btn);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--shadow) 45%, transparent), 0 0 14px color-mix(in srgb, var(--purple-light) 25%, transparent);
+  transform: translate(-50%, 4px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ponte invisível no vão até o botão: o ponteiro passa do botão para a dica sem ela sumir */
+.dock-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0.85rem;
+}
+
+.dock-tip[data-show] {
+  transform: translate(-50%, 0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+html.motion .dock-tip { transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease; }
+
+.dock-tip kbd {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.4;
+  padding: 0 0.35rem;
+  color: var(--green-bright);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-nav);
+}
+
+@media (hover: none) {
+  .dock-tip { display: none; }
 }
 
 .dock-btn {

@@ -11,7 +11,9 @@ import { WINDOW_CONTROLS } from './window-controls'
  * quadrado com o título embaixo enquanto a janela está minimizada ou fechada.
  *
  * - Minimizada: reabre completa (a digitação é concluída ao minimizar, FR-004).
- * - Fechada: reabre "recarregando", com os comandos digitados de novo (FR-005).
+ * - Fechada: reabre "recarregando", com os comandos digitados de novo (FR-005). A janela cresce já
+ *   sem a saída dos comandos e só então digita, sem piscar o conteúdo inteiro (feature 006, FR-023,
+ *   research R7).
  * - Encolher e crescer são animações FLIP de 320 ms (só transform, opacidade e a altura do
  *   contêiner), que partem de onde a janela estava mesmo quando o layout de minimizada muda o lugar da
  *   caixa (feature 005); sem movimento, a troca é direta (FR-008). O ícone é o `DesktopIcon`.
@@ -95,6 +97,8 @@ async function open() {
   if (state.value === 'open') return
   const replay = replayOnOpen
   replayOnOpen = false
+  // fechada: esconde comandos e saídas antes de a janela aparecer (ela cresce vazia, FR-023 da 006)
+  if (replay) typing?.prepare()
 
   const box = root.value
   const square = icon.value?.square

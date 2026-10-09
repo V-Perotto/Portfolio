@@ -54,6 +54,26 @@ test('sem WebGL: porta de fundo liso, sessão inteira e console sem erro (FR-011
   expect(errors).toEqual([])
 })
 
+// Feature 006, US6 (quickstart V20; FR-035, research R14): a vinheta sob o nome e a dica é a da vinheta
+// central do Letter Glitch, centrada no texto e com metade da área da penumbra da 005 (441 × 321 px,
+// sólida a 92% até 70%); o Faulty Terminal volta a aparecer em volta do ícone
+test('vinheta da porta mais leve: preta, no desenho da do Letter Glitch, com metade da área de antes (V20, FR-035)', async ({ page }) => {
+  await gotoGate(page)
+  await expect(page.locator('.gate-icon')).toBeVisible()
+  const vignette = await page.locator('.gate-launcher').evaluate((el) => {
+    const before = getComputedStyle(el, '::before')
+    const box = el.getBoundingClientRect()
+    const px = (v: string) => Number.parseFloat(v)
+    return {
+      image: before.backgroundImage,
+      width: box.width - px(before.left) - px(before.right),
+      height: box.height - px(before.top) - px(before.bottom),
+    }
+  })
+  expect(vignette.image).toMatch(/^radial-gradient\(closest-side, rgba\(0, 0, 0, 0\.94\)/)
+  expect(vignette.width * vignette.height).toBeLessThanOrEqual(0.6 * 441 * 321)
+})
+
 test('nome do ícone e dica com contraste ≥ 4,5:1 sobre o Faulty Terminal, em 10 quadros (V11, FR-001)', async ({ page }) => {
   await gotoGate(page)
   await expect(page.locator('.gate-icon')).toBeVisible()

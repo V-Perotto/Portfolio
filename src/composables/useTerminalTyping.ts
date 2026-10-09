@@ -16,6 +16,10 @@ import { planTyping, TYPING_BUDGET_MS, type TypingPlan } from '@/lib/typing'
  * Feature 004 (janelas que minimizam e fecham, FR-004, FR-005): devolve `complete()`, que termina a
  * digitação na hora (minimizar), e `replay()`, que digita tudo de novo, com o mesmo plano e o mesmo
  * teto (reabrir uma janela fechada). Sem movimento, `replay()` não faz nada.
+ *
+ * Feature 006 (FR-023, research R7): `prepare()` esconde comandos e saídas sem começar nada; quem
+ * reabre a janela chama antes de ela crescer, e o `replay()` depois só digita. Assim a janela cresce
+ * vazia e não pisca o conteúdo inteiro antes de "recarregar".
  */
 type StepState = 'pending' | 'typing' | 'done'
 
@@ -37,6 +41,7 @@ const HARD_CAP_MS = TYPING_BUDGET_MS + 250
 export interface TerminalTyping {
   complete(): void
   replay(): void
+  prepare(): void
 }
 
 export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref<HTMLElement | null>): TerminalTyping {
@@ -44,6 +49,8 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
   const root = typeof document === 'undefined' ? null : document.documentElement
 
   let phase: 'idle' | 'armed' | 'running' | 'done' = 'idle'
+  /** Estados escondidos aplicados por `prepare()`, à espera do `replay()`. */
+  let prepared = false
   let steps: Step[] = []
   let visible = false
   let intersection: IntersectionObserver | null = null
@@ -64,7 +71,9 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
 
   /** Completa tudo na hora: fim natural, pulo (clique, toque, foco) ou movimento desligado. */
   function finish() {
-    if (phase !== 'armed' && phase !== 'running') return
+    if (phase !== 'armed' && phase !== 'running' && !prepared) return
+    prepared = false
+    windowEl.value?.removeAttribute('data-t-instant')
     phase = 'done'
     timers.forEach(clearTimeout)
     timers.length = 0
@@ -89,20 +98,44 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
     }
   }
 
-  function arm(win: HTMLElement, body: HTMLElement): boolean {
+  /** Esconde comandos e saídas (o estado inicial da digitação), sem ouvintes nem timers. */
+  function hide(win: HTMLElement, body: HTMLElement): boolean {
     collectSteps(body)
     if (!steps.length) return false
-
     win.setAttribute('data-t-anim', '')
     for (const { cmd, outputs } of steps) {
       cmd.querySelector(':scope > .t-typed')?.remove()
       setState(cmd, 'pending')
       outputs.forEach((el) => setState(el, 'pending'))
     }
+    return true
+  }
+
+  function listen(win: HTMLElement) {
     win.addEventListener('pointerdown', finish)
     win.addEventListener('focusin', finish)
     phase = 'armed'
+  }
+
+  function arm(win: HTMLElement, body: HTMLElement): boolean {
+    if (!hide(win, body)) return false
+    listen(win)
     return true
+  }
+
+  /** Janela fechada, antes de crescer de novo: comandos e saídas escondidos, nada começa (R7). */
+  function prepareReplay() {
+    const win = windowEl.value
+    const body = bodyEl.value
+    if (!win || !body || !root?.classList.contains('motion')) return
+    timers.forEach(clearTimeout)
+    timers.length = 0
+    stopWatching()
+    phase = 'idle'
+    // sem a transição de opacidade das saídas: reaberta logo depois de fechar, a janela ainda pode estar
+    // na tela (encolhendo), e a saída sumiria aos poucos, à vista; ela some na hora
+    win.setAttribute('data-t-instant', '')
+    prepared = hide(win, body)
   }
 
   /** Janela fechada e reaberta: digita tudo de novo, na hora (ela está na tela). */
@@ -110,10 +143,17 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
     const win = windowEl.value
     const body = bodyEl.value
     if (!win || !body || !root?.classList.contains('motion')) return
-    timers.forEach(clearTimeout)
-    timers.length = 0
-    stopWatching()
-    if (!arm(win, body)) return
+    if (prepared) {
+      // já escondida antes de crescer: só liga os ouvintes (depois do foco no −, que os dispararia)
+      prepared = false
+      win.removeAttribute('data-t-instant')
+      listen(win)
+    } else {
+      timers.forEach(clearTimeout)
+      timers.length = 0
+      stopWatching()
+      if (!arm(win, body)) return
+    }
     visible = true
     run()
   }
@@ -238,5 +278,5 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
     stopWatching()
   })
 
-  return { complete: finish, replay }
+  return { complete: finish, replay, prepare: prepareReplay }
 }

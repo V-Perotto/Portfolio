@@ -91,8 +91,11 @@ test('Tab desde o topo leva o foco a ~/sobre e revela o header (FR-013)', async 
 })
 
 test('chegar por âncora deixa o header visível e o título abaixo dele (FR-015)', async ({ page }) => {
-  await page.goto('./#projetos')
+  // com JS, a página abre no hero mesmo com âncora no endereço (feature 006, Q3): a âncora é usada
+  // dentro da página, como num clique no menu
+  await page.goto('./')
   await enterPortfolio(page)
+  await page.evaluate(() => (location.hash = 'projetos'))
   await expect.poll(async () => (await navState(page)).visible).toBe(true)
   const title = (await page.locator('#projetos h2').boundingBox())!
   const nav = (await page.locator('.navbar').boundingBox())!

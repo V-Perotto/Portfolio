@@ -11,7 +11,8 @@ export type HostMessage =
   | { type: 'visible'; visible: boolean }
   | { type: 'dispose' }
 
-export type WorkerMessage = { type: 'ready' } | { type: 'failed' }
+/** `frame`: o primeiro quadro foi desenhado (feature 006). */
+export type WorkerMessage = { type: 'ready' } | { type: 'failed' } | { type: 'frame' }
 
 interface WorkerScope {
   postMessage(message: WorkerMessage): void
@@ -25,7 +26,10 @@ export function serveScene<O>(factory: SceneFactory<O>): void {
   scope.onmessage = ({ data }) => {
     switch (data.type) {
       case 'init':
-        scene = factory(data.canvas, data.options as O, { guard: false })
+        scene = factory(data.canvas, data.options as O, {
+          guard: false,
+          onFirstFrame: () => scope.postMessage({ type: 'frame' }),
+        })
         scope.postMessage(scene ? { type: 'ready' } : { type: 'failed' })
         break
       case 'resize':

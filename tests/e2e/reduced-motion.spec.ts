@@ -17,6 +17,9 @@ test.describe('movimento reduzido', () => {
     await expect(page.locator('.hero-terminal')).toContainText('Desenvolvedor Full-Stack')
     await expect(page.getByText('Transformando processos em sistemas escaláveis').first()).toBeVisible()
 
+    // o loader do hero (006) some 3 s depois de a página ser descoberta, sem transição: é troca de
+    // estado, não movimento; as capturas comparam depois dela
+    await expect(page.locator('#home .hero-boot')).toHaveAttribute('data-loader', 'hidden', { timeout: 5000 })
     await page.waitForTimeout(500)
     const first = await page.screenshot()
     await page.waitForTimeout(2000)
@@ -105,5 +108,29 @@ test.describe('movimento reduzido', () => {
     await about.locator('button.desktop-icon').click()
     await expect(about.locator('[data-t-anim]')).toHaveCount(0)
     expect(await about.locator('[data-t-state]:not([data-t-state="done"])').count()).toBe(0)
+  })
+
+  // Feature 006 (quickstart V16, V19, V5; FR-033, FR-041, FR-015, FR-003)
+  test('feature 006: hero sem Letter Glitch, loader pronto; maximizar e trocar de arquivo sem animação', async ({ page }) => {
+    await page.goto('./')
+    await enterPortfolio(page)
+    await expect(page.locator('.hero-glitch, .letter-glitch')).toHaveCount(0)
+    await expect(page.locator('#home .hero-boot')).toHaveAttribute('data-loader', /done|hidden/)
+
+    const win = page.locator('.editor-window[data-editor="challenges"]')
+    await win.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+    // sem movimento, o editor já está completo (sem digitação)
+    await expect(win.locator('[data-t-anim]')).toHaveCount(0)
+    const reach = win.locator('.bm-reach').first()
+    expect(Number.parseFloat(await reach.evaluate((el) => getComputedStyle(el).transitionDuration))).toBeLessThanOrEqual(0.001)
+
+    await win.locator('button.t-max').click()
+    const frame = page.locator('body > .editor-frame')
+    await expect(frame).toHaveAttribute('role', 'dialog')
+    expect(await frame.evaluate((el) => el.getAnimations().length)).toBe(0)
+    expect(await page.locator('.maximize-backdrop').evaluate((el) => getComputedStyle(el).animationName)).toBe('none')
+    await page.keyboard.press('Escape')
+    await expect(page.locator('body > .editor-frame')).toHaveCount(0)
+    expect(await win.locator('.editor-frame').evaluate((el) => el.getAnimations().length)).toBe(0)
   })
 })

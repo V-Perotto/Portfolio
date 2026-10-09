@@ -186,15 +186,44 @@ test('fechar encerra a tentativa, mesmo no último instante; o ícone abre uma n
   expect(lines[0]!.length).toBeLessThan('anon@203.0.113.7:~$ ssh viper@portfolio'.length)
 })
 
-test('âncora no endereço: no fim, a seção no topo e com o foco (V8, FR-009)', async ({ page }) => {
-  await gotoGate(page, './#projetos')
+// Feature 006, US2 (quickstart V10; FR-020, FR-021, SC-004, clarify Q3): no fim da porta, a página
+// aparece sempre no topo, no hero, sem âncora no endereço (substitui o V8 da 005, que ia à seção)
+test('recarregar depois de rolar: no fim, a página no topo (V10, FR-020, SC-004)', async ({ page }) => {
+  await gotoGate(page)
   await openGate(page)
   await uncoveredAt(page)
-  await expect(page.locator('#projetos')).toBeFocused()
-  const top = await page.locator('#projetos').evaluate((el) => el.getBoundingClientRect().top)
-  expect(top).toBeGreaterThanOrEqual(-2)
-  expect(top).toBeLessThanOrEqual(200)
+  await page.evaluate(() => window.scrollTo({ top: 2500, behavior: 'instant' }))
+  await page.waitForTimeout(200)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await expect(page.locator('.gate-icon')).toBeVisible({ timeout: 7500 })
+  expect(await page.evaluate(() => history.scrollRestoration)).toBe('manual')
+  await openGate(page)
+  await uncoveredAt(page)
+  expect(await page.evaluate(() => window.scrollY)).toBe(0)
+  await expect(page.locator('#home h1')).toBeInViewport()
 })
+
+for (const hash of ['#projetos', '#contato']) {
+  test(`âncora ${hash} no endereço, aberta e recarregada: no fim, o hero no topo e o endereço sem âncora (V10, FR-021)`, async ({ page }) => {
+    await gotoGate(page, `./${hash}`)
+    const before = await page.evaluate(() => history.length)
+    await openGate(page)
+    await uncoveredAt(page)
+    expect(await page.evaluate(() => window.scrollY)).toBe(0)
+    expect(await page.evaluate(() => location.hash)).toBe('')
+    expect(await page.evaluate(() => history.length)).toBe(before)
+    expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true)
+
+    // recarregar com a âncora de novo no endereço (como depois de um clique no menu)
+    await page.evaluate((h) => history.replaceState(null, '', h), hash)
+    await page.reload({ waitUntil: 'domcontentloaded' })
+    await expect(page.locator('.gate-icon')).toBeVisible({ timeout: 7500 })
+    await openGate(page)
+    await uncoveredAt(page)
+    expect(await page.evaluate(() => window.scrollY)).toBe(0)
+    expect(await page.evaluate(() => location.hash)).toBe('')
+  })
+}
 
 test('sem âncora: no fim, o foco volta ao início do documento, e o Tab chega à navegação (FR-009)', async ({ page }) => {
   await gotoGate(page)
@@ -259,6 +288,20 @@ test.describe('JavaScript atrasado (V7, FR-011)', () => {
     await page.waitForTimeout(300)
     await expect(page.locator('.access-gate')).toHaveCount(0)
     await expect(page.locator('html')).not.toHaveClass(/\bbooting\b/)
+  })
+
+  test('bundle atrasado com âncora: sem porta, a página fica na âncora (V11, FR-022)', async ({ page }) => {
+    await page.route('**/assets/*.js', async (route) => {
+      await new Promise((r) => setTimeout(r, 2500))
+      await route.continue()
+    })
+    await page.goto('./#projetos', { waitUntil: 'commit' })
+    await page.waitForFunction(() => document.documentElement.classList.contains('app-loaded'), null, { timeout: 9000 })
+    await page.waitForTimeout(600)
+    await expect(page.locator('.access-gate')).toHaveCount(0)
+    expect(await page.evaluate(() => location.hash)).toBe('#projetos')
+    const top = await page.locator('#projetos').evaluate((el) => el.getBoundingClientRect().top)
+    expect(Math.abs(top)).toBeLessThanOrEqual(120)
   })
 
   test('bundle bloqueado: a capa sai em ~2,1 s', async ({ page }) => {

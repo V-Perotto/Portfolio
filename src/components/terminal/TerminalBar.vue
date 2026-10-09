@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Maximize2, Minus, X } from '@lucide/vue'
+import { Maximize2, Minimize2, Minus, X } from '@lucide/vue'
 
 /**
  * Barra de título das janelas de terminal (research R8 da 004): o título e os controles minimizar,
@@ -8,23 +8,31 @@ import { Maximize2, Minus, X } from '@lucide/vue'
  *
  * - `decorative` (padrão): os três controles são desenho, num contêiner `aria-hidden` — é o HTML
  *   pré-renderizado, e o que fica sem JavaScript (FR-009).
- * - `functional`: `−` e `✕` viram botões com nome acessível que inclui o título (FR-001); o `□`
- *   continua desenho. Com `minimizable: false` (terminal da dock), só o `✕` funciona.
+ * - `functional`: `−` e `✕` viram botões com nome acessível que inclui o título (FR-001). Com
+ *   `minimizable: false` (terminal da dock), só o `✕` funciona.
+ *
+ * O `□` (feature 006, FR-013, FR-025, research R9) tem três modos: `none` não existe (a porta de
+ * acesso); `disabled` é desenho com aparência de desativado, sem hover (as janelas que não maximizam);
+ * `on` é um botão que maximiza e restaura (as janelas de editor), e vira `disabled` no desenho
+ * decorativo, porque sem JavaScript nada maximiza.
  */
+export type MaximizeMode = 'none' | 'disabled' | 'on'
+
 const props = withDefaults(
   defineProps<{
     title: string
     controls?: 'decorative' | 'functional'
     minimizable?: boolean
-    /** Sem o `□` (janela da porta de acesso, FR-006 da 005). */
-    maximizable?: boolean
+    maximize?: MaximizeMode
+    /** Janela maximizada: o `□` vira "Restaurar". */
+    maximized?: boolean
     /** Nome acessível do ✕; padrão "Fechar <título>". */
     closeLabel?: string
   }>(),
-  { controls: 'decorative', minimizable: true, maximizable: true, closeLabel: undefined },
+  { controls: 'decorative', minimizable: true, maximize: 'disabled', maximized: false, closeLabel: undefined },
 )
 
-const emit = defineEmits<{ minimize: []; close: [] }>()
+const emit = defineEmits<{ minimize: []; maximize: []; close: [] }>()
 </script>
 
 <template>
@@ -32,7 +40,7 @@ const emit = defineEmits<{ minimize: []; close: [] }>()
     <span class="terminal-title mono">{{ title }}</span>
     <div v-if="props.controls === 'decorative'" class="t-controls" aria-hidden="true">
       <span class="t-btn t-min"><Minus class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
-      <span v-if="props.maximizable" class="t-btn t-max"><Maximize2 class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
+      <span v-if="props.maximize !== 'none'" class="t-btn t-max t-btn--disabled"><Maximize2 class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
       <span class="t-btn t-close"><X class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
     </div>
     <div v-else class="t-controls">
@@ -46,7 +54,17 @@ const emit = defineEmits<{ minimize: []; close: [] }>()
         <Minus class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" />
       </button>
       <span v-else class="t-btn t-min" aria-hidden="true"><Minus class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
-      <span v-if="props.maximizable" class="t-btn t-max" aria-hidden="true"><Maximize2 class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
+      <button
+        v-if="props.maximize === 'on'"
+        type="button"
+        class="t-btn t-max"
+        :aria-label="`${props.maximized ? 'Restaurar' : 'Maximizar'} ${props.title}`"
+        @click="emit('maximize')"
+      >
+        <Minimize2 v-if="props.maximized" class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" />
+        <Maximize2 v-else class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" />
+      </button>
+      <span v-else-if="props.maximize === 'disabled'" class="t-btn t-max t-btn--disabled" aria-hidden="true"><Maximize2 class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
       <button
         type="button"
         class="t-btn t-close"
@@ -105,11 +123,10 @@ const emit = defineEmits<{ minimize: []; close: [] }>()
   flex: none;
 }
 
-.t-btn:hover { filter: brightness(1.35); }
-
 /* botão de verdade: sem a aparência padrão; o desenho de 20px continua, e o alvo de clique sobe para
    24 × 24 px (WCAG 2.5.8) com uma área invisível em volta */
 button.t-btn { cursor: pointer; }
+button.t-btn:hover { filter: brightness(1.35); }
 button.t-btn::before {
   content: "";
   position: absolute;
@@ -127,5 +144,13 @@ button.t-btn::before {
   background: var(--purple);
   border: 1px solid var(--purple-light);
   color: var(--on-purple);
+}
+
+/* □ das janelas que não maximizam: aparência de desativado, sem reação ao hover nem cursor de clique
+   (feature 006, FR-025; componente desativado não precisa do contraste mínimo, WCAG 1.4.11) */
+.t-btn--disabled {
+  opacity: 0.35;
+  filter: saturate(0.4);
+  cursor: default;
 }
 </style>

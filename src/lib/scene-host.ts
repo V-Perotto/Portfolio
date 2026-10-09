@@ -7,7 +7,7 @@
  */
 import type { Scene, SceneFactory } from '@/lib/scenes/scene'
 import type { HostMessage, WorkerMessage } from '@/lib/scenes/serve'
-import { hasOffscreenWebGL } from '@/lib/webgl'
+import { hasOffscreen2D, hasOffscreenWebGL } from '@/lib/webgl'
 
 export interface SceneSpec<O> {
   /** `new Worker(new URL('…', import.meta.url), { type: 'module' })`, escrito por quem chama para o
@@ -15,6 +15,13 @@ export interface SceneSpec<O> {
   worker: () => Worker
   /** Fábrica da cena para a thread principal (import dinâmico). */
   load: () => Promise<SceneFactory<O>>
+}
+
+export interface HostOptions {
+  /** Contexto da cena: decide se o worker é possível (padrão `webgl`, o Faulty Terminal). */
+  context?: '2d' | 'webgl'
+  /** O primeiro quadro foi desenhado (feature 006: o hero pronto, R13). */
+  onFirstFrame?: () => void
 }
 
 export interface SceneHost {
@@ -26,7 +33,7 @@ export interface SceneHost {
 
 const NOOP_HOST: SceneHost = { resize() {}, pointer() {}, visible() {}, dispose() {} }
 
-function hostInWorker<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options: O, onFail: () => void): SceneHost {
+function hostInWorker<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options: O, onFail: () => void, onFirstFrame?: () => void): SceneHost {
   let worker: Worker | null = null
   const send = (message: HostMessage) => worker?.postMessage(message)
   const dispose = () => {
@@ -45,6 +52,7 @@ function hostInWorker<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options:
     worker = spec.worker()
     worker.onmessage = ({ data }: MessageEvent<WorkerMessage>) => {
       if (data.type === 'failed') fail()
+      else if (data.type === 'frame') onFirstFrame?.()
     }
     worker.onerror = (event) => {
       event.preventDefault()
@@ -63,7 +71,7 @@ function hostInWorker<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options:
   }
 }
 
-function hostInPage<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options: O, onFail: () => void): SceneHost {
+function hostInPage<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options: O, onFail: () => void, onFirstFrame?: () => void): SceneHost {
   let scene: Scene | null = null
   let disposed = false
   // o que chegou antes de a cena carregar
@@ -74,7 +82,7 @@ function hostInPage<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options: O
     .load()
     .then((factory) => {
       if (disposed) return
-      scene = factory(canvas, options, { guard: true })
+      scene = factory(canvas, options, { guard: true, onFirstFrame })
       if (!scene) return onFail()
       if (size) scene.resize(...size)
       if (point) scene.pointer(...point)
@@ -104,6 +112,13 @@ function hostInPage<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options: O
   }
 }
 
-export function hostScene<O>(canvas: HTMLCanvasElement, spec: SceneSpec<O>, options: O, onFail: () => void): SceneHost {
-  return hasOffscreenWebGL() ? hostInWorker(canvas, spec, options, onFail) : hostInPage(canvas, spec, options, onFail)
+export function hostScene<O>(
+  canvas: HTMLCanvasElement,
+  spec: SceneSpec<O>,
+  options: O,
+  onFail: () => void,
+  { context = 'webgl', onFirstFrame }: HostOptions = {},
+): SceneHost {
+  const worker = context === '2d' ? hasOffscreen2D() : hasOffscreenWebGL()
+  return worker ? hostInWorker(canvas, spec, options, onFail, onFirstFrame) : hostInPage(canvas, spec, options, onFail, onFirstFrame)
 }

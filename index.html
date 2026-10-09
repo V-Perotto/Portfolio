@@ -27,6 +27,9 @@
       var at = function (ms, fn) { setTimeout(fn, Math.max(0, ms - performance.now())); };
       root.classList.add('js', 'booting');
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) root.classList.add('motion');
+      // a página abre no topo (feature 006, FR-020): ao recarregar, o navegador não restaura a rolagem de
+      // antes por baixo da porta de acesso
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
       at(2055, function () {
         if (!has('app-loaded')) root.classList.remove('booting');
       });
@@ -45,7 +48,11 @@
   <link rel="preload" href="/fonts/iosevka-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/iosevka-aile-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/iosevka-800.woff2" as="font" type="font/woff2" crossorigin fetchpriority="high">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>&gt;_</text></svg>">
+  <!-- favicon: o ícone de terminal da dock, verde, com brilho roxo (feature 006, FR-028); gerado dos
+       tokens por tools/build-favicon.mjs. Quem lê SVG usa o SVG; o PNG fica para os outros -->
+  <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 </head>
 <body>
   <div id="app"></div>

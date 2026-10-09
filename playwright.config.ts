@@ -12,6 +12,10 @@ const WEBGL = /(^|[\\/])(boot|motion|weight)\.spec\.ts$/
 export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
+  // feature 006: com as janelas de editor e o Letter Glitch, as páginas pesam mais; com ~9 navegadores
+  // ao mesmo tempo (metade dos núcleos), o app às vezes monta depois do limite da porta (2055 ms) e os
+  // testes de tempo e do axe estouram. Com 4, a suíte inteira passa de forma estável (~7,5 min)
+  workers: process.env.CI ? undefined : 4,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: 'http://localhost:4173/Portfolio/',

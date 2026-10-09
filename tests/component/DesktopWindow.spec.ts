@@ -52,7 +52,7 @@ describe('DesktopWindow', () => {
   })
 
   it('minimizar completa a digitação; fechar e abrir digita de novo (FR-004, FR-005)', async () => {
-    const typing = { complete: vi.fn(), replay: vi.fn() }
+    const typing = { complete: vi.fn(), replay: vi.fn(), prepare: vi.fn() }
     const Child = defineComponent({
       setup() {
         const controls = inject(WINDOW_CONTROLS)!
@@ -81,6 +81,54 @@ describe('DesktopWindow', () => {
     await nextTick()
     await nextTick()
     expect(typing.replay).toHaveBeenCalledTimes(1)
+  })
+
+  it('fechada: prepara a digitação com a janela ainda fechada e só digita depois de abrir (FR-023 da 006)', async () => {
+    const calls: string[] = []
+    let state = () => ''
+    const typing = {
+      complete: vi.fn(),
+      prepare: vi.fn(() => calls.push(`prepare:${state()}`)),
+      replay: vi.fn(() => calls.push(`replay:${state()}`)),
+    }
+    const Child = defineComponent({
+      setup() {
+        const controls = inject(WINDOW_CONTROLS)!
+        controls.register(typing)
+        return () => h('button', { class: 'close', onClick: () => controls.close() })
+      },
+    })
+    const wrapper = mount(DesktopWindow, { props: { title: 'X', kind: 'project' }, slots: { default: () => h(Child) } })
+    state = () => wrapper.get('.desktop-window').attributes('data-window-state')!
+    await nextTick()
+    await wrapper.get('button.close').trigger('click')
+    await nextTick()
+    await wrapper.get('button.desktop-icon').trigger('click')
+    await nextTick()
+    await nextTick()
+    expect(calls).toEqual(['prepare:closed', 'replay:open'])
+  })
+
+  it('com movimento, a janela reaberta mostra só o comando, e a saída espera a digitação (FR-023 da 006)', async () => {
+    document.documentElement.classList.add('motion')
+    try {
+      const body = () => [h(TerminalLine, null, () => 'cat sobre.txt'), h('p', { class: 'out' }, 'saída')]
+      const wrapper = mount(DesktopWindow, {
+        props: { title: 'sobre.txt', kind: 'document' },
+        slots: { default: () => h(TerminalWindow, { title: 'sobre.txt' }, body) },
+        attachTo: document.body,
+      })
+      await nextTick()
+      await wrapper.get('button.t-close').trigger('click')
+      await nextTick()
+      await wrapper.get('button.desktop-icon').trigger('click')
+      // logo depois de reabrir: a saída está escondida, à espera do comando
+      await nextTick()
+      expect(wrapper.get('p.out').attributes('data-t-state')).toBe('pending')
+      wrapper.unmount()
+    } finally {
+      document.documentElement.classList.remove('motion')
+    }
   })
 
   it('sem movimento, nenhuma animação (FR-008)', async () => {

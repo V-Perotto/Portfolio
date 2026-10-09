@@ -37,7 +37,8 @@ test.describe('sem JS', () => {
       '1º Empregotech',
       'Prime Control, uma das patrocinadoras',
     ]
-    for (const text of texts) await expect(page.getByText(text, { exact: false }).first()).toBeVisible()
+    // o texto das janelas de editor (006) aparece duas vezes no HTML: no YAML, só com JS, e nos cartões
+    for (const text of texts) await expect(page.getByText(text, { exact: false }).filter({ visible: true }).first()).toBeVisible()
   })
 
   test('nenhum texto escondido por estado inicial de animação', async ({ page }) => {
@@ -48,6 +49,8 @@ test.describe('sem JS', () => {
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const el = node.parentElement
         if (!el || !node.textContent?.trim() || el.closest('[aria-hidden="true"]')) continue
+        // a visão de editor (006, FR-012) é a outra apresentação dos cartões, que ficam visíveis
+        if (el.closest('.editor-tabs, .editor-tree, .editor-files, .editor-footer')) continue
         // sobe a árvore: qualquer ancestral escondido esconde o texto
         for (let cur: Element | null = el; cur; cur = cur.parentElement) {
           const style = getComputedStyle(cur)
@@ -61,6 +64,16 @@ test.describe('sem JS', () => {
       return offenders
     })
     expect(hidden).toEqual([])
+  })
+
+  test('feature 006: □ desenhado como desativado, loader no estado final e favicon (V9, V13, V15, FR-025, FR-042)', async ({ page }) => {
+    await page.goto('./')
+    const max = page.locator('.t-max')
+    expect(await max.count()).toBe(11)
+    expect(await max.evaluateAll((els) => els.every((el) => el.tagName === 'SPAN' && el.classList.contains('t-btn--disabled')))).toBe(true)
+    await expect(page.locator('#home .hero-boot')).toHaveAttribute('data-loader', 'done')
+    await expect(page.locator('#home .ll-text[data-active]')).toHaveText('portfolio.service carregado com sucesso!')
+    await expect(page.locator('link[rel="icon"][type="image/svg+xml"]')).toHaveAttribute('href', /favicon\.svg$/)
   })
 
   test('âncora leva à seção', async ({ page }) => {
@@ -92,8 +105,8 @@ test.describe('sem JS', () => {
     // navegação com os 6 links, sem o prompt
     await expect(page.locator('.nav-links a')).toHaveCount(6)
     await expect(page.locator('.navbar')).not.toContainText('viper@portfolio')
-    // 8 janelas completas, com os controles só desenho
-    await expect(page.locator('.desktop-window')).toHaveCount(8)
+    // 11 janelas completas (as 3 de editor da 006), com os controles só desenho
+    await expect(page.locator('.desktop-window')).toHaveCount(11)
     await expect(page.locator('.terminal-bar button')).toHaveCount(0)
     expect(await page.locator('.t-controls').evaluateAll((els) => els.every((el) => el.getAttribute('aria-hidden') === 'true'))).toBe(true)
     await expect(page.locator('footer.footer p')).toHaveCount(1)
@@ -153,6 +166,8 @@ test.describe('JS principal falhou', () => {
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const el = node.parentElement
         if (!el || !node.textContent?.trim() || el.closest('[aria-hidden="true"], .sr-only')) continue
+        // a visão de editor (006, FR-012) é a outra apresentação dos cartões, que ficam visíveis
+        if (el.closest('.editor-tabs, .editor-tree, .editor-files, .editor-footer')) continue
         for (let cur: Element | null = el; cur; cur = cur.parentElement) {
           const style = getComputedStyle(cur)
           if (style.opacity === '0' || style.visibility === 'hidden') {

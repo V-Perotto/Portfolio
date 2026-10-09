@@ -78,3 +78,42 @@ test.describe('sem JavaScript', () => {
     await expect(page.locator('.t-controls button')).toHaveCount(0)
   })
 })
+
+// Feature 006, US7 (quickstart V13; FR-025, SC-008): o □ das janelas que não maximizam fica com aparência
+// de desativado e não reage ao hover; nas janelas de editor, ele é um botão.
+test.describe('□ desativado (006)', () => {
+  test.use({ reducedMotion: 'reduce' })
+
+  async function expectDisabled(page: Page, max: Locator, label: string) {
+    await max.scrollIntoViewIfNeeded()
+    const style = await max.evaluate((el) => ({ opacity: Number(getComputedStyle(el).opacity), cursor: getComputedStyle(el).cursor, tag: el.tagName }))
+    expect(style.tag, label).toBe('SPAN')
+    expect(style.opacity, label).toBeLessThanOrEqual(0.4)
+    expect(style.cursor, label).toBe('default')
+    await page.mouse.move(0, 0)
+    const rest = await max.screenshot()
+    await max.hover({ force: true })
+    await page.waitForTimeout(250) // as transições de 0,15 s terminariam aqui
+    const hover = await max.screenshot()
+    expect(hover.equals(rest), `${label}: o mesmo desenho com o ponteiro em cima`).toBe(true)
+  }
+
+  test('sobre.txt, um projeto, contato.sh e o terminal da dock (V13)', async ({ page }) => {
+    await page.goto('./')
+    await enterPortfolio(page)
+    for (const title of ['sobre.txt', 'SRG', 'contato.sh']) await expectDisabled(page, bar(page, title).locator('.t-max'), title)
+    await page.locator('.app-dock .dock-btn').click()
+    await expectDisabled(page, page.locator('#dock-terminal .t-max'), 'terminal da dock')
+  })
+
+  test('nas janelas de editor, o □ é um botão que maximiza (FR-013)', async ({ page }) => {
+    await page.goto('./')
+    await enterPortfolio(page)
+    for (const title of ['~/carreira', '~/projetos/challenges', '~/projetos/comunitario']) {
+      const max = bar(page, title).locator('.t-max')
+      await expect(max).toHaveJSProperty('tagName', 'BUTTON')
+      await expect(max).toHaveAttribute('aria-label', `Maximizar ${title}`)
+      expect(await max.evaluate((el) => Number(getComputedStyle(el).opacity))).toBe(1)
+    }
+  })
+})

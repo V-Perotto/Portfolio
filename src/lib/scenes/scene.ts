@@ -20,6 +20,8 @@ export type SceneFactory<O> = (canvas: AnyCanvas, options: O, env: SceneEnv) => 
 export interface SceneEnv {
   /** Na thread principal, a cena congela se ficar lenta demais (protege timers e interação). */
   guard: boolean
+  /** Chamado uma vez, depois do primeiro quadro desenhado (o hero pronto, feature 006, R13). */
+  onFirstFrame?: () => void
 }
 
 /** Intervalo a partir do qual um quadro conta como lento (na thread principal). */

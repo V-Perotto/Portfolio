@@ -5,10 +5,13 @@ import { enterPortfolio } from './support/boot'
 test.use({ reducedMotion: 'reduce' })
 
 test.describe('links', () => {
+  // com JS, carregar com `#secao` no endereço abre no hero (feature 006, clarify Q3; access-gate.spec, V10);
+  // dentro da página, toda âncora continua levando à seção (sem JS: no-js.spec)
   for (const id of ['home', 'sobre', 'experiencia', 'skills', 'projetos', 'educacao', 'contato']) {
     test(`âncora #${id} leva à seção`, async ({ page }) => {
-      await page.goto(`./#${id}`)
+      await page.goto('./')
       await enterPortfolio(page)
+      await page.evaluate((hash) => (location.hash = hash), id)
       await expect(page.locator(`#${id}`)).toBeInViewport()
     })
   }

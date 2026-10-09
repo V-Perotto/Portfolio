@@ -98,13 +98,16 @@ test.describe('challenges (US5)', () => {
   test('7 challenges públicos, do mais recente ao mais antigo (V5, SC-004)', async ({ page }) => {
     await page.goto('./#projetos')
     await enterPortfolio(page)
-    const items = challenges(page).locator('li')
+    // os cartões ficam na janela de editor (006): visíveis só maximizada, sem JS e na impressão; o
+    // texto continua no DOM, na mesma ordem
+    const items = challenges(page).locator('.editor-cards li')
     await expect(items.locator('h4')).toHaveText(['CIEE-PR', 'Mobiis', 'Econet', 'Executiva Service', 'PandaVideo', 'NY Times (RPA)', 'Axya'])
     await expect(items.locator('.card-date')).toHaveText([
       '// SET 2026', '// FEV 2026', '// JAN 2026', '// OUT 2025', '// OUT 2024', '// JAN 2024', '// JUL 2023',
     ])
-    const links = challenges(page).locator('a[target="_blank"][rel="noopener noreferrer"]')
+    const links = challenges(page).locator('.editor-cards a[target="_blank"][rel="noopener noreferrer"]')
     await expect(links).toHaveCount(7)
+    await expect(challenges(page).locator('.editor-files a[target="_blank"][rel="noopener noreferrer"]')).toHaveCount(7)
     await expect(challenges(page)).not.toContainText('privado')
   })
 
@@ -114,7 +117,8 @@ test.describe('challenges (US5)', () => {
     await enterPortfolio(page)
     const heights = await cards(page).evaluateAll((items) => items.map((li) => li.getBoundingClientRect().height))
     const average = heights.reduce((a, b) => a + b, 0) / heights.length
-    const list = await challenges(page).locator('ol').boundingBox()
+    // a lista virou a janela de editor (006): ela continua compacta
+    const list = await challenges(page).locator('.editor-window').boundingBox()
     expect(list!.height).toBeLessThanOrEqual(3 * average)
   })
 })
@@ -123,10 +127,10 @@ test('projeto comunitário da PUC-PR (US6, V6)', async ({ page }) => {
   await page.goto('./#projetos')
   await enterPortfolio(page)
   const subpart = page.locator('#projetos .section-subpart', { has: page.locator('h3', { hasText: 'comunitario' }) })
-  await expect(subpart.locator('h4')).toHaveText(['Gincana Junina'])
+  await expect(subpart.locator('.editor-cards h4')).toHaveText(['Gincana Junina'])
   await expect(subpart).toContainText('// JUN 2023')
   await expect(subpart).toContainText('Um dos estudantes organizadores (Sistemas de Informação)')
-  await expect(subpart.locator('a')).toHaveAttribute(
+  await expect(subpart.locator('.editor-cards a')).toHaveAttribute(
     'href',
     'https://www.pucpr.br/noticias/estudantes-da-pucpr-promovem-gincana-junina-em-escola-municipal-de-curitiba/',
   )

@@ -8,7 +8,9 @@ import { onMounted } from 'vue'
 export function useHashAnchor(): void {
   onMounted(() => {
     const id = decodeURIComponent(location.hash.slice(1))
-    if (!id) return
+    // com a porta de acesso na tela, a página abre no topo no fim dela e a âncora sai (feature 006,
+    // FR-020); isto só vale sem porta (JS que chegou tarde, FR-022)
+    if (!id || document.documentElement.classList.contains('gate')) return
 
     let userScrolled = false
     const markUser = () => {

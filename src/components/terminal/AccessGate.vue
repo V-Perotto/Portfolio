@@ -128,30 +128,15 @@ function releasePage() {
 }
 
 /**
- * Fim do acesso (FR-009): com âncora no endereço, foco na seção dela; sem âncora, o foco volta ao
- * início do documento, como numa carga normal, e o primeiro Tab chega à navegação.
+ * Fim do acesso (FR-009 da 005; FR-020 e FR-021 da 006, clarify Q3): a página aparece sempre no topo,
+ * com o hero inteiro na tela, mesmo que o navegador tenha rolado por baixo da porta (âncora no
+ * endereço); a âncora sai do endereço sem entrada nova no histórico. O foco volta ao início do
+ * documento, como numa carga normal, e o primeiro Tab chega à navegação.
  */
-function focusPage() {
-  const id = decodeURIComponent(location.hash.slice(1))
-  const target = id ? document.getElementById(id) : null
-  if (!target) {
-    ;(document.activeElement as HTMLElement | null)?.blur()
-    return
-  }
-  target.scrollIntoView({ block: 'start', behavior: 'instant' })
-  if (!target.hasAttribute('tabindex')) {
-    target.setAttribute('tabindex', '-1')
-    target.setAttribute('data-gate-focus', '')
-    target.addEventListener(
-      'blur',
-      () => {
-        target.removeAttribute('tabindex')
-        target.removeAttribute('data-gate-focus')
-      },
-      { once: true },
-    )
-  }
-  target.focus({ preventScroll: true })
+function showTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  if (location.hash) history.replaceState(history.state, '', location.pathname + location.search)
+  ;(document.activeElement as HTMLElement | null)?.blur()
 }
 
 function finish() {
@@ -163,7 +148,7 @@ function finish() {
   status.value = ''
   html().classList.remove('gate', 'booting')
   releasePage()
-  focusPage()
+  showTop()
   if (still.value || !html().classList.contains('motion')) {
     active.value = false
     return
@@ -299,7 +284,7 @@ onBeforeUnmount(() => {
         <p id="gate-hint" class="gate-hint mono">{{ hint }}</p>
       </div>
       <div v-show="showWindow" ref="win" class="gate-window">
-        <TerminalWindow :title="TITLE" :animate="false" :maximizable="false">
+        <TerminalWindow :title="TITLE" :animate="false" maximize="none">
           <!-- decorativo, como o boot da 004: o status abaixo diz o que acontece (research R7) -->
           <div class="gate-session" aria-hidden="true">
             <p v-for="(line, i) in lines" :key="`${sessionId}-${i}`" :class="['boot-line', { 'boot-pending': i >= visible }]">
@@ -374,16 +359,21 @@ onBeforeUnmount(() => {
   padding-inline: calc(var(--spacing) * 3);
 }
 
-/* penumbra sob o nome do ícone e a dica: o contraste não depende do quadro do Faulty Terminal
-   (FR-001, research R8); `closest-side` some antes das bordas, sem desenhar uma caixa */
+/* vinheta sob o nome do ícone e a dica, no desenho da vinheta central do Letter Glitch (feature 006,
+   FR-035, research R14): centrada no bloco de texto (o quadrado do ícone já é opaco), forte só onde há
+   texto e sumindo logo depois; o Faulty Terminal aparece em volta do ícone. A dica em --text-dim pede
+   ~0,88 de escuro atrás dela para ficar ≥ 4,5:1 até sobre os lampejos brancos do Faulty Terminal */
 .gate-launcher::before {
   content: "";
   position: absolute;
-  inset: -5rem -7rem;
+  inset: 2.25rem -4.25rem -4.125rem;
   z-index: -1;
-  background: radial-gradient(closest-side, var(--boot-panel) 70%, transparent);
+  background: var(--gate-vignette);
   pointer-events: none;
 }
+
+/* fundo liso (movimento reduzido): sem dígitos para apagar, sem vinheta (a dica tem 4,9:1 sobre --bg) */
+.gate-still .gate-launcher::before { content: none; }
 
 .gate-hint {
   color: var(--text-dim);

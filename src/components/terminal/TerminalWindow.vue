@@ -6,17 +6,19 @@ import { WINDOW_CONTROLS } from './window-controls'
 
 /**
  * Janela de terminal. Com `animate` (padrão), digita os comandos ao entrar na tela (FR-025 da 002).
- * Dentro de um `DesktopWindow` (feature 004), `−` e `✕` funcionam depois de montar.
+ * Dentro de um `DesktopWindow` (feature 004), `−` e `✕` funcionam depois de montar. Quem oferece o
+ * maximizar nos controles (as janelas de editor, feature 006) ganha o `□` funcional; o resto, o `□`
+ * desativado (`maximize="none"` tira o `□`: a porta de acesso).
  */
-const props = withDefaults(defineProps<{ title: string; animate?: boolean; maximizable?: boolean }>(), {
+const props = withDefaults(defineProps<{ title: string; animate?: boolean; maximize?: 'none' | 'disabled' }>(), {
   animate: true,
-  maximizable: true,
+  maximize: 'disabled',
 })
 
 const win = ref<HTMLElement | null>(null)
 const body = ref<HTMLElement | null>(null)
 const controls = inject(WINDOW_CONTROLS, null)
-const typing = props.animate ? useTerminalTyping(win, body) : { complete() {}, replay() {} }
+const typing = props.animate ? useTerminalTyping(win, body) : { complete() {}, replay() {}, prepare() {} }
 controls?.register(typing)
 </script>
 
@@ -25,8 +27,10 @@ controls?.register(typing)
     <TerminalBar
       :title="title"
       :controls="controls?.mounted.value ? 'functional' : 'decorative'"
-      :maximizable="props.maximizable"
+      :maximize="controls?.maximize ? 'on' : props.maximize"
+      :maximized="controls?.maximize?.active.value ?? false"
       @minimize="controls?.minimize()"
+      @maximize="controls?.maximize?.toggle()"
       @close="controls?.close()"
     />
     <div ref="body" class="terminal-body mono">
