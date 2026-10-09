@@ -13,12 +13,12 @@ const display = (contact: Contact) => contact.label ?? contact.url.replace(/^htt
 <template>
   <SectionShell id="contato" title="contato">
     <div v-reveal class="contact-window">
-      <TerminalWindow title="bash — contato.sh">
+      <TerminalWindow title="contato.sh">
         <TerminalLine>./contato.sh --all</TerminalLine>
         <ul class="contact-list">
           <li v-for="contact in contacts" :key="contact.key">
             <span class="c-key">{{ contact.key }}</span><span class="c-sep">=</span>
-            <ExternalLink :href="contact.url" class="c-val">{{ display(contact) }}</ExternalLink>
+            <ExternalLink :href="contact.url">{{ display(contact) }}</ExternalLink>
           </li>
         </ul>
         <TerminalLine>
@@ -56,16 +56,4 @@ const display = (contact: Contact) => contact.label ?? contact.url.replace(/^htt
 
 .c-key { color: var(--purple-glow); }
 .c-sep { color: var(--text-dim); margin: 0 calc(var(--spacing) * 1.6); }
-
-.c-val {
-  color: var(--green-bright);
-  text-decoration: none;
-  border-bottom: 1px dashed transparent;
-  transition: border-color 0.2s, text-shadow 0.2s;
-}
-
-.c-val:hover {
-  border-bottom-color: var(--green-bright);
-  text-shadow: 0 0 12px color-mix(in srgb, var(--green-bright) 70%, transparent);
-}
 </style>

@@ -23,7 +23,7 @@ const privateCount = computed(() => props.project.evidence.filter((e) => e.priva
 
 <template>
   <BaseCard variant="window">
-    <TerminalWindow :title="`bash — ${project.id}`">
+    <TerminalWindow :title="project.name">
       <TerminalLine>{{ project.command }}</TerminalLine>
       <!-- saída do comando: informações à esquerda e links à direita a partir de 900px (research R7) -->
       <div class="project-body">
@@ -42,7 +42,7 @@ const privateCount = computed(() => props.project.evidence.filter((e) => e.priva
             <div v-if="project.relatedTo"><dt>contexto</dt><dd>{{ project.relatedTo }}</dd></div>
           </dl>
           <ul class="chips project-stack" aria-label="Stack">
-            <TagChip v-for="tech in project.stack" :key="tech">{{ tech }}</TagChip>
+            <TagChip v-for="tech in project.stack" :key="tech" :tech="tech" />
           </ul>
         </div>
         <div class="project-links">

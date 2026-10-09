@@ -30,18 +30,28 @@ atualizar experiências, projetos, skills, formação ou contatos. O guia de edi
 arquivo. Um campo obrigatório faltando ou com tipo errado faz o `npm run build` falhar apontando o
 campo.
 
-## Fontes
+Tecnologia nova nos chips ou nas skills precisa de um nome na união `TechName`
+(`src/types/resume.ts`) e de um ícone em `src/lib/tech-icons.ts`; sem isso o build falha.
 
-As fontes Iosevka em `public/fonts/` são geradas com subset por `tools/build-fonts.sh`. As imagens
-decorativas em `src/assets/img/` podem ser recomprimidas com `python3 tools/reencode-images.py`.
+## Fontes e ícones
+
+As fontes Iosevka em `public/fonts/` são geradas com subset por `tools/build-fonts.sh`.
+
+Os ícones de tecnologia (chips e loops de skills) vêm de um sprite SVG versionado em
+`src/assets/tech-icons/sprite.svg`, gerado por `node tools/build-tech-icons.mjs` a partir do
+devicon, do vectorlogo.zone e do Lucide, em uma cor só. Rode o script só quando um ícone novo
+entrar no manifesto dele; precisa de rede e do `npx` (o svgo roda com versão fixa). Origem e
+licença de cada ícone ficam em `src/assets/tech-icons/NOTICE.md`.
 
 ## Publicação
 
 Cada push na `main` roda `.github/workflows/pages.yml`: instala, testa, faz o build e publica o
 `dist/` no GitHub Pages (a fonte do Pages precisa estar configurada como "GitHub Actions").
 
-## Documentação da refatoração
+## Documentação
 
-Especificação, plano, decisões e cenários de validação em
-[`specs/001-vue-resume-refactor/`](specs/001-vue-resume-refactor/) — o roteiro de validação
-completo está em [`quickstart.md`](specs/001-vue-resume-refactor/quickstart.md).
+Especificação, plano, decisões e cenários de validação de cada feature em `specs/`:
+[`001-vue-resume-refactor/`](specs/001-vue-resume-refactor/) (a refatoração para Vue, com o roteiro
+de validação completo em [`quickstart.md`](specs/001-vue-resume-refactor/quickstart.md)),
+[`002-projects-animated-terminals/`](specs/002-projects-animated-terminals/) e
+[`003-devicons-skill-loops/`](specs/003-devicons-skill-loops/).

@@ -14,7 +14,10 @@ withDefaults(defineProps<{ output?: boolean; tag?: string }>(), { output: false,
 </template>
 
 <style scoped>
-.t-line { color: var(--text); margin-bottom: calc(var(--spacing) * 2); }
+/* o comando fica em Dim Lilac, a cor dos comentários `#` (FR-004 da 003): é contexto, e o conteúdo da
+   janela é o destaque. O `$` e trechos com classe própria (.hl-green) mantêm a cor; a cópia que digita
+   (.t-typed) é filha da linha e já nasce nesta cor (FR-005) */
+.t-line { color: var(--text-dim); margin-bottom: calc(var(--spacing) * 2); }
 
 .t-output {
   color: var(--text-dim);

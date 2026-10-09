@@ -20,7 +20,7 @@ defineProps<{ education: Education }>()
     <ul v-if="education.sources" class="edu-sources mono" aria-label="Fontes">
       <li v-for="source in education.sources" :key="source.url">
         <span class="src-key">fonte</span><span class="src-sep" aria-hidden="true"> = </span>
-        <ExternalLink :href="source.url" class="src-link">{{ source.label }}</ExternalLink>
+        <ExternalLink :href="source.url">{{ source.label }}</ExternalLink>
       </li>
     </ul>
   </BaseCard>
@@ -42,16 +42,4 @@ defineProps<{ education: Education }>()
 
 .src-key { color: var(--purple-glow); }
 .src-sep { color: var(--text-dim); }
-
-.src-link {
-  color: var(--green-bright);
-  text-decoration: none;
-  border-bottom: 1px dashed transparent;
-  transition: border-color 0.2s, text-shadow 0.2s;
-}
-
-.src-link:hover {
-  border-bottom-color: var(--green-bright);
-  text-shadow: 0 0 12px color-mix(in srgb, var(--green-bright) 70%, transparent);
-}
 </style>

@@ -8,7 +8,6 @@
  * - Vínculo em andamento: omita `end` — aparece "PRESENTE" com o selo HEAD. No máximo um.
  * - `confidential: true` indica que `company` já está anonimizado (ex.: "Empresa de Tecnologia
  *   (Confidencial)"); nunca coloque o nome real nesse caso.
- * - `featured: true` em uma skill a coloca na faixa contínua da seção de skills.
  * - `highlights` (métricas de impacto) só com números que o currículo sustente (Princípio I da
  *   constituição). Sem métricas, omita o campo — nada é exibido.
  * - Projetos: só trabalho confidencial (`confidential: true`) ou experiência acadêmica sem
@@ -19,6 +18,11 @@
  *   mostra o cadeado, "privado" e o aviso de que o link pode não abrir para o visitante.
  * - `inProgress: true` num projeto mostra o selo EM DESENVOLVIMENTO, sem data. `relatedTo` mostra a
  *   empresa ligada ao projeto (`contexto = ...`).
+ * - Tecnologias (skills, `tech` das experiências, `stack` de projetos e challenges): só nomes da
+ *   união `TechName` (src/types/resume.ts), cada um com ícone em `TECH_ICONS` (src/lib/tech-icons.ts).
+ *   Tecnologia nova: acrescente o nome nos dois. Ícone novo: acrescente-o no manifesto de
+ *   tools/build-tech-icons.mjs e rode o script (devicon → vectorlogo.zone → Lucide pelo assunto).
+ * - `command` do projeto é a linha de comando temática da janela, sem `./run`.
  * - Challenges aparecem pela data de criação (`created`, mais recente primeiro), não pela ordem
  *   deste arquivo. Projetos comunitários não têm stack.
  * - Formação: `note` (observação) e `sources` (links de fonte) são opcionais.
@@ -124,13 +128,13 @@ const data = {
       id: 'linguagens_frameworks',
       icon: 'code-xml',
       items: [
-        { name: 'Python (Flask)', featured: true },
-        { name: 'Java (Quarkus)', featured: true },
-        { name: 'TypeScript', featured: true },
-        { name: 'Vue.js', featured: true },
-        { name: 'React', featured: true },
-        { name: 'Angular', featured: true },
-        { name: 'Node.js', featured: true },
+        { name: 'Python (Flask)' },
+        { name: 'Java (Quarkus)' },
+        { name: 'TypeScript' },
+        { name: 'Vue.js' },
+        { name: 'React' },
+        { name: 'Angular' },
+        { name: 'Node.js' },
         { name: 'C#' },
       ],
     } satisfies SkillGroup,
@@ -143,8 +147,8 @@ const data = {
       id: 'gestao_de_dados',
       icon: 'database',
       items: [
-        { name: 'MongoDB', featured: true },
-        { name: 'PostgreSQL', featured: true },
+        { name: 'MongoDB' },
+        { name: 'PostgreSQL' },
         { name: 'SQL Server' },
       ],
     } satisfies SkillGroup,
@@ -165,11 +169,11 @@ const data = {
       icon: 'server-cog',
       items: [
         { name: 'Git' },
-        { name: 'Docker', featured: true },
+        { name: 'Docker' },
         { name: 'Jenkins' },
-        { name: 'RabbitMQ', featured: true },
-        { name: 'Redis', featured: true },
-        { name: 'Valkey', featured: true },
+        { name: 'RabbitMQ' },
+        { name: 'Redis' },
+        { name: 'Valkey' },
         { name: 'Elasticsearch' },
         { name: 'Clean Code' },
         { name: 'Agile/Scrum' },
@@ -182,7 +186,7 @@ const data = {
       id: 'srg',
       name: 'SRG',
       subtitle: 'Demonstrativo de Aluguéis',
-      command: './run srg --status',
+      command: 'srg --status',
       purpose:
         'Sistema de demonstrativo de aluguéis: imóveis, inquilinos, despesas e resultados num painel, com um console de administração separado para operar a plataforma.',
       stack: ['Vue 3', 'TypeScript', 'NestJS', 'PostgreSQL', 'Prisma', 'Valkey', 'Docker', 'Nginx'],
@@ -235,7 +239,7 @@ const data = {
       id: 'italiami',
       name: 'ItaliaMi',
       subtitle: 'Sistema de Agendamento',
-      command: './run italiami --describe',
+      command: 'italiami --describe',
       purpose:
         'Sistema para otimização de processos de agendamento de passaportes, reduzindo o tempo de pesquisa manual e sugerindo melhorias na jornada do usuário.',
       stack: ['Angular', 'C#', '.NET'],
@@ -252,7 +256,7 @@ const data = {
       id: 'ocr-prontuarios',
       name: 'OCR de Prontuários',
       subtitle: 'Prontuários civil e criminal',
-      command: './run ocr_para_br --describe',
+      command: 'ocr_para_br --describe',
       purpose: 'Leitura de prontuários civis e criminais via OCR, transformando documentos digitalizados em texto.',
       stack: ['Python', 'OCR'],
       role: 'Autor e desenvolvedor',
@@ -265,7 +269,7 @@ const data = {
       id: 'qclass-bot',
       name: 'QClass-BOT',
       subtitle: 'Aulas por CFC',
-      command: './run qclass-bot --describe',
+      command: 'qclass-bot --describe',
       purpose:
         'Bot que coleta e analisa os dados das aulas realizadas em cada CFC (Centro de Formação de Condutores) registrado.',
       stack: ['Python'],
@@ -279,7 +283,7 @@ const data = {
       id: 'monitoria',
       name: 'Monitor de Curso',
       subtitle: 'PUC-PR, Curitiba',
-      command: './run monitoria --describe',
+      command: 'monitoria --describe',
       purpose: 'Mentorias de lógica de programação e pensamento matemático aplicadas à linguagem Java.',
       stack: ['Java'],
       role: 'Monitor da disciplina',

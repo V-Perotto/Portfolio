@@ -48,6 +48,16 @@
   --icon-inline: 1em;
   /* ícone do título de cada grupo de skills */
   --icon-skill: 1.4rem;
+  /* ícone de tecnologia nos chips e nos loops de skills (FR-018 da 003): a altura do texto */
+  --icon-tech: 1em;
+
+  /* fita dos loops de skills (research R5 da 003): roxo do tema sob os itens, com fios nas bordas.
+     --green-bright sobre --ribbon-bg ≈ 9,5:1 */
+  --ribbon-bg: color-mix(in srgb, var(--purple) 55%, var(--bg));
+  --ribbon-edge: var(--purple-light);
+
+  /* brilho de link de conteúdo no hover e no foco (FR-008 da 003), o mesmo do contato */
+  --glow-link: 0 0 12px color-mix(in srgb, var(--green-bright) 70%, transparent);
 
   /* espaçamentos de layout */
   --section-pad: 5rem 1.5rem 2rem;
@@ -73,6 +83,8 @@
     --text-dim: #444;
     --sith: #b00000;
     --spotlight: transparent;
+    /* a fita roxa misturada ao branco deixaria o verde da impressão em ~1,8:1 */
+    --ribbon-bg: var(--surface-2);
   }
 }
 

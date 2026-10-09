@@ -25,7 +25,7 @@ onMounted(() => {
 <template>
   <li class="t-theme">
     <p class="t-theme-name">
-      <span class="prompt-dollar" aria-hidden="true">&gt; </span><span :class="evidence.accent ? ['neon', `neon-${evidence.accent}`] : 'hl-green'" :data-text="evidence.label">{{ evidence.label }}</span>
+      <span class="prompt-dollar" aria-hidden="true">&gt; </span><span :class="evidence.accent ? ['neon', `neon-${evidence.accent}`] : 'evidence-label'" :data-text="evidence.label">{{ evidence.label }}</span>
     </p>
     <!-- repositório privado (FR-005, FR-006): cadeado e "privado" visíveis antes do clique; o nome
          acessível fica "… repositório privado, pode não abrir (abre em nova aba)" -->
@@ -58,6 +58,9 @@ onMounted(() => {
   color: var(--text);
   margin-bottom: calc(var(--spacing) * 1.4);
 }
+
+/* rótulo no roxo do ">" (FR-006 da 003): o verde fica só para o link logo abaixo */
+.evidence-label { color: var(--purple-glow); }
 
 /* letreiro neon nos nomes dos temas. O texto fica estável (contraste ≥ 4,5:1, FR-022); só o
    brilho, numa camada por cima com texto transparente, pisca. */
@@ -106,44 +109,52 @@ onMounted(() => {
   70% { opacity: 0.92; }
 }
 
+/* link de projeto (.ext-link): o sublinhado sai do <a>, que é um flex com cadeado e etiqueta ou com
+   o badge, e fica só sob o caminho ou sob o badge (FR-009 da 003); o brilho do hover e do foco é o
+   do .ext-link, sem deslocamento */
 .evidence-link {
   /* bloco, não inline: a altura não depende da linha de base do badge ou do texto (FR-011) */
   display: flex;
   width: fit-content;
-  transition: transform 0.2s, filter 0.2s;
+  border-bottom: 0;
 }
 
-.evidence-link:hover,
-.evidence-link:focus-visible {
-  transform: translateY(-2px);
+/* text-shadow não age sobre imagem: no badge, o brilho é um drop-shadow na cor do tema */
+.evidence-link:has(img):hover,
+.evidence-link:has(img):focus-visible {
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--purple-light) 55%, transparent));
 }
 
 /* o badge do Shadow Lord brilha em vermelho, na cor do tema */
-.evidence-sith:hover,
-.evidence-sith:focus-visible {
+.evidence-sith:has(img):hover,
+.evidence-sith:has(img):focus-visible {
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--sith-deep) 65%, transparent));
 }
 
 /* caixa reservada do badge (FR-011, SC-011): os badges "for-the-badge" têm 28px de altura e ~174px
-   de largura (varia com o número de downloads); a caixa não muda se a imagem carregar, atrasar ou
-   falhar */
+   de largura (varia com o número de downloads), mais 1px do sublinhado; a caixa não muda se a imagem
+   carregar, atrasar ou falhar */
 .badge-box {
   display: flex;
   align-items: center;
   width: 190px;
   max-width: 100%;
-  height: 28px;
+  height: 29px;
 }
 
+/* sublinhado sob o badge, na largura dele; se o badge falha, quem leva o sublinhado é o domínio */
 .badge-box img {
   display: block;
-  height: 28px;
+  height: 29px;
   width: auto;
   max-width: 100%;
+  border-bottom: 1px dashed currentColor;
 }
 
-.evidence-url { color: var(--green-bright); }
+.evidence-url {
+  color: var(--green-bright);
+  border-bottom: 1px dashed currentColor;
+}
 
 /* link privado: cadeado, caminho e etiqueta numa linha que quebra em telas estreitas (FR-039) */
 .evidence-private {

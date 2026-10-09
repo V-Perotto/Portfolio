@@ -94,6 +94,34 @@ test('a11y: alto contraste mantém foco e esconde a decoração (FR-037)', async
   expect(outline.width).toBeGreaterThan(0)
 })
 
+test('a11y: alto contraste mantém ícones, sublinhados e a fita dos loops (FR-034 da 003)', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' })
+  await page.goto('./')
+  const report = await page.evaluate(() => {
+    const bg = (el: Element | null): string => {
+      for (let cur = el; cur; cur = cur.parentElement) {
+        const c = getComputedStyle(cur).backgroundColor
+        if (c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') return c
+      }
+      return getComputedStyle(document.body).backgroundColor
+    }
+    const icons = [...document.querySelectorAll('svg.tech-icon')].filter((svg) => getComputedStyle(svg).color === bg(svg.parentElement))
+    const links = [...document.querySelectorAll('a.ext-link')].filter((a) => {
+      const line = a.classList.contains('evidence-link') ? a.querySelector('.badge-box img, .evidence-url') : a
+      return !line || getComputedStyle(line).borderBottomStyle !== 'dashed'
+    })
+    const loops = [...document.querySelectorAll('.skill-loop')].filter((el) => {
+      const s = getComputedStyle(el)
+      return s.borderTopStyle === 'none' || parseFloat(s.borderTopWidth) === 0
+    })
+    return { icons: icons.length, links: links.map((a) => a.textContent?.trim()), loops: loops.length, total: document.querySelectorAll('svg.tech-icon').length }
+  })
+  expect(report.total).toBeGreaterThan(60)
+  expect(report.icons).toBe(0)
+  expect(report.links).toEqual([])
+  expect(report.loops).toBe(0)
+})
+
 test('a11y: ícones Lucide das skills decorativos e sem requisição externa (FR-034, FR-035, SC-008)', async ({ page }) => {
   const external: string[] = []
   page.on('request', (request) => {

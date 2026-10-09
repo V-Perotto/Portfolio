@@ -11,7 +11,7 @@ const base: Experience = {
   start: '2024-01',
   end: '2024-06',
   summary: 'Resumo',
-  tech: ['Vue'],
+  tech: ['Vue.js'],
 }
 
 describe('ExperienceCard', () => {

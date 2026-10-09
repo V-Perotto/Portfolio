@@ -1,12 +1,12 @@
 /**
- * Contrato da fonte de dados do portfólio (FR-001, FR-002 da 001; revisado pela 002).
+ * Contrato da fonte de dados do portfólio (FR-001, FR-002 da 001; revisado pela 002 e pela 003).
  *
  * `src/data/resume.ts` exporta
  * `export const resume = { ... } satisfies Resume`, então qualquer campo obrigatório ausente
  * ou com tipo errado quebra o `vue-tsc` e, com ele, o build.
  *
- * Regras que o tipo não expressa estão em specs/002-projects-animated-terminals/data-model.md
- * ("Validação") e são verificadas em tests/unit/resume.data.spec.ts.
+ * Regras que o tipo não expressa estão em specs/003-devicons-skill-loops/data-model.md
+ * ("Validação") e são verificadas em tests/unit/resume.data.spec.ts e tests/unit/tech-icons.spec.ts.
  */
 
 /** Lista que precisa ter ao menos um item. */
@@ -62,13 +62,29 @@ export interface Experience {
   end?: YearMonth
   summary: string
   highlights?: Metric[]
-  tech: NonEmpty<string>
+  tech: NonEmpty<TechName>
 }
 
+/**
+ * Nomes de tecnologia exibidos nos chips e nos loops de skills, com a grafia exata dos dados. Nome novo
+ * exige entrada aqui e em TECH_ICONS (src/lib/tech-icons.ts), senão o vue-tsc quebra (FR-017 da 003).
+ */
+export type TechName =
+  | '.NET' | 'Agentes de IA' | 'Agile/Scrum' | 'Angular' | 'Análise Funcional' | 'APIs REST'
+  | 'Arquitetura' | 'Axios' | 'C#' | 'Clean Code' | 'DDD' | 'Design Patterns' | 'Docker'
+  | 'Elasticsearch' | 'Factory' | 'Flask' | 'Git' | 'Java' | 'Java (Quarkus)' | 'Jenkins'
+  | 'JSON de tema' | 'JSON Server' | 'Kibana' | 'LLMs' | 'MongoDB' | 'MVC' | 'MySQL' | 'NestJS'
+  | 'Nginx' | 'Node.js' | 'OCR' | 'Open VSX Registry' | 'PostgreSQL' | 'Prisma' | 'Processos'
+  | 'Programação Web' | 'Python' | 'Python (Flask)' | 'Quarkus' | 'RabbitMQ' | 'React' | 'Redis'
+  | 'Robocorp (RPA Framework)' | 'Robot Framework' | 'SAP SD' | 'Singleton' | 'SQL Server' | 'TDD'
+  | 'TypeScript' | 'Valkey' | 'Vite' | 'VS Code Extension API' | 'Vue 3' | 'Vue.js'
+
+/** Id de um <symbol> de src/assets/tech-icons/sprite.svg, prefixado pela fonte (devicon →
+ *  vectorlogo.zone → Lucide, research R1 da 003). Gerado por tools/build-tech-icons.mjs. */
+export type TechIconId = `devicon-${string}` | `vectorlogo-${string}` | `lucide-${string}`
+
 export interface SkillItem {
-  name: string
-  /** Aparece na faixa contínua (TechMarquee). */
-  featured?: boolean
+  name: TechName
 }
 
 /** Nomes de ícones do Lucide (lucide.dev/icons) usados nos grupos (FR-034). O registro nome →
@@ -105,10 +121,10 @@ interface ProjectBase {
   id: string
   name: string
   subtitle: string
-  /** Linha de comando temática exibida na janela. */
+  /** Linha de comando temática exibida na janela, sem `./run ` (FR-003 da 003). */
   command: string
   purpose: string
-  stack: NonEmpty<string>
+  stack: NonEmpty<TechName>
   role: string
   kind: ProjectKind
   /** Rodapé da janela, ex.: "[projeto pessoal]". */
@@ -139,7 +155,7 @@ export interface Challenge {
   /** Mês de criação do repositório. */
   created: YearMonth
   summary: string
-  stack: NonEmpty<string>
+  stack: NonEmpty<TechName>
   /** Repositório público; o texto do link é o caminho sem protocolo. */
   url: string
 }

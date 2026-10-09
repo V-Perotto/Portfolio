@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { expectStaticSkillLoops } from './support/skills'
 
 // Princípio III / FR-012: todo o conteúdo do currículo no HTML, visível sem JavaScript (quickstart V4).
 test.use({ javaScriptEnabled: false })
@@ -72,6 +73,11 @@ test.describe('sem JS', () => {
     await expect(page.locator('.hero-terminal')).toContainText('Desenvolvedor Full-Stack')
   })
 
+  test('loops de skills parados, com todas as skills dentro da fita (V10, FR-025 da 003)', async ({ page }) => {
+    await page.goto('./')
+    await expectStaticSkillLoops(page)
+  })
+
   test('janelas de terminal completas, sem estado de digitação (FR-029, SC-006)', async ({ page }) => {
     await page.goto('./')
     await expect(page.locator('[data-t-state], [data-t-anim], .t-typed')).toHaveCount(0)
@@ -106,5 +112,13 @@ test.describe('JS principal falhou', () => {
       return offenders
     })
     expect(hidden).toEqual([])
+  })
+
+  test('loops de skills parados e completos depois do fim do boot (V10, FR-025 da 003)', async ({ page }) => {
+    await page.route('**/assets/*.js', (route) => route.abort())
+    await page.goto('./')
+    await page.waitForFunction(() => performance.now() > 4000, null, { timeout: 8000 })
+    expect(await page.evaluate(() => document.documentElement.classList.contains('motion'))).toBe(false)
+    await expectStaticSkillLoops(page)
   })
 })

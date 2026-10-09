@@ -1,9 +1,21 @@
+<script setup lang="ts">
+import type { TechName } from '@/types/resume'
+import TechIcon from './TechIcon.vue'
+
+/** Chip de tecnologia: ícone à esquerda, na cor do texto, e o nome (FR-012 a FR-018 da 003). */
+defineProps<{ tech: TechName }>()
+</script>
+
 <template>
-  <li class="chip"><slot /></li>
+  <li class="chip"><TechIcon :tech="tech" />{{ tech }}</li>
 </template>
 
 <style scoped>
 .chip {
+  /* o ícone tem 1em e cabe na linha do texto: a altura do chip não muda (FR-018) */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--green-bright);
@@ -15,6 +27,7 @@
   cursor: default;
 }
 
+/* o ícone pinta com currentColor e acompanha o texto (FR-014) */
 .chip:hover {
   background: var(--green);
   color: var(--on-accent);

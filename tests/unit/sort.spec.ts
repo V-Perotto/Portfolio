@@ -7,7 +7,7 @@ const challenge = (name: string, created: Challenge['created']): Challenge => ({
   name,
   created,
   summary: 'x',
-  stack: ['TS'],
+  stack: ['TypeScript'],
   url: `https://github.com/x/${name}`,
 })
 

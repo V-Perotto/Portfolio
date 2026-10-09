@@ -8,9 +8,9 @@ const project: Project = {
   id: 'demo',
   name: 'Demo',
   subtitle: 'Sub',
-  command: './run demo',
+  command: 'demo --describe',
   purpose: 'Propósito',
-  stack: ['Vue'],
+  stack: ['Vue.js'],
   role: 'Autor',
   kind: 'pessoal',
   tag: '[projeto pessoal]',
@@ -22,7 +22,7 @@ const challenge = (name: string, created: Challenge['created']): Challenge => ({
   name,
   created,
   summary: `Resumo ${name}`,
-  stack: ['TS'],
+  stack: ['TypeScript'],
   url: `https://github.com/x/${name}`,
 })
 
@@ -55,9 +55,9 @@ describe('ProjectsSection', () => {
 
   it('a sub-parte comunitária vem depois da de challenges, sem stack (FR-003, FR-019)', () => {
     const wrapper = mountSection({ challenges: [challenge('Novo', '2026-09')], community: [community] })
-    const titles = wrapper.findAll('.project-subpart h3').map((h) => h.text().replace(/[#/]/g, '').trim())
+    const titles = wrapper.findAll('.section-subpart h3').map((h) => h.text().replace(/[#/]/g, '').trim())
     expect(titles).toEqual(['challenges', 'comunitario'])
-    const card = wrapper.findAll('.project-subpart')[1]!
+    const card = wrapper.findAll('.section-subpart')[1]!
     expect(card.text()).toContain('JUN 2023')
     expect(card.text()).toContain('Organizador')
     expect(card.find('[aria-label="Stack"]').exists()).toBe(false)
@@ -66,6 +66,6 @@ describe('ProjectsSection', () => {
 
   it('sem challenges nem comunitário, as sub-partes não aparecem', () => {
     const wrapper = mountSection({})
-    expect(wrapper.findAll('.project-subpart')).toHaveLength(0)
+    expect(wrapper.findAll('.section-subpart')).toHaveLength(0)
   })
 })

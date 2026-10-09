@@ -7,9 +7,9 @@ const base = {
   id: 'demo',
   name: 'Demo',
   subtitle: 'Sub',
-  command: './run demo',
+  command: 'demo --describe',
   purpose: 'Propósito',
-  stack: ['Vue'],
+  stack: ['Vue.js'],
   role: 'Autor',
   kind: 'pessoal',
   tag: '[projeto pessoal]',
@@ -19,7 +19,7 @@ describe('ProjectCard', () => {
   it('confidencial sem evidência mostra o motivo e nenhum link', () => {
     const project: Project = {
       ...base,
-      stack: ['Vue'],
+      stack: ['Vue.js'],
       evidence: [],
       confidential: true,
       noEvidenceReason: 'Projeto confidencial, sem link público.',
@@ -32,7 +32,7 @@ describe('ProjectCard', () => {
   it('métricas vêm logo depois da descrição', () => {
     const project: Project = {
       ...base,
-      stack: ['Vue'],
+      stack: ['Vue.js'],
       evidence: [],
       confidential: true,
       noEvidenceReason: 'x',
@@ -43,7 +43,7 @@ describe('ProjectCard', () => {
   })
 
   it('sem métricas não renderiza o bloco de resultados nem texto vazio', () => {
-    const project: Project = { ...base, stack: ['Vue'], evidence: [], confidential: true, noEvidenceReason: 'x' }
+    const project: Project = { ...base, stack: ['Vue.js'], evidence: [], confidential: true, noEvidenceReason: 'x' }
     const wrapper = mount(ProjectCard, { props: { project } })
     expect(wrapper.find('.metrics').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('undefined')
@@ -52,7 +52,7 @@ describe('ProjectCard', () => {
   it('evidência vira link externo isolado', () => {
     const project: Project = {
       ...base,
-      stack: ['Vue'],
+      stack: ['Vue.js'],
       evidence: [{ label: 'Repo', url: 'https://example.com/repo', kind: 'repositorio' }],
     }
     const wrapper = mount(ProjectCard, { props: { project } })
@@ -65,7 +65,7 @@ describe('ProjectCard', () => {
   it('link privado mostra "privado" e avisa no nome acessível que pode não abrir (FR-005)', () => {
     const project: Project = {
       ...base,
-      stack: ['Vue'],
+      stack: ['Vue.js'],
       evidence: [{ label: 'Repo', url: 'https://github.com/x/repo', kind: 'repositorio', private: true }],
     }
     const link = mount(ProjectCard, { props: { project } }).get('a')
@@ -85,7 +85,7 @@ describe('ProjectCard', () => {
     const priv = (n: number) => ({ label: `R${n}`, url: `https://github.com/x/r${n}`, kind: 'repositorio', private: true }) as const
     const pub = { label: 'Pub', url: 'https://example.com', kind: 'demo' } as const
     const note = (evidence: Project['evidence']) =>
-      mount(ProjectCard, { props: { project: { ...base, stack: ['Vue'], evidence } as Project } })
+      mount(ProjectCard, { props: { project: { ...base, stack: ['Vue.js'], evidence } as Project } })
         .findAll('.no-evidence')
         .map((p) => p.text())
 
@@ -106,21 +106,41 @@ describe('ProjectCard', () => {
   })
 
   it('selo EM DESENVOLVIMENTO só com inProgress, sem período (FR-013)', () => {
-    const project: Project = { ...base, stack: ['Vue'], inProgress: true, evidence: [], confidential: true, noEvidenceReason: 'x' }
+    const project: Project = { ...base, stack: ['Vue.js'], inProgress: true, evidence: [], confidential: true, noEvidenceReason: 'x' }
     const name = mount(ProjectCard, { props: { project } }).get('h3')
     expect(name.get('.tag-now').text()).toBe('EM DESENVOLVIMENTO')
     expect(name.text()).not.toContain('PRESENTE')
 
-    const done: Project = { ...base, stack: ['Vue'], evidence: [], confidential: true, noEvidenceReason: 'x' }
+    const done: Project = { ...base, stack: ['Vue.js'], evidence: [], confidential: true, noEvidenceReason: 'x' }
     expect(mount(ProjectCard, { props: { project: done } }).find('.tag-now').exists()).toBe(false)
   })
 
   it('exibe stack, papel e tipo', () => {
-    const project: Project = { ...base, stack: ['Vue', 'TS'], evidence: [], confidential: true, noEvidenceReason: 'x' }
+    const project: Project = { ...base, stack: ['Vue.js', 'TypeScript'], evidence: [], confidential: true, noEvidenceReason: 'x' }
     const text = mount(ProjectCard, { props: { project } }).text()
-    expect(text).toContain('Vue')
-    expect(text).toContain('TS')
+    expect(text).toContain('Vue.js')
+    expect(text).toContain('TypeScript')
     expect(text).toContain('Autor')
     expect(text).toContain('pessoal')
+  })
+
+  it('rótulo de link sem accent no roxo do ">"; com accent, o neon do tema (FR-006 da 003)', () => {
+    const project: Project = {
+      ...base,
+      stack: ['Vue.js'],
+      evidence: [
+        { label: 'Demo-Front · front-end', url: 'https://github.com/x/demo-front', kind: 'repositorio', private: true },
+        { label: 'Tema', url: 'https://open-vsx.org/extension/x/tema', kind: 'marketplace', accent: 'grape' },
+      ],
+    }
+    const labels = mount(ProjectCard, { props: { project } }).findAll('.t-theme-name > span:not(.prompt-dollar)')
+    expect(labels[0]!.classes()).toEqual(['evidence-label'])
+    expect(labels[1]!.classes()).toEqual(expect.arrayContaining(['neon', 'neon-grape']))
+    expect(labels.some((l) => l.classes('hl-green'))).toBe(false)
+  })
+
+  it('o título da janela é o nome do projeto, sem "bash —" (FR-011 da 003)', () => {
+    const project: Project = { ...base, stack: ['Vue.js'], evidence: [], confidential: true, noEvidenceReason: 'x' }
+    expect(mount(ProjectCard, { props: { project } }).get('.terminal-title').text()).toBe('Demo')
   })
 })

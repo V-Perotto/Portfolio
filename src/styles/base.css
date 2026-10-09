@@ -87,6 +87,19 @@
   .card-desc { color: var(--text-dim); font-size: 0.95rem; margin-bottom: calc(var(--spacing) * 4); }
 
   .chips { display: flex; flex-wrap: wrap; gap: calc(var(--spacing) * 2); list-style: none; }
+
+  /* link de conteúdo (ExternalLink; FR-007 a FR-010 da 003): o sublinhado tracejado que o contato só
+     mostrava no hover fica parado; hover e foco acendem só o brilho. Menu, botões e "▼ scroll" não
+     usam esta classe. `border-bottom` num elemento inline se repete em cada linha quando o link quebra */
+  .ext-link {
+    color: var(--green-bright);
+    text-decoration: none;
+    border-bottom: 1px dashed currentColor;
+    transition: text-shadow 0.2s, filter 0.2s;
+  }
+
+  .ext-link:hover,
+  .ext-link:focus-visible { text-shadow: var(--glow-link); }
 }
 
 /* v-reveal (src/directives/reveal.ts): a classe pendente só é aplicada pelo JS, e só esconde
@@ -149,11 +162,11 @@ html:not(.motion) *::after {
   :focus-visible { outline: 2px solid Highlight; }
 
   /* !important: vence os seletores com escopo dos componentes */
-  .base-card, .terminal-window, .tag-now, .chip, .marquee-chip {
+  .base-card, .terminal-window, .tag-now, .chip, .skill-loop {
     border: 1px solid CanvasText !important;
   }
 
-  .scanlines, .matrix, .spotlight-layer, .hero-grid, .section-decor { display: none !important; }
+  .scanlines, .matrix, .spotlight-layer, .hero-grid { display: none !important; }
 }
 
 /* ============================================================
@@ -172,8 +185,8 @@ html:not(.motion) *::after {
   }
 
   /* decoração e navegação não vão para o papel */
-  .scanlines, canvas, .boot-screen, .section-decor, .hero-grid, .hero-scroll, .hero-boot,
-  .navbar, .tech-marquee, .t-controls, .glitch::before, .glitch::after, .neon::after,
+  .scanlines, canvas, .boot-screen, .hero-grid, .hero-scroll, .hero-boot,
+  .navbar, .t-controls, .glitch::before, .glitch::after, .neon::after,
   .cursor, .nav-cursor, html.booting::before { display: none !important; }
 
   /* tudo visível no estado final, mesmo o que ainda não foi revelado ou está no meio da animação */

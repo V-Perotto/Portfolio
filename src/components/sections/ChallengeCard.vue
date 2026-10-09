@@ -20,11 +20,11 @@ defineProps<{ challenge: Challenge }>()
       <h4 class="card-role challenge-name">{{ challenge.name }}</h4>
       <p class="card-desc challenge-desc">{{ challenge.summary }}</p>
       <ul class="chips challenge-stack" aria-label="Stack">
-        <TagChip v-for="tech in challenge.stack" :key="tech">{{ tech }}</TagChip>
+        <TagChip v-for="tech in challenge.stack" :key="tech" :tech="tech" />
       </ul>
       <p class="challenge-repo mono">
         <span class="prompt-dollar" aria-hidden="true">&gt; </span>
-        <ExternalLink :href="challenge.url" class="repo-link">{{ challenge.url.replace(/^https?:\/\//, '') }}</ExternalLink>
+        <ExternalLink :href="challenge.url">{{ challenge.url.replace(/^https?:\/\//, '') }}</ExternalLink>
       </p>
     </div>
   </BaseCard>
@@ -36,18 +36,6 @@ defineProps<{ challenge: Challenge }>()
 .challenge-repo {
   font-size: 0.85rem;
   overflow-wrap: anywhere;
-}
-
-.repo-link {
-  color: var(--green-bright);
-  text-decoration: none;
-  border-bottom: 1px dashed transparent;
-  transition: border-color 0.2s, text-shadow 0.2s;
-}
-
-.repo-link:hover {
-  border-bottom-color: var(--green-bright);
-  text-shadow: 0 0 12px color-mix(in srgb, var(--green-bright) 70%, transparent);
 }
 
 @media (min-width: 900px) {

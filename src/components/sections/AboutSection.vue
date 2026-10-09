@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import decorImg from '@/assets/img/image3-bg.webp'
 import RichText from '@/components/base/RichText.vue'
 import SectionShell from '@/components/layout/SectionShell.vue'
 import TerminalLine from '@/components/terminal/TerminalLine.vue'
@@ -10,9 +9,9 @@ defineProps<{ profile: Profile }>()
 </script>
 
 <template>
-  <SectionShell id="sobre" title="sobre" :decor="{ src: decorImg, tint: 'green', placement: 'right' }">
+  <SectionShell id="sobre" title="sobre">
     <div v-reveal class="about-window">
-      <TerminalWindow title="bash — sobre.txt">
+      <TerminalWindow title="sobre.txt">
         <TerminalLine>cat sobre.txt</TerminalLine>
         <TerminalLine output><RichText :value="profile.about" /></TerminalLine>
         <TerminalLine>whois vittorio --info</TerminalLine>

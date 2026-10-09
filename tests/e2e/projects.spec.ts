@@ -87,7 +87,7 @@ test('SRG primeiro, em desenvolvimento, e ordem de relevância da lista (US4, FR
 })
 
 test.describe('challenges (US5)', () => {
-  const challenges = (page: Page) => page.locator('#projetos .project-subpart', { has: page.locator('h3', { hasText: 'challenges' }) })
+  const challenges = (page: Page) => page.locator('#projetos .section-subpart', { has: page.locator('h3', { hasText: 'challenges' }) })
 
   test('7 challenges públicos, do mais recente ao mais antigo (V5, SC-004)', async ({ page }) => {
     await page.goto('./#projetos')
@@ -113,7 +113,7 @@ test.describe('challenges (US5)', () => {
 
 test('projeto comunitário da PUC-PR (US6, V6)', async ({ page }) => {
   await page.goto('./#projetos')
-  const subpart = page.locator('#projetos .project-subpart', { has: page.locator('h3', { hasText: 'comunitario' }) })
+  const subpart = page.locator('#projetos .section-subpart', { has: page.locator('h3', { hasText: 'comunitario' }) })
   await expect(subpart.locator('h4')).toHaveText(['Gincana Junina'])
   await expect(subpart).toContainText('// JUN 2023')
   await expect(subpart).toContainText('Um dos estudantes organizadores (Sistemas de Informação)')
@@ -122,7 +122,7 @@ test('projeto comunitário da PUC-PR (US6, V6)', async ({ page }) => {
     'https://www.pucpr.br/noticias/estudantes-da-pucpr-promovem-gincana-junina-em-escola-municipal-de-curitiba/',
   )
   // vem depois dos challenges
-  const order = await page.locator('#projetos .project-subpart h3').allTextContents()
+  const order = await page.locator('#projetos .section-subpart h3').allTextContents()
   expect(order.map((t) => t.replace(/[#/]/g, '').trim())).toEqual(['challenges', 'comunitario'])
 })
 

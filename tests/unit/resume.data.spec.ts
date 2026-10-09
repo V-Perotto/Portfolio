@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { resume } from '@/data/resume'
+import { TECH_ICONS } from '@/lib/tech-icons'
 import type { Project, YearMonth } from '@/types/resume'
 
-// Regras de specs/002-projects-animated-terminals/data-model.md, seção "Validação" (que estende a da
-// 001) — o que o tipo não cobre.
+// Regras de specs/002-projects-animated-terminals/data-model.md e specs/003-devicons-skill-loops/
+// data-model.md, seções "Validação" (que estendem a da 001) — o que o tipo não cobre.
 
 const YEAR_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/
 const experiences = [...resume.experiences]
@@ -92,5 +93,27 @@ describe('resume.ts — validação', () => {
     expect(resume.contacts).toHaveLength(2)
     expect(projects.filter((p) => p.inProgress).map((p) => p.id)).toEqual(['srg'])
     expect(projects.flatMap((p) => p.evidence).filter((e) => e.private)).toHaveLength(10)
+  })
+
+  it('(9) comandos das janelas sem o prefixo ./run (FR-003 da 003)', () => {
+    expect(projects.filter((p) => p.command.startsWith('./run')).map((p) => p.id)).toEqual([])
+  })
+
+  it('(10) skills: 5 grupos e 28 skills, na ordem; toda tecnologia exibida tem ícone (003)', () => {
+    expect(resume.skillGroups.map((g) => [g.id, g.items.length])).toEqual([
+      ['linguagens_frameworks', 8],
+      ['conceitos_web', 2],
+      ['gestao_de_dados', 3],
+      ['desenho_de_processos', 6],
+      ['devops_qualidade', 9],
+    ])
+    expect(resume.skillGroups.flatMap((g) => g.items).every((i) => Object.keys(i).join() === 'name')).toBe(true)
+    const shown = [
+      ...resume.skillGroups.flatMap((g) => g.items.map((i) => i.name)),
+      ...resume.experiences.flatMap((e) => e.tech),
+      ...projects.flatMap((p) => p.stack),
+      ...resume.challenges.flatMap((c) => c.stack),
+    ]
+    expect(shown.filter((name) => !TECH_ICONS[name])).toEqual([])
   })
 })

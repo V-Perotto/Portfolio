@@ -21,7 +21,7 @@ defineProps<{ experience: Experience }>()
       <MetricBadge v-for="metric in experience.highlights" :key="metric.label" :metric="metric" />
     </ul>
     <ul class="chips" aria-label="Tecnologias">
-      <TagChip v-for="tech in experience.tech" :key="tech">{{ tech }}</TagChip>
+      <TagChip v-for="tech in experience.tech" :key="tech" :tech="tech" />
     </ul>
   </BaseCard>
 </template>

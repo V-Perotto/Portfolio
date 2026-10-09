@@ -20,7 +20,13 @@
       root.classList.add('js');
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         root.classList.add('motion', 'booting');
-        setTimeout(function () { root.classList.remove('booting'); }, Math.max(0, 3900 - performance.now()));
+        setTimeout(function () {
+          root.classList.remove('booting');
+          // o JS principal não rodou (falhou ou não chegou até o fim do boot): sem ele não há
+          // movimento, e o que só fica completo parado volta ao estado final (FR-018 da 001; os
+          // loops de skills, FR-025 da 003, que com movimento ocupam uma linha só)
+          if (!root.classList.contains('app-loaded')) root.classList.remove('motion');
+        }, Math.max(0, 3900 - performance.now()));
       }
     })();
   </script>
