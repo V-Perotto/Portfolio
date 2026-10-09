@@ -11,3 +11,4 @@ specs/001-vue-resume-refactor/baseline/
 .claude
 .impeccable/hook.cache.json
 .impeccable/config.local.json
+.playwright-mcp/
