@@ -8,3 +8,6 @@ playwright-report/
 specs/001-vue-resume-refactor/baseline/
 *.log
 .env*
+.claude
+.impeccable/hook.cache.json
+.impeccable/config.local.json
