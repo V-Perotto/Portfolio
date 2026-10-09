@@ -156,7 +156,16 @@ components:
     size: "5.5rem"
   boot-panel:
     backgroundColor: "rgba(10, 6, 18, 0.92)"
+  gate-window:
+    backgroundColor: "{colors.surface}"
     rounded: "{rounded.window}"
+    width: "680px"
+  dot-field:
+    gradientFrom: "rgba(160, 106, 224, 0.45)"
+    gradientTo: "rgba(74, 222, 155, 0.35)"
+    glowColor: "rgba(123, 63, 179, 0.35)"
+    dotRadius: "2"
+    glowRadius: "80"
 ---
 
 # Design System: Portfólio Vittorio Perotto
@@ -172,8 +181,9 @@ listadas por `ls -la /usr/lib/vittorio/` e cada projeto roda numa janela de term
 na barra de título. O visitante não
 navega por um site sobre um terminal; ele está dentro da sessão de `viper@portfolio`.
 
-O tom é o de um hacker lúdico. A personalidade é o ponto: boot SSH sobre um terminal com defeito,
-chuva matrix dentro de um tubo CRT, glitch no nome, prompt que digita e apaga, letreiros neon que
+O tom é o de um hacker lúdico. A personalidade é o ponto: uma porta de acesso (`acessar_portfolio.sh`)
+sobre um terminal com defeito que abre uma sessão SSH, um campo de pontos que cintila atrás do nome,
+glitch no nome, prompt que digita e apaga, letreiros neon que
 piscam, scanlines por cima de tudo, uma dock com um terminal de verdade e janelas que minimizam
 como arquivos de área de trabalho. O brilho
 é atmosfera, não recompensa. O título já nasce com halo, a timeline já é um tubo de luz e o botão
@@ -229,7 +239,7 @@ Uma noite violeta monocromática, cortada por dois neons complementares: Grape e
   artefato, não acento de interface.
 
 ### Neutral
-- **Void Plum** (`bg`): fundo do documento, do boot e do miolo dos marcadores da timeline.
+- **Void Plum** (`bg`): fundo do documento, da porta de acesso e do miolo dos marcadores da timeline.
 - **Night Plum** (`bg-alt`): rodapé e trilho da barra de rolagem; um degrau quase imperceptível
   acima do fundo.
 - **Console Plum** (`surface`): corpo de cartões e janelas de terminal.
@@ -325,8 +335,9 @@ lead `$ comando` em Dim Lilac a 2rem do conteúdo. Uma seção nova segue esse c
 A profundidade é feita de luz, não de papel. As superfícies sobem por degraus tonais da mesma ameixa
 (Void → Console → Title Bar) e se separam por fios Grape Wire de 1px. A luz é ambiente e
 permanente: o hero tem duas nebulosas radiais (Grape Deep em 30%/20% e Phosphor Deep em 75%/80%) e,
-com movimento, vira a tela de um tubo CRT que exibe a chuva matrix (curvatura, scanlines, bloom,
-ruído e vinheta), com uma penumbra Void Plum (`--hero-scrim`) atrás do texto; scanlines de 4px
+com movimento, ganha por cima um campo de pontos (Dot Field) em degradê Grape Glow → Phosphor
+Bright, que cintila e acende um halo Grape no rastro do mouse, com uma penumbra Void Plum
+(`--hero-scrim`) atrás do texto; scanlines de 4px
 cobrem a página inteira. Não há mais a grade de quadrados. Atrás das seções não há imagem: o fundo é só Void Plum. Os glows de
 repouso (halo do nome, tubo da timeline, marcadores, botão principal, pulso do `HEAD`) fazem parte
 dessa atmosfera. Na interação, um glow da cor do token cresce e uma sombra preta funda segura as
@@ -428,10 +439,11 @@ num terminal, ele precisa de um bom motivo para existir aqui.
 ### Terminal Window (signature)
 É o recipiente-assinatura. Tem barra de título em Title Bar Plum com o título mono centralizado, que
 é só o assunto da janela (`sobre.txt`, `contato.sh`, o nome do projeto; sem `bash —`), e, à
-direita, os controles circulares de 20px (alvo de clique de 24px): `−` e `□` em Phosphor, `✕` em
-Grape Deep. Com JS, `−` minimiza e `✕` fecha: a janela encolhe em 0.32s até um Desktop Icon no
-próprio lugar, e o conteúdo abaixo sobe junto. Reaberta, cresce de volta; se tinha sido fechada,
-digita os comandos de novo. O `□` continua desenho. O corpo é mono a 0.9rem. Dentro dele:
+direita, os controles circulares de 20px (alvo de clique de 24px) com os ícones Lucide `minus`,
+`maximize-2` e `x` de 12px (traço 2.5), centrados no círculo: minimizar e maximizar em Phosphor,
+fechar em Grape Deep. Com JS, minimizar e fechar funcionam: a janela encolhe em 0.32s até um Desktop
+Icon, partindo de onde estava, e o conteúdo abaixo sobe junto. Reaberta, cresce de volta; se tinha
+sido fechada, digita os comandos de novo. O maximizar continua desenho. O corpo é mono a 0.9rem. Dentro dele:
 - `$ comando` aparece em Dim Lilac, como os comentários: é contexto, e o destaque é a saída. O `$`
   fica em Grape Glow. Os comandos são os da "aplicação" (`srg --status`), sem `./run`;
 - a saída aparece em Dim Lilac, com `white-space: pre-line`;
@@ -447,7 +459,7 @@ até 2.2s por janela. O texto real nunca sai do lugar: o comando fica transparen
 `aria-hidden` que digita, e a saída fica com `opacity: 0`, então a janela não muda de tamanho e
 leitores de tela leem tudo desde o início. Clique, toque ou foco do teclado na janela completam na
 hora; a animação não se repete. Sem JS, com movimento reduzido ou impresso, a janela já está
-completa. Janela visível quando a página fica interativa sem a capa de boot também fica completa.
+completa. Janela visível quando a página fica interativa sem a capa da porta também fica completa.
 
 ### Section Title (signature)
 `## nome/` em mono 700, seguido opcionalmente de `$ comando` como lead. É a assinatura de
@@ -461,16 +473,17 @@ de 16px com borda Phosphor Bright de 3px, miolo Void Plum e halo verde permanent
 um `git log` com o commit mais recente no topo.
 
 ### Hero Effects (signature)
-- **Boot:** sequência SSH falsa sobre o Faulty Terminal do Vue Bits (dígitos em Phosphor Bright que
-  acendem e falham), num painel `--boot-panel` (Void Plum a 92%, raio de janela). Não é pulável:
-  mostra a sessão inteira e some sozinha em até 7s (exceção do Princípio IV, constituição v2.3.0).
+- **Porta de acesso:** ver Access Gate abaixo. É a primeira tela; o hero só aparece depois dela.
 - **Glitch:** o nome tem duas cópias recortadas por `clip-path`, Grape Glow em cima e Phosphor
   Bright embaixo, que saltam em `steps(1)` a cada ~3s.
 - **Prompt digitado:** ciclo de frases com cursor `▊`.
 - **BlurText:** revela a tagline palavra a palavra em até 1.5s.
-- **Ao fundo:** tubo CRT (CRT Warp do Vue Bits) exibindo a chuva matrix com letras, algarismos e
-  símbolos ASCII em Grape e Phosphor; o mouse deforma o tubo. Sem movimento ou sem WebGL, ficam as
-  nebulosas estáticas.
+- **Ao fundo:** Dot Field do Vue Bits (canvas 2D): pontos de raio 2 a cada 14px, em degradê do
+  Grape Glow (canto de cima, à esquerda) ao Phosphor Bright (canto de baixo, à direita), nas
+  transparências `--dots-from-alpha`/`--dots-to-alpha`; ~3% dos pontos crescem e trocam a cada 8
+  quadros (Sparkle). O mouse em movimento acende um halo Grape de raio 80; os pontos não saem do
+  lugar (Cursor Force 0). Fora da tela, para. Sem movimento ou sem JS, ficam as nebulosas
+  estáticas.
 
 ### Private Link
 Link para repositório privado, que pode abrir um 404 para o visitante. Cadeado Lucide em Dim Lilac
@@ -515,7 +528,7 @@ sublinhado fica na cor do badge (Grape Badge, Sith Badge). Menu, botões, dock e
 controles de navegação e não levam o sublinhado.
 
 ### Dock
-Barra fixa no centro de baixo da tela, só com JS e depois do boot: caixa Console Plum a 85% com
+Barra fixa no centro de baixo da tela, só com JS e depois da porta de acesso: caixa Console Plum a 85% com
 blur, fio Grape Wire e raio de cartão, com um botão de 2.75rem (ícone `SquareTerminal`, Phosphor
 Bright sobre véu Phosphor Deep; sólido no hover e no foco). Com o terminal aberto, um ponto
 Phosphor Bright embaixo do ícone. O botão (e Ctrl+Alt+T) abre e fecha o terminal; a dica é
@@ -534,7 +547,28 @@ O que fica no lugar de uma janela minimizada ou fechada: um quadrado de 5.5rem (
 em Console Plum com fio Grape Wire e raio de cartão, com um ícone Lucide de 2.5rem em Phosphor
 Bright pelo tipo da janela (documento para `sobre.txt`, script para `contato.sh`, pasta de código
 para os projetos), e o título embaixo em mono 0.8rem (até 2 linhas). No hover e no foco, o quadrado
-acende em Grape e o ícone vira Grape Glow. Um clique, toque ou Enter abre a janela.
+acende em Grape e o ícone vira Grape Glow. Um clique, toque ou Enter abre a janela. O ícone fica à
+esquerda, na borda do conteúdo da seção (também o do Contato, cuja janela aberta é centralizada).
+Ícones de projetos minimizados em sequência ficam lado a lado, com 8px entre eles, e quebram de
+linha conforme a largura (2 no celular de 320px, 5 com 768px, os 6 a partir de 1024px); uma janela
+aberta ocupa a própria linha.
+
+### Access Gate (signature)
+A primeira tela, para todo visitante com JS: o Faulty Terminal do Vue Bits ao fundo (dígitos em
+Phosphor Bright que acendem e falham; fundo liso com movimento reduzido ou sem WebGL) e, no centro,
+só um Desktop Icon `acessar_portfolio.sh` (ícone de script, largo o bastante para o nome numa linha)
+com a dica `# clique no ícone para conectar` em Dim Lilac embaixo (`toque` em tela de toque), sobre
+uma penumbra radial `--boot-panel`. O foco começa no ícone, e a página atrás fica `inert`.
+
+Abrir o ícone faz crescer, em 0.32s, uma Terminal Window de 680px (`--gate-window-width`) e tamanho
+fixo, só com minimizar e fechar, onde a sessão SSH é digitada pelo TextType do Vue Bits (cursor `▊`
+Phosphor Bright só na linha em curso): `anon@<IP>:~$ ssh viper@portfolio`, `Conectando ao
+portfolio...` em Dim Lilac, a senha em pontos, `Autenticado.` em Phosphor Bright com `Bem-vindo ao
+Portfolio v2.4`, o `Last login` em Dim Lilac e `./iniciar_portfolio.sh` em Phosphor Bright. O IP é
+o do visitante (ou `127.0.0.1`); a versão é a do `package.json`. A sessão leva 2.72s; no fim, a
+porta some num fade de 0.5s. Minimizada, a sessão continua e a página abre do mesmo jeito; fechada,
+a tentativa acaba e o ícone abre outra, do zero. Com movimento reduzido, nada anima: a sessão aparece
+inteira e a página abre 1s depois.
 
 ### Neon Sign
 Letreiro para nomes de artefatos reais (os temas do Open VSX). O texto fica estável na cor do
@@ -564,16 +598,17 @@ Cada artefato traz o próprio par de cores: Grape Glass usa Phosphor e Grape, Sh
 ### Don't:
 - **Don't** introduzir matiz novo. Sith Red é exceção de artefato, não precedente. Logotipos de
   tecnologia também não trazem a cor da marca.
-- **Don't** pôr imagens decorativas atrás das seções; a atmosfera vem do hero (tubo CRT com a
-  matrix) e das scanlines.
+- **Don't** pôr imagens decorativas atrás das seções; a atmosfera vem do hero (o campo de pontos) e
+  das scanlines.
 - **Don't** fazer piscar, tremer ou perder contraste o texto que o visitante precisa ler. O
   flicker vive numa camada sobreposta (The Steady Text Rule).
 - **Don't** usar sombra cinza neutra sozinha em cartões (The Light Not Paper Rule).
 - **Don't** passar de 10px de raio, exceto na pílula dos chips.
 - **Don't** deixar o realce de hover ser o único meio de revelar uma informação; em tela de toque
   ele não existe.
-- **Don't** deixar efeito algum (glitch, matrix, CRT, scanlines) cobrir conteúdo por mais de 5s ou
-  dificultar achar nome, cargo e contato. A única exceção é o boot: até 7s, sem pulo, sempre inteiro
-  e omitido com movimento reduzido (constituição v2.3.0).
+- **Don't** deixar efeito algum (glitch, campo de pontos, scanlines) cobrir conteúdo por mais de 5s ou
+  dificultar achar nome, cargo e contato. A única exceção é a porta de acesso: espera o clique, mas
+  depois dele a página abre em até 4s, sempre com a sessão inteira, operável por teclado e leitor de
+  tela, e sem animação com movimento reduzido (constituição v3.0.0).
 - **Don't** escrever valores soltos de cor ou espaçamento em componentes quando existe um token
   equivalente.
