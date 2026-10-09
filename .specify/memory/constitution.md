@@ -1,18 +1,20 @@
 <!--
 Sync Impact Report
-- Version change: 2.1.0 → 2.2.0 (MINOR: Princípio II ampliado — nova exceção à evidência pública
-  para código em repositório privado, e stack dispensada em projeto não técnico)
+- Version change: 2.2.0 → 2.3.0 (MINOR: Princípio IV ganha uma exceção explícita — a tela de boot
+  pode não ser pulável, com teto próprio de 7 s; nenhuma regra existente deixa de valer para as
+  demais animações de entrada)
 - Modified principles:
-  - II. Projetos Demonstráveis (exceções à evidência pública: 2 → 3, com "código em repositório
-    privado"; "stack utilizada" passa a valer só para projeto técnico)
+  - IV. Acessibilidade e Desempenho (animações de entrada: "puláveis e ≤ 5 s" passa a ter a exceção
+    da tela de boot — não pulável, página descoberta em ≤ 7 s desde o início da navegação, nunca
+    exibida cortada, omitida com movimento reduzido e sem JavaScript)
 - Added sections: none
 - Removed sections: none
 - Templates: not modified by this command (dependent templates read the constitution at runtime)
-- Dependent artifacts: specs/002-projects-animated-terminals (FR-005, FR-006, FR-010, FR-019) e os
-  tipos `Project`/`Evidence` (src/types/resume.ts) precisam aceitar link privado e projeto sem
-  stack — a cargo do /speckit-plan e /speckit-implement da feature 002
-- Origem: decisão do autor em 2026-10-08 (feature 002: ItaliaMi, OCR_Para_BR, QClass-BOT e SRG com
-  repositórios privados; projeto comunitário da PUC-PR)
+- Dependent artifacts: specs/004-dock-windows-crt (FR-031, FR-032) aplica a exceção; o FR-031 da
+  001 e o prazo de 3,9 s da 002 (research R13) ficam substituídos pela 004 — a cargo do
+  /speckit-plan e do /speckit-implement da feature 004 (script inline de `index.html` e BootScreen)
+- Origem: decisão do autor em 2026-10-09 (feature 004, item 12 "excluindo a possibilidade de clicar
+  para pular"; clarify: teto de 7 s, ritmo atual da digitação mantido)
 - Follow-up TODOs: none
 -->
 
@@ -86,7 +88,11 @@ O conteúdo MUST ser acessível a qualquer visitante, em qualquer dispositivo.
 
 - Respeitar `prefers-reduced-motion`: animações decorativas (boot, matrix, glitch, digitação)
   MUST ser desativadas ou reduzidas quando o usuário pedir.
-- Animações de entrada MUST ser puláveis e nunca bloquear o conteúdo por mais de 5 segundos.
+- Animações de entrada MUST ser puláveis e nunca bloquear o conteúdo por mais de 5 segundos, com uma
+  exceção, que MUST ficar explícita na especificação: a tela de boot pode não ser pulável, desde que
+  a página fique totalmente descoberta em no máximo 7 segundos contados do início da navegação, que
+  a sequência nunca apareça cortada (se o JavaScript chegar tarde demais para ela caber inteira no
+  teto, o boot não aparece) e que ela seja omitida com movimento reduzido e sem JavaScript.
 - Navegação MUST funcionar por teclado; elementos interativos MUST ter rótulos acessíveis;
   imagens informativas MUST ter `alt` e imagens decorativas MUST usar `alt=""`/`aria-hidden`.
 - Layout MUST funcionar em mobile e desktop sem rolagem horizontal.
@@ -95,7 +101,8 @@ O conteúdo MUST ser acessível a qualquer visitante, em qualquer dispositivo.
 - O console do navegador MUST ficar sem erros.
 
 **Racional**: a estética de terminal é um diferencial, mas não pode custar o acesso ao conteúdo
-que o visitante veio ver.
+que o visitante veio ver. A tela de boot é a assinatura do portfólio e só faz sentido inteira; o
+teto próprio e a omissão com movimento reduzido limitam o custo para quem só quer o conteúdo.
 
 ### V. Identidade Visual Coerente
 
@@ -151,4 +158,4 @@ princípios acima; violações MUST ser corrigidas ou justificadas explicitament
 - **Revisão de conformidade**: a cada nova feature e sempre que o currículo for atualizado, o
   conteúdo do site MUST ser revisado contra os Princípios I e II.
 
-**Version**: 2.2.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-08
+**Version**: 2.3.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-09
