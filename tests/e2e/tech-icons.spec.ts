@@ -1,10 +1,12 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // Feature 003, US4: ícone de tecnologia em todo chip (quickstart V6, V15; FR-012 a FR-018).
 test.use({ reducedMotion: 'reduce' })
 
 test('todo chip tem o ícone antes do nome, do sprite do próprio site, na cor do texto (V6)', async ({ page }) => {
   await page.goto('./')
+  await enterPortfolio(page)
   const chips = page.locator('.chip')
   expect(await chips.count()).toBeGreaterThan(60)
 
@@ -43,6 +45,7 @@ test('todo chip tem o ícone antes do nome, do sprite do próprio site, na cor d
 
 test('no hover do chip o ícone muda de cor junto com o texto (V6, FR-014)', async ({ page }) => {
   await page.goto('./')
+  await enterPortfolio(page)
   const chip = page.locator('#experiencia .chip').first()
   await chip.scrollIntoViewIfNeeded()
   const colors = () =>
@@ -56,6 +59,7 @@ test('no hover do chip o ícone muda de cor junto com o texto (V6, FR-014)', asy
 
 test('chip com ícone tem a mesma altura de antes (V6, FR-018)', async ({ page }) => {
   await page.goto('./')
+  await enterPortfolio(page)
   const heights = await page.locator('.chip').evaluateAll((els) => [...new Set(els.map((el) => el.getBoundingClientRect().height))])
   // medido antes da feature (2026-10-08): 28,22px (0.75rem × line-height 1.6 + padding + borda)
   for (const h of heights) expect(Math.abs(h - 28.22)).toBeLessThanOrEqual(1)
@@ -67,6 +71,7 @@ test('ícones sem requisição a terceiros (V15, FR-013)', async ({ page }) => {
     if (/devicon|vectorlogo|jsdelivr/.test(request.url())) third.push(request.url())
   })
   await page.goto('./')
+  await enterPortfolio(page)
   for (const id of ['#experiencia', '#skills', '#projetos']) await page.locator(id).scrollIntoViewIfNeeded()
   await page.waitForTimeout(500)
   expect(third).toEqual([])

@@ -1,10 +1,10 @@
-import { expect, test, type Page } from '@playwright/test'
-import { waitBootEnd } from './support/boot'
+import { expect, test, type Page } from './support/test'
+import { enterPortfolio } from './support/boot'
+import { gotoGate } from './support/gate'
 
 // Feature 002, US8: janelas de terminal que digitam ao entrar na tela (quickstart V8–V12, FR-025 a FR-033).
 test.use({ reducedMotion: 'no-preference' })
 
-const skipBoot = waitBootEnd
 
 /** Estados da janela, na ordem dos passos: "p" pending, "t" typing, "d" done. */
 const states = (page: Page, scope: string) =>
@@ -29,7 +29,7 @@ const timeToDone = async (page: Page, scope: string) => {
 
 test('janela digita o comando, mostra a saída depois e completa em até 2,5 s (V8, SC-005)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   expect(await states(page, '#sobre')).toMatch(/^p+$/) // armada abaixo da dobra
 
   await page.locator('#sobre').scrollIntoViewIfNeeded()
@@ -50,7 +50,7 @@ test('janela digita o comando, mostra a saída depois e completa em até 2,5 s (
 
 test('clique na janela completa a animação na hora (V9, FR-028)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   const window = page.locator('#projetos .projects-grid > li').nth(2).locator('.terminal-window')
   await window.scrollIntoViewIfNeeded()
   await window.locator('.terminal-bar').click()
@@ -60,7 +60,7 @@ test('clique na janela completa a animação na hora (V9, FR-028)', async ({ pag
 
 test('foco do teclado num link de saída ainda escondida completa a janela (V9, FR-028)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   expect(await states(page, '#contato')).toMatch(/^p+$/)
   const link = page.locator('#contato .contact-list a').first()
   await link.focus()
@@ -71,7 +71,7 @@ test('foco do teclado num link de saída ainda escondida completa a janela (V9, 
 
 test('leitor de tela recebe o texto completo durante a digitação (V11, FR-030)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   await page.locator('#sobre').scrollIntoViewIfNeeded()
   await page.waitForFunction(() => document.querySelector('#sobre [data-t-state="typing"]'), null, { polling: 20 })
   await expect(page.locator('#sobre .t-typed')).toHaveAttribute('aria-hidden', 'true')
@@ -92,7 +92,7 @@ test('a animação não desloca o layout nem muda a altura da janela (V12, FR-03
     }).observe({ type: 'layout-shift', buffered: true })
   })
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   const window = page.locator('#contato .terminal-window')
   const before = (await window.boundingBox())!.height
   await window.scrollIntoViewIfNeeded()
@@ -104,18 +104,19 @@ test('a animação não desloca o layout nem muda a altura da janela (V12, FR-03
 })
 
 test('janela coberta pelo boot só anima depois que ele sai (FR-032)', async ({ page }) => {
-  await page.goto('./#contato')
+  await gotoGate(page, './#contato')
   await expect(page.locator('html')).toHaveClass(/\bbooting\b/)
   await page.waitForFunction(() => document.querySelector('#contato [data-t-anim]'), null, { polling: 20 })
   expect(await states(page, '#contato')).toMatch(/^p+$/)
 
-  await page.waitForFunction(() => !document.documentElement.classList.contains('booting'), null, { polling: 20, timeout: 7500 })
+  // a capa sai no fim do acesso (feature 005: depois do clique na porta)
+  await enterPortfolio(page)
   expect(await timeToDone(page, '#contato')).toBeLessThanOrEqual(2500)
 })
 
 test('na impressão a janela armada sai completa (V10, FR-029)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   expect(await states(page, '#contato')).toMatch(/^p+$/)
   await page.emulateMedia({ media: 'print' })
   await expect(page.locator('#contato .contact-list')).toHaveCSS('opacity', '1')
@@ -125,7 +126,7 @@ test('na impressão a janela armada sai completa (V10, FR-029)', async ({ page }
 
 test('rolagem rápida até o fim: as janelas puladas terminam sozinhas (edge case da spec)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   // de uma vez para o fim: as janelas do meio nunca cruzam a tela
   await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }))
   await page.waitForFunction(() => !document.querySelector('[data-t-state]:not([data-t-state="done"])'), null, {

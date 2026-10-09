@@ -8,37 +8,35 @@
     existam quando o próprio JS confirmou que vai animar (FR-012, FR-018, research R6/R7).
     js      → JS executou
     motion  → e o visitante não pediu movimento reduzido (FR-020)
-    booting → tela de boot ativa. O boot não é pulável e a página fica descoberta em até 7 s do
-              início da navegação (performance.now()), com a sessão sempre inteira (constituição
-              v2.3.0; FR-030 a FR-032 da 004). Os prazos são os de src/lib/boot.ts:
-              - 2055 ms (BOOT_LATEST_START_MS): o último instante em que o boot ainda cabe inteiro.
-                Se o JS principal ainda não rodou, o boot não vai aparecer, então a capa sai já.
-              - 3900 ms (APP_FAILED_MS): sem o JS principal até aqui, ele é dado como falho
-                (app-failed): sai o movimento, e o que só fica completo parado volta ao estado final
-                (FR-018 da 001; os loops de skills, FR-025 da 003; o header, que com JS só aparece
-                depois do hero, FR-012 da 004).
-              - 7000 ms (BOOT_DEADLINE_MS): a capa sai de qualquer jeito.
+    booting → capa da porta de acesso, sempre que há JS, com ou sem movimento (feature 005, FR-010 a
+              FR-012; constituição v3.0.0). A porta espera o clique, sem teto de tempo; os prazos
+              abaixo são os de src/lib/boot.ts e só valem enquanto a porta não apareceu (research R2):
+              - 2055 ms (GATE_LATEST_START_MS): sem o JS principal até aqui, não haverá porta (ela
+                nunca cobre de repente uma página que o visitante já vê): a capa sai.
+              - 3900 ms (APP_FAILED_MS): sem o JS principal, ele é dado como falho (app-failed): sai o
+                movimento, e o que só fica completo parado volta ao estado final (FR-018 da 001; os
+                loops de skills, FR-025 da 003; o header, FR-012 da 004). Com o JS principal, mas sem
+                a porta na tela (html.gate), a capa sai: um erro na porta nunca prende a página.
               Os estados escondidos do v-reveal só existem depois que o app monta, então um bundle
               que falha não deixa nada invisível.
   -->
   <script>
     (function () {
       var root = document.documentElement;
-      var loaded = function () { return root.classList.contains('app-loaded'); };
+      var has = function (name) { return root.classList.contains(name); };
       var at = function (ms, fn) { setTimeout(fn, Math.max(0, ms - performance.now())); };
-      root.classList.add('js');
-      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) root.classList.add('motion', 'booting');
+      root.classList.add('js', 'booting');
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) root.classList.add('motion');
       at(2055, function () {
-        if (!loaded()) root.classList.remove('booting');
+        if (!has('app-loaded')) root.classList.remove('booting');
       });
       at(3900, function () {
-        if (!loaded()) {
+        if (!has('app-loaded')) {
           root.classList.remove('booting', 'motion');
           root.classList.add('app-failed');
+        } else if (!has('gate')) {
+          root.classList.remove('booting');
         }
-      });
-      at(7000, function () {
-        root.classList.remove('booting');
       });
     })();
   </script>

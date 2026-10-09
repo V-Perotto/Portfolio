@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // SC-012 / research R12: carregamento inicial, sem rolar, ≤ 500 KB (badges externos excluídos).
 test('peso do carregamento inicial', async ({ page }) => {
@@ -18,20 +19,19 @@ test('peso do carregamento inicial', async ({ page }) => {
   expect(total).toBeLessThanOrEqual(500 * 1024)
 })
 
-// Feature 004 (FR-050, SC-006): uma visita completa (boot, rolagem até o fim, terminal aberto) só pede
-// arquivos do próprio site; a exceção são os badges do shields.io (Princípio III).
+// Feature 004 (FR-050, SC-006) e 005 (SC-009): uma visita completa (porta de acesso, rolagem até o fim,
+// terminal aberto) só pede arquivos do próprio site; as exceções são os badges do shields.io e a consulta
+// do IP no ipify (Princípio III; nos testes, respondida dentro da página, support/test.ts).
 test('nenhuma requisição a terceiros durante a visita', async ({ page }) => {
   const outside: string[] = []
   page.on('request', (request) => {
     const url = new URL(request.url())
     if (url.protocol === 'data:' || url.protocol === 'blob:') return
-    if (url.host === 'localhost:4173' || url.host === 'img.shields.io') return
+    if (url.host === 'localhost:4173' || url.host === 'img.shields.io' || url.host === 'api.ipify.org') return
     outside.push(request.url())
   })
   await page.goto('./')
-  await page.waitForFunction(() => !document.querySelector('.boot-screen') && !document.documentElement.classList.contains('booting'), null, {
-    timeout: 9000,
-  })
+  await enterPortfolio(page)
   for (let y = 0; y < 30; y++) {
     await page.mouse.wheel(0, 600)
     await page.waitForTimeout(80)

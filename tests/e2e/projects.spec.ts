@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // Feature 002, seção de projetos e educação (quickstart V1–V7). Sem movimento: o conteúdo final.
 test.use({ reducedMotion: 'reduce' })
@@ -11,6 +12,7 @@ test.describe('projetos um por linha (US1)', () => {
     test(`nenhum par de cartões lado a lado em ${width}px (V1, SC-001)`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./#projetos')
+      await enterPortfolio(page)
       const tops = await cards(page).evaluateAll((items) => items.map((li) => Math.round(li.getBoundingClientRect().top)))
       expect(tops.length).toBeGreaterThan(1)
       expect(new Set(tops).size).toBe(tops.length)
@@ -21,6 +23,7 @@ test.describe('projetos um por linha (US1)', () => {
 
   test('todo projeto, exceto o acadêmico, tem link isolado no próprio cartão (V2, SC-002)', async ({ page }) => {
     await page.goto('./#projetos')
+    await enterPortfolio(page)
     const count = await cards(page).count()
     for (let i = 0; i < count; i++) {
       const item = cards(page).nth(i)
@@ -52,6 +55,7 @@ async function expectPrivateLinks(page: Page, name: string, hrefs: string[]) {
 
 test('ItaliaMi com os 3 repositórios privados (US2, V3)', async ({ page }) => {
   await page.goto('./#projetos')
+  await enterPortfolio(page)
   await expectPrivateLinks(page, 'ItaliaMi', [
     'https://github.com/V-Perotto/ItaliaMi-Back',
     'https://github.com/V-Perotto/ItaliaMi-Front',
@@ -62,6 +66,7 @@ test('ItaliaMi com os 3 repositórios privados (US2, V3)', async ({ page }) => {
 
 test('projetos privados ligados à Quadritech (US3, FR-009)', async ({ page }) => {
   await page.goto('./#projetos')
+  await enterPortfolio(page)
   for (const [name, href] of [
     ['OCR de Prontuários', 'https://github.com/V-Perotto/OCR_Para_BR'],
     ['QClass-BOT', 'https://github.com/V-Perotto/QClass-BOT'],
@@ -73,6 +78,7 @@ test('projetos privados ligados à Quadritech (US3, FR-009)', async ({ page }) =
 
 test('SRG primeiro, em desenvolvimento, e ordem de relevância da lista (US4, FR-004, FR-013)', async ({ page }) => {
   await page.goto('./#projetos')
+  await enterPortfolio(page)
   const names = await cards(page).locator('h3 .hl-purple').allTextContents()
   expect(names).toEqual(['SRG', 'Temas VS Code', 'ItaliaMi', 'OCR de Prontuários', 'QClass-BOT', 'Monitor de Curso'])
 
@@ -91,6 +97,7 @@ test.describe('challenges (US5)', () => {
 
   test('7 challenges públicos, do mais recente ao mais antigo (V5, SC-004)', async ({ page }) => {
     await page.goto('./#projetos')
+    await enterPortfolio(page)
     const items = challenges(page).locator('li')
     await expect(items.locator('h4')).toHaveText(['CIEE-PR', 'Mobiis', 'Econet', 'Executiva Service', 'PandaVideo', 'NY Times (RPA)', 'Axya'])
     await expect(items.locator('.card-date')).toHaveText([
@@ -104,6 +111,7 @@ test.describe('challenges (US5)', () => {
   test('a lista é compacta: no máximo a altura de 3 cartões de projeto em desktop (FR-017)', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('./#projetos')
+    await enterPortfolio(page)
     const heights = await cards(page).evaluateAll((items) => items.map((li) => li.getBoundingClientRect().height))
     const average = heights.reduce((a, b) => a + b, 0) / heights.length
     const list = await challenges(page).locator('ol').boundingBox()
@@ -113,6 +121,7 @@ test.describe('challenges (US5)', () => {
 
 test('projeto comunitário da PUC-PR (US6, V6)', async ({ page }) => {
   await page.goto('./#projetos')
+  await enterPortfolio(page)
   const subpart = page.locator('#projetos .section-subpart', { has: page.locator('h3', { hasText: 'comunitario' }) })
   await expect(subpart.locator('h4')).toHaveText(['Gincana Junina'])
   await expect(subpart).toContainText('// JUN 2023')
@@ -128,6 +137,7 @@ test('projeto comunitário da PUC-PR (US6, V6)', async ({ page }) => {
 
 test('1º Empregotech entre o Bacharelado e o Técnico, com observação e fontes (US7, V7)', async ({ page }) => {
   await page.goto('./#educacao')
+  await enterPortfolio(page)
   const items = page.locator('#educacao ol > li')
   await expect(items.locator('h3')).toHaveText([
     'Pós-Graduação em Cibersegurança',

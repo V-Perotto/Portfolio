@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { Maximize2, Minus, X } from '@lucide/vue'
+
 /**
- * Barra de título das janelas de terminal (research R8 da 004): o título e os controles `−` `□` `✕`.
+ * Barra de título das janelas de terminal (research R8 da 004): o título e os controles minimizar,
+ * maximizar e fechar, com os ícones `minus`, `maximize-2` e `x` do Lucide, centrados nos círculos
+ * (feature 005, FR-022 a FR-024, research R9).
  *
  * - `decorative` (padrão): os três controles são desenho, num contêiner `aria-hidden` — é o HTML
  *   pré-renderizado, e o que fica sem JavaScript (FR-009).
@@ -12,10 +16,12 @@ const props = withDefaults(
     title: string
     controls?: 'decorative' | 'functional'
     minimizable?: boolean
+    /** Sem o `□` (janela da porta de acesso, FR-006 da 005). */
+    maximizable?: boolean
     /** Nome acessível do ✕; padrão "Fechar <título>". */
     closeLabel?: string
   }>(),
-  { controls: 'decorative', minimizable: true, closeLabel: undefined },
+  { controls: 'decorative', minimizable: true, maximizable: true, closeLabel: undefined },
 )
 
 const emit = defineEmits<{ minimize: []; close: [] }>()
@@ -25,9 +31,9 @@ const emit = defineEmits<{ minimize: []; close: [] }>()
   <div class="terminal-bar">
     <span class="terminal-title mono">{{ title }}</span>
     <div v-if="props.controls === 'decorative'" class="t-controls" aria-hidden="true">
-      <span class="t-btn t-min">−</span>
-      <span class="t-btn t-max">□</span>
-      <span class="t-btn t-close">✕</span>
+      <span class="t-btn t-min"><Minus class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
+      <span v-if="props.maximizable" class="t-btn t-max"><Maximize2 class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
+      <span class="t-btn t-close"><X class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
     </div>
     <div v-else class="t-controls">
       <button
@@ -37,17 +43,17 @@ const emit = defineEmits<{ minimize: []; close: [] }>()
         :aria-label="`Minimizar ${props.title}`"
         @click="emit('minimize')"
       >
-        <span aria-hidden="true">−</span>
+        <Minus class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" />
       </button>
-      <span v-else class="t-btn t-min" aria-hidden="true">−</span>
-      <span class="t-btn t-max" aria-hidden="true">□</span>
+      <span v-else class="t-btn t-min" aria-hidden="true"><Minus class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
+      <span v-if="props.maximizable" class="t-btn t-max" aria-hidden="true"><Maximize2 class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" /></span>
       <button
         type="button"
         class="t-btn t-close"
         :aria-label="props.closeLabel ?? `Fechar ${props.title}`"
         @click="emit('close')"
       >
-        <span aria-hidden="true">✕</span>
+        <X class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" />
       </button>
     </div>
   </div>
@@ -86,11 +92,17 @@ const emit = defineEmits<{ minimize: []; close: [] }>()
   place-items: center;
   padding: 0;
   border-radius: 50%;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1;
+  line-height: 0;
   user-select: none;
   transition: filter 0.15s;
+}
+
+/* o ícone é simétrico no viewBox: em bloco, o centro dele cai no centro do círculo (FR-023, R9) */
+.t-icon {
+  display: block;
+  width: 12px;
+  height: 12px;
+  flex: none;
 }
 
 .t-btn:hover { filter: brightness(1.35); }
@@ -110,9 +122,6 @@ button.t-btn::before {
   border: 1px solid var(--green);
   color: var(--green-bright);
 }
-
-/* o glifo □ assenta na baseline e fica visualmente baixo dentro do círculo */
-.t-max { padding-bottom: calc(var(--spacing) * 0.75); }
 
 .t-close {
   background: var(--purple);

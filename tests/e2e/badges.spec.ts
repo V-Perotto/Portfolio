@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // SC-011 (quickstart V10): sem o serviço de badges, o cartão continua legível e com os links.
 test.use({ reducedMotion: 'reduce' })
@@ -7,11 +8,13 @@ const card = (page: import('@playwright/test').Page) => page.locator('#projetos 
 
 test('cartão de temas sem badges', async ({ page }) => {
   await page.goto('./#projetos')
+  await enterPortfolio(page)
   await page.waitForLoadState('networkidle')
   const withBadges = await card(page).boundingBox()
 
   await page.route('**/img.shields.io/**', (route) => route.abort())
   await page.reload()
+  await enterPortfolio(page)
   await page.waitForLoadState('networkidle')
 
   await expect(card(page).getByText('Grape Glass Theme')).toBeVisible()

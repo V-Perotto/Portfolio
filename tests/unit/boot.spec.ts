@@ -2,63 +2,96 @@ import { describe, expect, it } from 'vitest'
 import {
   APP_FAILED_MS,
   BOOT_COMMAND,
-  BOOT_DEADLINE_MS,
-  BOOT_FADE_MS,
-  BOOT_LATEST_START_MS,
-  BOOT_SAFETY_MS,
-  BOOT_SEQUENCE_MS,
-  bootFrame,
-  lineText,
+  displayVersion,
+  GATE_LATEST_START_MS,
+  SESSION_MS,
+  sessionAt,
+  sessionLines,
+  sessionLineText,
+  typedEnd,
 } from '@/lib/boot'
 import indexHtml from '../../index.html?raw'
 
-// Feature 004, US1 (FR-030 a FR-032, research R4): a sessão do boot é uma função pura do tempo.
-describe('linha do tempo do boot', () => {
-  it('no instante 0 há só o prompt anônimo com o primeiro caractere do ssh', () => {
-    const lines = bootFrame(0)
-    expect(lines).toHaveLength(1)
-    expect(lineText(lines[0]!)).toBe('anon@127.0.0.1:~$ s')
-  })
+/** Duração da sessão da 004 (3895 ms), a referência do "diminuir um pouco" (FR-020). */
+const BOOT_004_MS = 3895
 
-  it('no fim da sequência a sessão está inteira, terminando em ./iniciar_portfolio.sh completo', () => {
-    const lines = bootFrame(BOOT_SEQUENCE_MS, '09/10/2026, 10:00:00').map(lineText)
-    expect(lines).toEqual([
-      'anon@127.0.0.1:~$ ssh viper@portfolio',
-      'Conectando a portfolio na porta 22...',
-      "viper@portfolio's password: ••••••••",
-      'Autenticado. Bem-vindo ao PortfolioOS 1.0 LTS',
-      'Last login: 09/10/2026, 10:00:00 from 127.0.0.1',
+// Feature 005 (FR-013, FR-016, FR-020, research R3): a sessão da porta de acesso.
+describe('sessão da porta (005)', () => {
+  const lines = sessionLines('203.0.113.7', 'v2.4', '09/10/2026, 10:00:00')
+
+  it('as seis linhas, no texto do contrato', () => {
+    expect(lines.map(sessionLineText)).toEqual([
+      'anon@203.0.113.7:~$ ssh viper@portfolio',
+      'Conectando ao portfolio...',
+      'viper@portfolio password: ••••••••',
+      'Autenticado. Bem-vindo ao Portfolio v2.4',
+      'Last login: 09/10/2026, 10:00:00 from 203.0.113.7',
       `viper@portfolio:~$ ${BOOT_COMMAND}`,
     ])
   })
 
-  it('o último caractere do comando sai 350 ms antes do fim (a pausa da sequência anterior)', () => {
-    const before = bootFrame(BOOT_SEQUENCE_MS - 351).map(lineText)
-    const at = bootFrame(BOOT_SEQUENCE_MS - 350).map(lineText)
-    expect(before.at(-1)).toBe('viper@portfolio:~$ ./iniciar_portfolio.s')
-    expect(at.at(-1)).toBe(`viper@portfolio:~$ ${BOOT_COMMAND}`)
+  it('cada linha só aparece depois do último caractere da anterior', () => {
+    for (let i = 1; i < lines.length; i++) expect(lines[i]!.at).toBeGreaterThan(typedEnd(lines[i - 1]!))
   })
 
-  it('o texto só cresce com o tempo', () => {
-    let previous = ''
-    for (let t = 0; t <= BOOT_SEQUENCE_MS + 100; t += 7) {
-      const text = bootFrame(t).map(lineText).join('\n')
-      expect(text.startsWith(previous)).toBe(true)
-      previous = text
+  it('o comando termina em 2475 ms e a sessão em 2720 ms, no máximo 75% da 004 (FR-020)', () => {
+    expect(typedEnd(lines.at(-1)!)).toBe(2475)
+    expect(SESSION_MS).toBe(2720)
+    expect(SESSION_MS).toBeLessThanOrEqual(2900)
+    expect(SESSION_MS / BOOT_004_MS).toBeLessThanOrEqual(0.75)
+  })
+
+  it('velocidades e pausas são as da 004 × 0,7', () => {
+    const before = { ssh: 42, password: 55, run: 24, pauses: [250, 500, 450, 300, 400, 350] }
+    const ratio = (a: number, b: number) => a / b
+    const [ssh, , password, , , run] = lines
+    for (const [now, then] of [
+      [ssh!.typed!.speed, before.ssh],
+      [password!.typed!.speed, before.password],
+      [run!.typed!.speed, before.run],
+    ] as const) {
+      expect(ratio(now, then)).toBeGreaterThanOrEqual(0.69)
+      expect(ratio(now, then)).toBeLessThanOrEqual(0.71)
     }
+    const pauses = [...lines.slice(1).map((line, i) => line.at - typedEnd(lines[i]!)), SESSION_MS - typedEnd(lines.at(-1)!)]
+    pauses.forEach((pause, i) => {
+      expect(ratio(pause, before.pauses[i]!)).toBeGreaterThanOrEqual(0.69)
+      expect(ratio(pause, before.pauses[i]!)).toBeLessThanOrEqual(0.71)
+    })
   })
 
-  it('constantes: sequência de 3895 ms e início mais tardio de 2055 ms dentro do teto de 7 s', () => {
-    expect(BOOT_SEQUENCE_MS).toBe(3895)
-    expect(BOOT_DEADLINE_MS).toBe(7000)
-    expect(BOOT_LATEST_START_MS).toBe(BOOT_DEADLINE_MS - BOOT_SEQUENCE_MS - BOOT_FADE_MS - BOOT_SAFETY_MS)
-    expect(BOOT_LATEST_START_MS).toBe(2055)
+  it('as linhas visíveis só crescem com o tempo', () => {
+    let previous = 0
+    for (let t = -100; t <= SESSION_MS; t += 7) {
+      const visible = sessionAt(t, lines)
+      expect(visible).toBeGreaterThanOrEqual(previous)
+      previous = visible
+    }
+    expect(sessionAt(-1, lines)).toBe(0)
+    expect(sessionAt(0, lines)).toBe(1)
+    expect(sessionAt(SESSION_MS, lines)).toBe(6)
   })
 
-  it('o script inline de index.html usa os mesmos prazos', () => {
-    const script = indexHtml.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
-    expect(script).toContain(`at(${BOOT_LATEST_START_MS},`)
+  it('displayVersion mostra só a maior e a menor', () => {
+    expect(displayVersion('2.4.0')).toBe('v2.4')
+    expect(displayVersion('10.12.3')).toBe('v10.12')
+  })
+})
+
+// Feature 005 (FR-011, research R2): os prazos do script inline de index.html, sem teto de 7 s.
+describe('script inline da porta', () => {
+  const script = indexHtml.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ''
+
+  it('usa os prazos de src/lib/boot.ts e não tem mais o teto de 7 s', () => {
+    expect(GATE_LATEST_START_MS).toBe(2055)
+    expect(APP_FAILED_MS).toBe(3900)
+    expect(script).toContain(`at(${GATE_LATEST_START_MS},`)
     expect(script).toContain(`at(${APP_FAILED_MS},`)
-    expect(script).toContain(`at(${BOOT_DEADLINE_MS},`)
+    expect(script).not.toContain('7000')
+  })
+
+  it('a capa vale com e sem movimento; aos 3900 ms sai se a porta não apareceu', () => {
+    expect(script).toContain("root.classList.add('js', 'booting')")
+    expect(script).toMatch(/else if \(!has\('gate'\)\)/)
   })
 })

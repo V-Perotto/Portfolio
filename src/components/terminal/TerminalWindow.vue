@@ -8,7 +8,10 @@ import { WINDOW_CONTROLS } from './window-controls'
  * Janela de terminal. Com `animate` (padrão), digita os comandos ao entrar na tela (FR-025 da 002).
  * Dentro de um `DesktopWindow` (feature 004), `−` e `✕` funcionam depois de montar.
  */
-const props = withDefaults(defineProps<{ title: string; animate?: boolean }>(), { animate: true })
+const props = withDefaults(defineProps<{ title: string; animate?: boolean; maximizable?: boolean }>(), {
+  animate: true,
+  maximizable: true,
+})
 
 const win = ref<HTMLElement | null>(null)
 const body = ref<HTMLElement | null>(null)
@@ -22,6 +25,7 @@ controls?.register(typing)
     <TerminalBar
       :title="title"
       :controls="controls?.mounted.value ? 'functional' : 'decorative'"
+      :maximizable="props.maximizable"
       @minimize="controls?.minimize()"
       @close="controls?.close()"
     />

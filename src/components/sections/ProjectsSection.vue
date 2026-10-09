@@ -42,13 +42,25 @@ const orderedChallenges = computed(() => byCreatedDesc(props.challenges))
 </template>
 
 <style scoped>
-/* um projeto por linha em todas as larguras (FR-001) */
+/* um projeto aberto por linha em todas as larguras (FR-001 da 002). Minimizados ou fechados, os ícones
+   em sequência ficam lado a lado, alinhados à esquerda, e quebram de linha conforme a largura: 2 no
+   celular de 320px, 5 com 768px, os 6 a partir de 1024px (feature 005, FR-026, research R11). Entre
+   janelas abertas continua o espaço de antes: 1,8 + 2 + 1,8 = 5,6 × --spacing (FR-027) */
 .projects-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: calc(var(--spacing) * 5.6);
-  margin-top: calc(var(--spacing) * 6);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: calc(var(--spacing) * 2);
+  margin-top: calc(var(--spacing) * 4.2);
   list-style: none;
+}
+
+.projects-grid > li { flex: 0 0 auto; }
+
+.projects-grid > li:has(> .desktop-window[data-window-state="open"]) {
+  flex: 1 0 100%;
+  min-width: 0;
+  margin-block: calc(var(--spacing) * 1.8);
 }
 .subpart-list {
   display: flex;

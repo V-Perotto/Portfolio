@@ -9,7 +9,7 @@ import ExperienceSection from '@/components/sections/ExperienceSection.vue'
 import HeroSection from '@/components/sections/HeroSection.vue'
 import ProjectsSection from '@/components/sections/ProjectsSection.vue'
 import SkillsSection from '@/components/sections/SkillsSection.vue'
-import BootScreen from '@/components/terminal/BootScreen.vue'
+import AccessGate from '@/components/terminal/AccessGate.vue'
 import Scanlines from '@/components/terminal/Scanlines.vue'
 import { useHashAnchor } from '@/composables/useHashAnchor'
 import { useHeadFromResume } from '@/composables/useHeadFromResume'
@@ -24,7 +24,7 @@ const shows = (id: string) => sections.some((s) => s.id === id)
 </script>
 
 <template>
-  <BootScreen />
+  <AccessGate />
   <Scanlines />
   <AppNav :sections="sections" />
   <HeroSection :profile="resume.profile" />

@@ -33,9 +33,12 @@ const display = (contact: Contact) => contact.label ?? contact.url.replace(/^htt
 </template>
 
 <style scoped>
-/* largura e margem no lugar da janela: minimizada, o ícone ocupa o mesmo lugar (feature 004) */
-.contact-slot {
-  margin: calc(var(--spacing) * 6) auto 0;
+/* aberta, a janela fica centralizada com até 720px; minimizada ou fechada, a caixa ocupa a largura da
+   seção e o ícone fica à esquerda, como no Sobre e nos projetos (feature 005, FR-025) */
+.contact-slot { margin-top: calc(var(--spacing) * 6); }
+
+.contact-slot[data-window-state="open"] {
+  margin-inline: auto;
   max-width: 720px;
 }
 

@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test'
-import { waitBootEnd } from './support/boot'
+import { expect, test } from './support/test'
+import { enterPortfolio } from './support/boot'
 import { expectStaticSkillLoops } from './support/skills'
 
 // FR-020, SC-007 (quickstart V5).
@@ -8,10 +8,11 @@ test.use({ reducedMotion: 'reduce' })
 test.describe('movimento reduzido', () => {
   test('nada se move e tudo aparece no estado final', async ({ page }) => {
     await page.goto('./')
+    await enterPortfolio(page)
     const classes = await page.evaluate(() => document.documentElement.className)
     expect(classes).not.toContain('motion')
     expect(classes).not.toContain('booting')
-    await expect(page.locator('.boot-screen')).toHaveCount(0)
+    await expect(page.locator('.access-gate')).toHaveCount(0)
     await expect(page.locator('canvas')).toHaveCount(0)
     await expect(page.locator('.hero-terminal')).toContainText('Desenvolvedor Full-Stack')
     await expect(page.getByText('Transformando processos em sistemas escaláveis').first()).toBeVisible()
@@ -26,7 +27,7 @@ test.describe('movimento reduzido', () => {
   test('ativar "reduzir movimento" com a página aberta para tudo na hora (FR-020)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto('./')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     // o fundo CRT (feature 004) é coberto em hero-crt.spec.ts, no projeto com WebGL
     await expect(page.locator('#skills .skill-loop[data-loop-ready]')).toHaveCount(5)
 
@@ -41,6 +42,7 @@ test.describe('movimento reduzido', () => {
 
   test('janelas de terminal aparecem completas, sem digitar (FR-029, SC-006)', async ({ page }) => {
     await page.goto('./')
+    await enterPortfolio(page)
     for (const id of ['#sobre', '#projetos', '#contato']) {
       await page.locator(id).scrollIntoViewIfNeeded()
       await page.waitForTimeout(300)
@@ -53,7 +55,7 @@ test.describe('movimento reduzido', () => {
   test('ativar "reduzir movimento" no meio da digitação completa a janela na hora (FR-029)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto('./')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     await page.locator('#sobre').scrollIntoViewIfNeeded()
     await page.waitForFunction(() => document.querySelector('#sobre [data-t-state="typing"]'), null, { polling: 20 })
 
@@ -68,6 +70,7 @@ test.describe('movimento reduzido', () => {
 
   test('loops de skills parados, com todas as skills dentro da fita (V10, FR-025)', async ({ page }) => {
     await page.goto('./')
+    await enterPortfolio(page)
     await page.locator('#skills').scrollIntoViewIfNeeded()
     await expectStaticSkillLoops(page)
     await expect(page.locator('#skills [data-loop-ready]')).toHaveCount(0)
@@ -76,7 +79,7 @@ test.describe('movimento reduzido', () => {
   test('na impressão os loops também ficam parados e completos (V10, FR-025)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto('./')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     await page.locator('#skills').scrollIntoViewIfNeeded()
     await expect(page.locator('#skills .skill-loop[data-loop-ready]')).toHaveCount(5)
     await page.emulateMedia({ media: 'print' })
@@ -85,6 +88,7 @@ test.describe('movimento reduzido', () => {
 
   test('feature 004: header sem transição, terminal e janelas sem animação (V17, FR-008, FR-016, FR-019)', async ({ page }) => {
     await page.goto('./')
+    await enterPortfolio(page)
     const duration = await page.locator('.navbar').evaluate((el) => getComputedStyle(el).transitionDuration)
     // o CSS global de movimento reduzido zera as transições (1e-05s)
     expect(duration.split(',').every((d) => parseFloat(d) <= 0.01)).toBe(true)

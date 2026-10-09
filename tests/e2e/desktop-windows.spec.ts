@@ -1,5 +1,5 @@
-import { expect, test, type Locator, type Page } from '@playwright/test'
-import { waitBootEnd } from './support/boot'
+import { expect, test, type Locator, type Page } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // Feature 004, US4: janelas que minimizam e fecham como ícones de área de trabalho
 // (quickstart V9–V11; FR-001 a FR-011).
@@ -26,7 +26,7 @@ test.describe('com movimento', () => {
 
   test('minimizar o SRG durante a digitação: ícone no lugar, animação ≤ 400 ms, reabre completo (V9, FR-002 a FR-006)', async ({ page }) => {
     await page.goto('./')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     const srg = win(page, 'SRG')
     await srg.scrollIntoViewIfNeeded()
     await page.waitForFunction(() => document.querySelector('#projetos [data-t-state="typing"]'), null, { polling: 20 })
@@ -56,7 +56,7 @@ test.describe('com movimento', () => {
 
   test('fechar o sobre.txt e abrir: digita de novo e termina em até 2,5 s (V10, FR-005, SC-004)', async ({ page }) => {
     await page.goto('./#sobre')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     const about = win(page, 'sobre.txt')
     await page.waitForFunction(() => !document.querySelector('#sobre [data-t-state]:not([data-t-state="done"])'), null, { timeout: 6000 })
 
@@ -71,7 +71,7 @@ test.describe('com movimento', () => {
 
   test('cliques rápidos terminam num estado coerente (edge case)', async ({ page }) => {
     await page.goto('./#contato')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     const contact = win(page, 'contato.sh')
     await contact.locator('button.t-min').click()
     await contact.locator('button.desktop-icon').click()
@@ -90,6 +90,7 @@ test.describe('com movimento', () => {
 test('teclado: Tab até "Minimizar contato.sh", Enter, ícone, Enter (V11, FR-007)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('./#contato')
+  await enterPortfolio(page)
   const minimize = page.getByRole('button', { name: 'Minimizar contato.sh' })
   await minimize.focus()
   await page.keyboard.press('Enter')
@@ -103,6 +104,7 @@ test('teclado: Tab até "Minimizar contato.sh", Enter, ícone, Enter (V11, FR-00
 test('com "reduzir movimento", troca sem animação e janela fechada reabre completa (FR-008)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('./#sobre')
+  await enterPortfolio(page)
   const about = win(page, 'sobre.txt')
   await about.locator('button.t-close').click()
   expect(await page.evaluate(() => document.getAnimations().length)).toBe(0)
@@ -115,6 +117,7 @@ test('com "reduzir movimento", troca sem animação e janela fechada reabre comp
 test('impressão: janela minimizada sai aberta e completa (FR-011)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('./#projetos')
+  await enterPortfolio(page)
   const srg = win(page, 'SRG')
   await srg.locator('button.t-min').click()
   await expect(srg.locator('.desktop-window-frame')).toBeHidden()

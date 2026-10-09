@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
+import { gotoGate } from './support/gate'
 import { expectStaticSkillLoops } from './support/skills'
 
 // Princípio III / FR-012: todo o conteúdo do currículo no HTML, visível sem JavaScript (quickstart V4).
@@ -69,7 +70,7 @@ test.describe('sem JS', () => {
 
   test('sem tela de boot e prompt com o cargo principal', async ({ page }) => {
     await page.goto('./')
-    await expect(page.locator('.boot-screen')).toHaveCount(0)
+    await expect(page.locator('.access-gate')).toHaveCount(0)
     await expect(page.locator('.hero-terminal')).toContainText('Desenvolvedor Full-Stack')
   })
 
@@ -103,6 +104,37 @@ test.describe('sem JS', () => {
     const height = page.viewportSize()!.height
     expect(gap).toBeGreaterThanOrEqual(height * 0.45)
     expect(gap).toBeLessThanOrEqual(height * 0.55)
+  })
+})
+
+test.describe('sem JS, feature 005', () => {
+  test('sem porta, sem capa e sem pedido ao ipify; controles com os ícones Lucide decorativos (T039, FR-011, FR-024)', async ({ page }) => {
+    const ipify: string[] = []
+    page.on('request', (r) => {
+      if (r.url().includes('ipify')) ipify.push(r.url())
+    })
+    await page.goto('./')
+    await expect(page.locator('.access-gate')).toHaveCount(0)
+    await expect(page.locator('html')).not.toHaveClass(/\bbooting\b|\bgate\b/)
+    await expect(page.locator('h1')).toBeVisible()
+    const icons = await page.locator('.terminal-bar').first().locator('svg').evaluateAll((svgs) => svgs.map((s) => s.getAttribute('class') ?? ''))
+    expect(icons.map((c) => c.match(/lucide-(minus|maximize-2|x)\b/)?.[0])).toEqual(['lucide-minus', 'lucide-maximize-2', 'lucide-x'])
+    expect(ipify).toEqual([])
+  })
+})
+
+// Feature 005 (T039): na impressão, a porta e o fundo do hero não saem no papel, mesmo com a porta na tela
+test.describe('impressão com a porta na tela', () => {
+  test.use({ javaScriptEnabled: true, reducedMotion: 'no-preference' })
+
+  test('a página sai inteira, sem a porta nem a capa', async ({ page }) => {
+    await gotoGate(page)
+    await page.emulateMedia({ media: 'print' })
+    await expect(page.locator('.access-gate')).toBeHidden()
+    const cover = await page.evaluate(() => getComputedStyle(document.documentElement, '::before').display)
+    expect(cover).toBe('none')
+    await expect(page.locator('h1')).toBeVisible()
+    await expect(page.locator('#contato .contact-list')).toBeVisible()
   })
 })
 

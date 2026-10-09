@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test } from '@playwright/test'
-import { waitBootEnd } from './support/boot'
+import { expect, test } from './support/test'
+import { enterPortfolio } from './support/boot'
+import { gotoGate, openGate, uncoveredAt } from './support/gate'
 
 // SC-005, SC-006 (quickstart V7).
 for (const reducedMotion of ['reduce', 'no-preference'] as const) {
@@ -9,8 +10,8 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
       await page.emulateMedia({ reducedMotion })
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
-      // sem a tela de boot por cima (ela termina sozinha, sem pulo: FR-031 da 004)
-      await waitBootEnd(page)
+      // sem a porta de acesso por cima (feature 005: entra pelo ícone)
+      await enterPortfolio(page)
       // revela tudo o que depende de rolagem antes de auditar
       await page.evaluate(async () => {
         for (let y = 0; y < document.body.scrollHeight; y += 400) {
@@ -37,6 +38,7 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
 test('a11y: foco por teclado sempre visível', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('./')
+  await enterPortfolio(page)
   const total = await page.locator('a[href], button').count()
   const missing: string[] = []
   for (let i = 0; i < total; i++) {
@@ -56,6 +58,7 @@ test('a11y: foco por teclado sempre visível', async ({ page }) => {
 test('a11y: títulos e prompt lidos sem os enfeites de terminal (FR-036)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('./')
+  await enterPortfolio(page)
   const names = await page.getByRole('heading', { level: 2 }).allInnerTexts()
   const accessible = []
   for (const heading of await page.getByRole('heading', { level: 2 }).all()) {
@@ -74,6 +77,7 @@ test('a11y: títulos e prompt lidos sem os enfeites de terminal (FR-036)', async
 test('a11y: foco num link do cartão acende o brilho (FR-014)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('./#projetos')
+  await enterPortfolio(page)
   const link = page.locator('#projetos a[href*="open-vsx.org"]').first()
   await link.focus()
   const card = page.locator('#projetos .base-card', { has: page.locator('a[href*="open-vsx.org"]') })
@@ -84,6 +88,7 @@ test('a11y: foco num link do cartão acende o brilho (FR-014)', async ({ page })
 test('a11y: alto contraste mantém foco e esconde a decoração (FR-037)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' })
   await page.goto('./')
+  await enterPortfolio(page)
   await expect(page.locator('.scanlines')).toBeHidden()
   await page.keyboard.press('Tab')
   const outline = await page.evaluate(() => {
@@ -97,6 +102,7 @@ test('a11y: alto contraste mantém foco e esconde a decoração (FR-037)', async
 test('a11y: alto contraste mantém ícones, sublinhados e a fita dos loops (FR-034 da 003)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce', forcedColors: 'active' })
   await page.goto('./')
+  await enterPortfolio(page)
   const report = await page.evaluate(() => {
     const bg = (el: Element | null): string => {
       for (let cur = el; cur; cur = cur.parentElement) {
@@ -130,6 +136,7 @@ test('a11y: ícones Lucide das skills decorativos e sem requisição externa (FR
   })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('./#skills', { waitUntil: 'load' })
+  await enterPortfolio(page)
   await page.waitForTimeout(1500) // janela para requisições tardias (lazy, fontes)
 
   const icons = page.locator('#skills h3 svg.lucide')
@@ -148,6 +155,7 @@ for (const width of [390, 1440]) {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width, height: 900 })
     await page.goto('./')
+    await enterPortfolio(page)
     const audit = async (label: string) => {
       const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
       const serious = violations
@@ -165,5 +173,42 @@ for (const width of [390, 1440]) {
     await page.locator('#dock-terminal-input').press('Enter')
     await page.locator('#dock-terminal-input').fill('find e')
     await audit('terminal aberto, janelas minimizada e fechada')
+  })
+}
+
+// Feature 005 (T038, SC-010): axe e console sem erros na porta de acesso, com a janela aberta e
+// minimizada, depois do acesso e na porta sem movimento.
+for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+  test(`a11y: porta de acesso em todos os estados, ${reducedMotion} (feature 005)`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(String(e)))
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text())
+    })
+    await page.emulateMedia({ reducedMotion })
+    const audit = async (label: string) => {
+      const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
+      const serious = violations
+        .filter((v) => v.impact === 'critical' || v.impact === 'serious')
+        .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
+      expect(serious, label).toEqual([])
+    }
+    await gotoGate(page)
+    await audit('porta (ícone)')
+    if (reducedMotion === 'no-preference') {
+      await page.locator('.gate-icon').click()
+      await expect(page.locator('.gate-window')).toBeVisible()
+      await audit('janela aberta')
+      await page.locator('.gate-window button.t-min').click()
+      await audit('janela minimizada')
+      await uncoveredAt(page)
+    } else {
+      await openGate(page)
+      await audit('janela aberta, sem movimento')
+      await uncoveredAt(page)
+    }
+    await expect(page.locator('.access-gate')).toHaveCount(0, { timeout: 2000 })
+    await audit('depois do acesso')
+    expect(errors).toEqual([])
   })
 }

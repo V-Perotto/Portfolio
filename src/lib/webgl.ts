@@ -1,7 +1,8 @@
 /**
  * Helper de WebGL para fundos de tela cheia (feature 004, research R1): um triângulo que cobre o
- * canvas e um fragment shader. Substitui o `ogl` do Faulty Terminal e o `three` do CRT Warp, que só
- * usavam isso das bibliotecas.
+ * canvas e um fragment shader. Substitui o `ogl` do Faulty Terminal (fundo da porta de acesso), que só
+ * usava isso da biblioteca. O CRT Warp do hero, que também o usava, saiu na feature 005 (Dot Field,
+ * canvas 2D); `tokenRgb` serve também ao Dot Field.
  *
  * Sem WebGL (navegador sem suporte, contexto recusado, shader que não compila), `createFullscreenShader`
  * devolve `null` sem lançar nem escrever no console: quem chama cai no fundo estático (FR-033, FR-039).
@@ -205,6 +206,10 @@ export function hasWebGL(): boolean {
 export function hasOffscreenWebGL(): boolean {
   try {
     if (typeof OffscreenCanvas === 'undefined' || typeof Worker === 'undefined') return false
+    // sem WebGL na página (desligado pelo visitante ou pelo navegador), o OffscreenCanvas ainda pode
+    // criar um contexto, mas por um caminho de software que trava a composição da página inteira
+    // (medido no Chromium com --disable-webgl, feature 005): sem WebGL na página, sem cena no worker
+    if (!hasWebGL()) return false
     if (!('transferControlToOffscreen' in HTMLCanvasElement.prototype)) return false
     const gl = new OffscreenCanvas(1, 1).getContext('webgl')
     gl?.getExtension('WEBGL_lose_context')?.loseContext()

@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // Feature 004, US7: rodapé, chip JSON, sublinhados dos badges, logotipo do Valkey e papel do ItaliaMi
 // (quickstart V15; FR-040 a FR-043, FR-047).
@@ -9,6 +10,7 @@ const card = (page: import('@playwright/test').Page, name: string) =>
 
 test('rodapé com só o echo do copyright (FR-040)', async ({ page }) => {
   await page.goto('./')
+  await enterPortfolio(page)
   const footer = page.locator('footer.footer')
   await expect(footer.locator('p')).toHaveCount(1)
   await expect(footer).toHaveText(`$ echo "© ${new Date().getFullYear()} Vittorio Perotto"`)
@@ -18,6 +20,7 @@ test('rodapé com só o echo do copyright (FR-040)', async ({ page }) => {
 
 test('Temas VS Code com o chip JSON (FR-041)', async ({ page }) => {
   await page.goto('./')
+  await enterPortfolio(page)
   const stack = card(page, 'Temas VS Code').locator('.project-stack')
   await expect(stack).toContainText('JSON')
   await expect(stack).not.toContainText('JSON de tema')
@@ -25,12 +28,14 @@ test('Temas VS Code com o chip JSON (FR-041)', async ({ page }) => {
 
 test('sublinhado de cada badge na cor do tema, também no domínio quando o badge falha (FR-042)', async ({ page }) => {
   await page.goto('./')
+  await enterPortfolio(page)
   const color = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).borderBottomColor)
   expect(await color('.evidence-grape .badge-box img')).toBe('rgb(133, 47, 252)')
   expect(await color('.evidence-sith .badge-box img')).toBe('rgb(217, 4, 4)')
 
   await page.route('**/img.shields.io/**', (route) => route.abort())
   await page.reload()
+  await enterPortfolio(page)
   await expect(page.locator('.evidence-grape .badge-box .evidence-url')).toBeVisible()
   expect(await color('.evidence-grape .badge-box .evidence-url')).toBe('rgb(133, 47, 252)')
   expect(await color('.evidence-sith .badge-box .evidence-url')).toBe('rgb(217, 4, 4)')
@@ -38,6 +43,7 @@ test('sublinhado de cada badge na cor do tema, também no domínio quando o badg
 
 test('Valkey com o logotipo do dashboard-icons no chip do SRG e no loop (FR-043)', async ({ page }) => {
   await page.goto('./')
+  await enterPortfolio(page)
   const href = (scope: import('@playwright/test').Locator) =>
     scope.locator('li', { hasText: /^\s*Valkey/ }).first().locator('use').getAttribute('href')
   expect(await href(card(page, 'SRG').locator('.project-stack'))).toMatch(/#dashboard-valkey$/)
@@ -46,6 +52,7 @@ test('Valkey com o logotipo do dashboard-icons no chip do SRG e no loop (FR-043)
 
 test('papel no ItaliaMi: Autor e desenvolvedor (FR-047)', async ({ page }) => {
   await page.goto('./')
+  await enterPortfolio(page)
   const meta = card(page, 'ItaliaMi').locator('.project-meta')
   await expect(meta.locator('div', { hasText: 'papel' }).locator('dd')).toHaveText('Autor e desenvolvedor')
 })

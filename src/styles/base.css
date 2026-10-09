@@ -39,7 +39,8 @@
      `calc(50% - 50cqw)` (FR-044 da 004, research R9) */
   main { container-type: inline-size; }
 
-  /* boot: enquanto html.booting existir, uma capa cobre a página (o BootScreen fica acima, z 9999) */
+  /* porta de acesso: enquanto html.booting existir, uma capa cobre a página (o AccessGate fica acima,
+     z 9999; feature 005). Sem a porta (JS tarde ou falho), o script inline tira a capa (index.html) */
   html.booting { overflow: hidden; }
   html.booting::before {
     content: "";
@@ -48,6 +49,10 @@
     z-index: 9998;
     background: var(--bg);
   }
+
+  /* alvo do foco no fim do acesso (o início da página ou a seção da âncora, FR-009 da 005): é só um
+     ponto de partida para o Tab e o leitor de tela, não um controle; o anel sai no primeiro blur */
+  [data-gate-focus]:focus { outline: none; }
 }
 
 @layer components {
@@ -175,7 +180,7 @@ html:not(.motion) *::after {
     border: 1px solid CanvasText !important;
   }
 
-  .scanlines, .matrix, .spotlight-layer, .hero-grid { display: none !important; }
+  .scanlines, .hero-dots, .gate-bg, .spotlight-layer { display: none !important; }
 }
 
 /* ============================================================
@@ -194,7 +199,7 @@ html:not(.motion) *::after {
   }
 
   /* decoração e navegação não vão para o papel */
-  .scanlines, canvas, .boot-screen, .hero-grid, .hero-scroll, .hero-boot,
+  .scanlines, canvas, .access-gate, .hero-grid, .hero-scroll, .hero-boot,
   .navbar, .t-controls, .glitch::before, .glitch::after, .neon::after,
   .cursor, .nav-cursor, html.booting::before { display: none !important; }
 

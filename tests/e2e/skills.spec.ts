@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { waitBootEnd } from './support/boot'
+import { expect, test, type Page } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // Feature 003, US1/US5: skills em sub-partes, cada uma com um loop (quickstart V7–V9, V11, V12).
 test.use({ reducedMotion: 'no-preference' })
@@ -7,14 +7,13 @@ test.use({ reducedMotion: 'no-preference' })
 const GROUPS = ['linguagens_frameworks', 'conceitos_web', 'gestao_de_dados', 'desenho_de_processos', 'devops_qualidade']
 const COUNTS = [8, 2, 3, 6, 9]
 
-const skipBoot = waitBootEnd
 
 const trackX = async (page: Page, index: number) =>
   (await page.locator('#skills .skill-loop').nth(index).locator('.loop-track').boundingBox())!.x
 
 test('5 sub-partes com título e loop; a trilha anda para a esquerda a ≤ 48 px/s e pausa no hover (V8)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   const skills = page.locator('#skills')
   await skills.scrollIntoViewIfNeeded()
 
@@ -53,7 +52,7 @@ test('5 sub-partes com título e loop; a trilha anda para a esquerda a ≤ 48 px
 
 test('loop fora da tela fica parado (V9, FR-024)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   await expect(page.locator('#skills .skill-loop[data-loop-ready]')).toHaveCount(5)
   const playState = (i: number) =>
     page.locator('#skills .loop-track').nth(i).evaluate((el) => getComputedStyle(el).animationPlayState)
@@ -65,7 +64,7 @@ test('loop fora da tela fica parado (V9, FR-024)', async ({ page }) => {
 
 test('leitor de tela: cada grupo é uma lista com as próprias skills, uma vez (V11, FR-026)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   await page.locator('#skills').scrollIntoViewIfNeeded()
   await expect(page.locator('#skills [data-loop-copy]').first()).toBeAttached()
 
@@ -93,7 +92,7 @@ test('os loops não deslocam o layout; em 320 px cabem e os nomes têm ≥ 24 px
   })
   await page.setViewportSize({ width: 320, height: 800 })
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   const loop = page.locator('#skills .skill-loop').first()
   const before = (await loop.boundingBox())!.height
   await loop.scrollIntoViewIfNeeded()
@@ -113,7 +112,7 @@ for (const width of [320, 768, 1440, 1920]) {
   test(`fitas de borda a borda, sem rolagem horizontal, texto de 27,2 px, em ${width}px (V14, FR-044, FR-045)`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('./')
-    await skipBoot(page)
+    await enterPortfolio(page)
     await page.locator('#skills').scrollIntoViewIfNeeded()
     const { ribbons, client, overflow, titles, container } = await page.evaluate(() => ({
       ribbons: [...document.querySelectorAll('#skills .skill-loop')].map((el) => {
@@ -139,7 +138,7 @@ for (const width of [320, 768, 1440, 1920]) {
 
 test('conceitos_web e desenho_de_processos andam para a direita; os outros, para a esquerda (V14, FR-046)', async ({ page }) => {
   await page.goto('./')
-  await skipBoot(page)
+  await enterPortfolio(page)
   await expect(page.locator('#skills .skill-loop[data-loop-ready]')).toHaveCount(5)
   for (const [i, id] of GROUPS.entries()) {
     const loop = page.locator('#skills .skill-loop').nth(i)
@@ -158,6 +157,7 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
   test(`sem a faixa contínua acima das sub-partes, ${reducedMotion} (V7, FR-019)`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion })
     await page.goto('./')
+    await enterPortfolio(page)
     await expect(page.locator('.tech-marquee, .marquee-static, .marquee-chip')).toHaveCount(0)
     const afterLead = await page.locator('#skills .section-lead').evaluate((el) => el.nextElementSibling?.className ?? '')
     expect(afterLead).toContain('section-subpart')

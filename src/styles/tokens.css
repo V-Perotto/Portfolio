@@ -77,13 +77,28 @@
      Lord 3,5:1 sobre --surface, acima dos 3:1 de elemento gráfico */
   --grape: #852ffc;
   --sith-badge: #d90404;
-  /* painel sob o texto do boot, sobre o Faulty Terminal (FR-029, research R2): com 92%, o texto
-     --text-dim fica em 4,9:1 mesmo sobre o dígito mais aceso (com 85%, 4,3:1) */
+  /* penumbra sob o ícone e a dica da porta de acesso, sobre o Faulty Terminal (FR-001 da 005,
+     research R8; antes, o painel sob o texto do boot, R2 da 004): com 92%, o texto --text-dim fica
+     em 4,9:1 mesmo sobre o dígito mais aceso (com 85%, 4,3:1) */
   --boot-panel: color-mix(in srgb, var(--bg) 92%, transparent);
-  /* penumbra sob o texto do hero, sobre o fundo CRT (FR-038, research R13) */
+  /* penumbra sob o texto do hero, sobre o fundo animado (Dot Field, FR-032 da 005; R13 da 004) */
   --hero-scrim: color-mix(in srgb, var(--bg) 80%, transparent);
   /* texto dos loops de skills: o dobro dos 0,85rem da 003 (FR-045) */
   --loop-font: 1.7rem;
+
+  /* feature 005 ---------------------------------------------------------------------------------- */
+
+  /* largura da janela acessar_portfolio.sh da porta de acesso (FR-005, research R4): a do painel do
+     boot da 004 */
+  --gate-window-width: 680px;
+  /* Dot Field do hero (FR-030, research R12): "gradient from" roxo, "gradient to" verde e "glow
+     color" roxo, com as transparências à parte (o canvas recebe rgba(), não color-mix) */
+  --dots-from: var(--purple-glow);
+  --dots-to: var(--green-bright);
+  --dots-glow: var(--purple-light);
+  --dots-from-alpha: 0.7;
+  --dots-to-alpha: 0.55;
+  --dots-glow-alpha: 0.4;
 }
 
 /* impressão (FR-027): tema claro, mesmos nomes de token */

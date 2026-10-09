@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { waitBootEnd } from './support/boot'
+import { expect, test, type Page } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // Feature 004, US3: header só depois do hero, com meia tela de espaço antes do Sobre
 // (quickstart V5, V6; FR-012 a FR-016).
@@ -20,7 +20,7 @@ test.describe('com movimento', () => {
 
   test('escondido no hero; aparece em até 300 ms depois que o hero sai; some ao voltar (V5, SC-003)', async ({ page }) => {
     await page.goto('./')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     expect((await navState(page)).visible).toBe(false)
     const height = await page.evaluate(() => document.documentElement.scrollHeight)
     let appeared = false
@@ -66,7 +66,7 @@ test.describe('com movimento', () => {
 
   test('o header surge no espaço vazio, com o título do Sobre inteiro abaixo dele (SC-003)', async ({ page }) => {
     await page.goto('./')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     // a posição exata em que o hero sai de baixo do header
     const y = await page.evaluate(() => {
       const hero = document.getElementById('home')!
@@ -84,7 +84,7 @@ test.describe('com movimento', () => {
 
 test('Tab desde o topo leva o foco a ~/sobre e revela o header (FR-013)', async ({ page }) => {
   await page.goto('./')
-  await waitBootEnd(page)
+  await enterPortfolio(page)
   await page.keyboard.press('Tab')
   await expect(page.locator('.nav-links a', { hasText: '~/sobre' })).toBeFocused()
   await expect(page.locator('.navbar')).toHaveCSS('opacity', '1')
@@ -92,7 +92,7 @@ test('Tab desde o topo leva o foco a ~/sobre e revela o header (FR-013)', async 
 
 test('chegar por âncora deixa o header visível e o título abaixo dele (FR-015)', async ({ page }) => {
   await page.goto('./#projetos')
-  await waitBootEnd(page)
+  await enterPortfolio(page)
   await expect.poll(async () => (await navState(page)).visible).toBe(true)
   const title = (await page.locator('#projetos h2').boundingBox())!
   const nav = (await page.locator('.navbar').boundingBox())!
@@ -106,6 +106,7 @@ for (const vp of [
   test(`meia tela entre o hero e o título do Sobre em ${vp.width}×${vp.height} (V6, FR-014)`, async ({ page }) => {
     await page.setViewportSize(vp)
     await page.goto('./')
+    await enterPortfolio(page)
     const gap = await page.evaluate(() => {
       const hero = document.getElementById('home')!.getBoundingClientRect()
       const title = document.querySelector('#sobre h2')!.getBoundingClientRect()
@@ -119,7 +120,7 @@ for (const vp of [
 test('no celular, o menu aberto fecha quando o hero volta (edge case)', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('./')
-  await waitBootEnd(page)
+  await enterPortfolio(page)
   await page.locator('#sobre').scrollIntoViewIfNeeded()
   await expect.poll(async () => (await navState(page)).visible).toBe(true)
   await page.locator('.nav-toggle').click()
@@ -133,6 +134,7 @@ test.describe('sem JavaScript', () => {
 
   test('a navegação fica como sempre, visível no topo (FR-016)', async ({ page }) => {
     await page.goto('./')
+    await enterPortfolio(page)
     await expect(page.locator('.navbar')).toHaveCSS('opacity', '1')
     await expect(page.locator('.nav-links a')).toHaveCount(6)
   })

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { FileTerminal, FileText, FolderCode } from '@lucide/vue'
 import { nextTick, onMounted, provide, readonly, ref } from 'vue'
 import type { TerminalTyping } from '@/composables/useTerminalTyping'
+import DesktopIcon, { type DesktopIconKind } from '@/components/base/DesktopIcon.vue'
+import { canAnimate, finishAll, FLIP_EASING, FLIP_MS, toward } from '@/lib/flip'
 import { WINDOW_CONTROLS } from './window-controls'
 
 /**
@@ -12,19 +13,14 @@ import { WINDOW_CONTROLS } from './window-controls'
  * - Minimizada: reabre completa (a digitação é concluída ao minimizar, FR-004).
  * - Fechada: reabre "recarregando", com os comandos digitados de novo (FR-005).
  * - Encolher e crescer são animações FLIP de 320 ms (só transform, opacidade e a altura do
- *   contêiner); sem movimento, a troca é direta (FR-008).
+ *   contêiner), que partem de onde a janela estava mesmo quando o layout de minimizada muda o lugar da
+ *   caixa (feature 005); sem movimento, a troca é direta (FR-008). O ícone é o `DesktopIcon`.
  * - Sem JavaScript, nada disto existe: a janela fica aberta e os controles são desenho (FR-009). Toda
  *   visita começa com as janelas abertas (FR-010); na impressão, saem abertas (FR-011).
  */
-type WindowKind = 'document' | 'script' | 'project'
 type WindowState = 'open' | 'minimized' | 'closed'
 
-const props = defineProps<{ title: string; kind: WindowKind }>()
-
-const ICONS = { document: FileText, script: FileTerminal, project: FolderCode } as const
-/** Duração de cada animação (FR-006: no máximo 400 ms). */
-const DURATION = 320
-const EASING = 'cubic-bezier(0.2, 0.7, 0.2, 1)'
+const props = defineProps<{ title: string; kind: DesktopIconKind }>()
 
 const state = ref<WindowState>('open')
 const mounted = ref(false)
@@ -32,24 +28,17 @@ const mounted = ref(false)
 const leaving = ref(false)
 const root = ref<HTMLElement | null>(null)
 const frame = ref<HTMLElement | null>(null)
-const icon = ref<HTMLButtonElement | null>(null)
+const icon = ref<InstanceType<typeof DesktopIcon> | null>(null)
 
 let typing: TerminalTyping | null = null
 let replayOnOpen = false
 let running: Animation[] = []
 
-const animated = () =>
-  document.documentElement.classList.contains('motion') && typeof HTMLElement.prototype.animate === 'function'
-
 function finishRunning() {
   const current = running
   running = []
-  current.forEach((animation) => animation.finish())
+  finishAll(current)
 }
-
-/** Transform que leva o retângulo `from` para o `to` (origem no canto de cima, à esquerda). */
-const toward = (from: DOMRect, to: DOMRect) =>
-  `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${Math.max(to.width / from.width, 0.01)}, ${Math.max(to.height / from.height, 0.01)})`
 
 async function hide(next: 'minimized' | 'closed') {
   finishRunning()
@@ -59,10 +48,10 @@ async function hide(next: 'minimized' | 'closed') {
 
   const box = root.value
   const win = frame.value
-  if (!animated() || !box || !win) {
+  if (!canAnimate() || !box || !win) {
     state.value = next
     await nextTick()
-    icon.value?.focus()
+    icon.value?.button?.focus()
     return
   }
 
@@ -72,24 +61,28 @@ async function hide(next: 'minimized' | 'closed') {
   leaving.value = true
   state.value = next
   await nextTick()
-  const target = icon.value!.querySelector('.desktop-icon-square')!.getBoundingClientRect()
+  const target = icon.value!.square!.getBoundingClientRect()
   const endHeight = box.offsetHeight
-  icon.value?.focus()
+  // o quadro que encolhe fica no canto da caixa, e a caixa pode ter mudado de lugar ou de largura com o
+  // layout de minimizada (o Contato à esquerda, os projetos lado a lado; feature 005, research R10): a
+  // animação parte de onde a janela estava, medida a partir de onde o quadro está agora
+  const now = win.getBoundingClientRect()
+  icon.value?.button?.focus()
 
   const shrink = win.animate(
     [
-      { transform: 'none', opacity: 1 },
-      { transform: toward(first, target), opacity: 0 },
+      { transform: toward(now, first), opacity: 1 },
+      { transform: toward(now, target), opacity: 0 },
     ],
-    { duration: DURATION, easing: EASING },
+    { duration: FLIP_MS, easing: FLIP_EASING },
   )
-  const collapse = box.animate([{ height: `${startHeight}px` }, { height: `${endHeight}px` }], { duration: DURATION, easing: EASING })
-  const appear = icon.value!.animate(
+  const collapse = box.animate([{ height: `${startHeight}px` }, { height: `${endHeight}px` }], { duration: FLIP_MS, easing: FLIP_EASING })
+  const appear = icon.value!.button!.animate(
     [
       { opacity: 0, transform: 'scale(0.6)' },
       { opacity: 1, transform: 'none' },
     ],
-    { duration: DURATION, easing: EASING },
+    { duration: FLIP_MS, easing: FLIP_EASING },
   )
   running = [shrink, collapse, appear]
   await shrink.finished.catch(() => {})
@@ -104,13 +97,13 @@ async function open() {
   replayOnOpen = false
 
   const box = root.value
-  const square = icon.value?.querySelector('.desktop-icon-square')
+  const square = icon.value?.square
   const after = () => {
     frame.value?.querySelector<HTMLButtonElement>('button.t-min')?.focus()
     // depois do foco: o foco dentro da janela completaria a digitação (feature 002)
     if (replay) typing?.replay()
   }
-  if (!animated() || !box || !square || !frame.value) {
+  if (!canAnimate() || !box || !square || !frame.value) {
     state.value = 'open'
     await nextTick()
     return after()
@@ -129,9 +122,9 @@ async function open() {
       { transform: toward(last, from), opacity: 0 },
       { transform: 'none', opacity: 1 },
     ],
-    { duration: DURATION, easing: EASING },
+    { duration: FLIP_MS, easing: FLIP_EASING },
   )
-  const expand = box.animate([{ height: `${startHeight}px` }, { height: `${endHeight}px` }], { duration: DURATION, easing: EASING })
+  const expand = box.animate([{ height: `${startHeight}px` }, { height: `${endHeight}px` }], { duration: FLIP_MS, easing: FLIP_EASING })
   running = [grow, expand]
   await grow.finished.catch(() => {})
   after()
@@ -156,20 +149,14 @@ onMounted(() => {
     <div ref="frame" :class="['desktop-window-frame', { leaving }]">
       <slot />
     </div>
-    <button
+    <DesktopIcon
       v-if="mounted"
       v-show="state !== 'open'"
       ref="icon"
-      type="button"
-      class="desktop-icon"
-      :aria-label="`Abrir ${props.title}`"
+      :title="props.title"
+      :kind="props.kind"
       @click="open"
-    >
-      <span class="desktop-icon-square">
-        <component :is="ICONS[props.kind]" class="desktop-icon-glyph" aria-hidden="true" />
-      </span>
-      <span class="desktop-icon-label mono">{{ props.title }}</span>
-    </button>
+    />
   </div>
 </template>
 
@@ -189,66 +176,6 @@ onMounted(() => {
 }
 
 .desktop-window-frame { transform-origin: top left; }
-
-/* o "arquivo da área de trabalho": quadrado com o ícone e o título embaixo (FR-002) */
-.desktop-icon {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(var(--spacing) * 2);
-  width: calc(var(--desktop-icon-size) + 2.5rem);
-  padding: calc(var(--spacing) * 1.6);
-  color: var(--text);
-  background: none;
-  border: 1px solid transparent;
-  border-radius: var(--radius-card);
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-}
-
-.desktop-icon-square {
-  display: grid;
-  place-items: center;
-  width: var(--desktop-icon-size);
-  height: var(--desktop-icon-size);
-  color: var(--green-bright);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--shadow) 45%, transparent);
-  transition: border-color 0.2s, box-shadow 0.2s, color 0.2s;
-}
-
-.desktop-icon-glyph {
-  width: 2.5rem;
-  height: 2.5rem;
-}
-
-.desktop-icon-label {
-  max-width: 100%;
-  font-size: 0.8rem;
-  line-height: 1.35;
-  text-align: center;
-  overflow-wrap: anywhere;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-
-.desktop-icon:hover,
-.desktop-icon:focus-visible {
-  background: color-mix(in srgb, var(--purple) 22%, transparent);
-  border-color: color-mix(in srgb, var(--purple-light) 45%, transparent);
-}
-
-.desktop-icon:hover .desktop-icon-square,
-.desktop-icon:focus-visible .desktop-icon-square {
-  border-color: var(--purple-light);
-  color: var(--purple-glow);
-  box-shadow: 0 8px 28px color-mix(in srgb, var(--shadow) 45%, transparent), 0 0 20px color-mix(in srgb, var(--purple-light) 30%, transparent);
-}
 
 /* impressão: toda janela sai aberta e completa (FR-011) */
 @media print {

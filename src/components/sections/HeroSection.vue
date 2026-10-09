@@ -1,33 +1,29 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, ref } from 'vue'
+import { defineAsyncComponent } from 'vue'
 import RevealText from '@/components/base/RevealText.vue'
 import GlitchTitle from '@/components/terminal/GlitchTitle.vue'
 import PromptLogo from '@/components/terminal/PromptLogo.vue'
 import TypedPrompt from '@/components/terminal/TypedPrompt.vue'
 import { useBootDone } from '@/composables/useBootDone'
 import { useMotion } from '@/composables/useMotion'
-import { hasWebGL } from '@/lib/webgl'
 import type { Profile } from '@/types/resume'
 
 defineProps<{ profile: Profile }>()
 
 /**
- * Fundo CRT com a chuva Matrix (feature 004, FR-034 a FR-039): chunk à parte, carregado só no cliente,
- * com movimento e WebGL, depois do boot. Sem isso (sem JS, "reduzir movimento", sem WebGL), o fundo
- * são os degradês estáticos do .hero; a grade de quadrados saiu em todos os modos.
+ * Fundo Dot Field (feature 005, FR-028 a FR-033, research R12): pedaço à parte, carregado só no cliente,
+ * com movimento, depois da porta de acesso. É canvas 2D: não depende de WebGL. Sem JS ou com "reduzir
+ * movimento" (inclusive ligado no meio da visita), o fundo são os degradês estáticos do .hero; a grade de
+ * quadrados saiu em todos os modos (004).
  */
-const HeroCrt = defineAsyncComponent(() => import('@/components/terminal/HeroCrt.vue'))
+const HeroDots = defineAsyncComponent(() => import('@/components/terminal/HeroDots.vue'))
 const motion = useMotion()
 const bootDone = useBootDone()
-const webgl = ref(false)
-onMounted(() => {
-  webgl.value = hasWebGL()
-})
 </script>
 
 <template>
   <header id="home" class="hero">
-    <HeroCrt v-if="motion && bootDone && webgl" />
+    <HeroDots v-if="motion && bootDone" />
     <div class="hero-content">
       <p class="hero-boot mono">[ OK ] Inicializando portfolio.service ...</p>
       <GlitchTitle :text="profile.name" />
@@ -67,8 +63,8 @@ onMounted(() => {
   max-width: var(--container-hero);
 }
 
-/* penumbra sob o texto: o contraste não depende do quadro do fundo CRT (FR-038, research R13). Só com
-   movimento, quando o CRT pode existir; `closest-side` chega a transparente antes das bordas da caixa,
+/* penumbra sob o texto: o contraste não depende do quadro do Dot Field (FR-032 da 005; FR-038 e R13 da
+   004). Só com movimento, quando o fundo animado pode existir; `closest-side` chega a transparente antes das bordas da caixa,
    sem deixar linha visível */
 html.motion .hero-content::before {
   content: "";
@@ -84,7 +80,7 @@ html.motion .hero-content::before {
   font-size: 0.8rem;
   margin-bottom: calc(var(--spacing) * 4.8);
   /* sem o opacity: 0.8 anterior, que deixava a linha em ~4,5:1 no fundo liso e abaixo disso sobre
-     a chuva do fundo CRT (FR-038 da 004); o verde cheio dá 6,3:1 */
+     o fundo animado (FR-038 da 004, FR-032 da 005); o verde cheio dá 6,3:1 */
 }
 
 

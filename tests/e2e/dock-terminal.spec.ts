@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { waitBootEnd } from './support/boot'
+import { expect, mockIpService, test, type Page } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // Feature 004, US2: dock com o terminal do site (quickstart V7, V8; FR-017 a FR-027).
 const dock = (page: Page) => page.locator('.app-dock .dock-btn')
@@ -8,7 +8,7 @@ const log = (page: Page) => page.locator('#dock-terminal [role="log"]')
 
 async function open(page: Page) {
   await page.goto('./')
-  await waitBootEnd(page)
+  await enterPortfolio(page)
   await dock(page).click()
   await expect(input(page)).toBeFocused()
 }
@@ -20,7 +20,7 @@ async function run(page: Page, line: string) {
 
 test('a dock fica no centro de baixo, e o header não tem mais o prompt (V8, FR-017, FR-018)', async ({ page }) => {
   await page.goto('./')
-  await waitBootEnd(page)
+  await enterPortfolio(page)
   const box = (await page.locator('.app-dock').boundingBox())!
   const width = page.viewportSize()!.width
   expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThanOrEqual(2)
@@ -73,7 +73,7 @@ test('help, find com Tab, erros, histórico, clear e exit (V7, SC-002)', async (
 
 test('Ctrl+Alt+T abre e fecha; ✕ e Esc fecham, com o foco de volta na dock (V7, FR-019)', async ({ page }) => {
   await page.goto('./')
-  await waitBootEnd(page)
+  await enterPortfolio(page)
   await page.keyboard.press('Control+Alt+KeyT')
   await expect(input(page)).toBeFocused()
   await page.keyboard.press('Control+Alt+KeyT')
@@ -93,8 +93,10 @@ test('Ctrl+Alt+T abre e fecha; ✕ e Esc fecham, com o foco de volta na dock (V7
 
 test('sugestões tocáveis no celular e sem rolagem horizontal em 320px (V7, FR-024)', async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 320, height: 640 }, hasTouch: true, reducedMotion: 'reduce' })
+  await mockIpService(context)
   const page = await context.newPage()
   await page.goto('http://localhost:4173/Portfolio/')
+  await enterPortfolio(page)
   await page.locator('.app-dock .dock-btn').tap()
   await page.locator('#dock-terminal-input').fill('find e')
   await expect(page.locator('#dock-terminal .dt-chip')).toHaveText(['experiencia', 'educacao'])
@@ -106,7 +108,7 @@ test('sugestões tocáveis no celular e sem rolagem horizontal em 320px (V7, FR-
 
 test('o rodapé fica inteiro acima da dock no fim da página (FR-027)', async ({ page }) => {
   await page.goto('./')
-  await waitBootEnd(page)
+  await enterPortfolio(page)
   await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }))
   const text = (await page.locator('.footer p').last().boundingBox())!
   const dockBox = (await page.locator('.app-dock').boundingBox())!
@@ -117,7 +119,7 @@ for (const width of [1440, 390]) {
   test(`header centralizado em ${width}px (V8, FR-017)`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
     await page.goto('./')
-    await waitBootEnd(page)
+    await enterPortfolio(page)
     // a partir da US3 o header fica escondido no hero: mede depois de sair dele
     await page.locator('#sobre').scrollIntoViewIfNeeded()
     await page.waitForTimeout(400)

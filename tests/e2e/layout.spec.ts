@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './support/test'
+import { enterPortfolio } from './support/boot'
 
 // FR-025, FR-026, SC-008, SC-009 (quickstart V8); FR-014 em telas de toque.
 const widths = [320, 360, 768, 1280, 1920]
@@ -19,6 +20,7 @@ test.describe('layout', () => {
         route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="174" height="28"/>' }),
       )
       await page.goto('./')
+      await enterPortfolio(page)
       await page.waitForLoadState('networkidle')
 
       const overflow = await page.evaluate(
@@ -57,6 +59,7 @@ test.describe('layout ampliado (FR-025)', () => {
   test('acima de 1920px o conteúdo fica centralizado na largura do container', async ({ page }) => {
     await page.setViewportSize({ width: 2560, height: 1200 })
     await page.goto('./')
+    await enterPortfolio(page)
     const box = await page.locator('#experiencia').boundingBox()
     expect(box!.width).toBeLessThanOrEqual(1100)
     expect(Math.abs(box!.x + box!.width / 2 - 1280)).toBeLessThanOrEqual(2)
@@ -66,6 +69,7 @@ test.describe('layout ampliado (FR-025)', () => {
   test('texto em 200% sem rolagem horizontal nem corte', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 })
     await page.goto('./')
+    await enterPortfolio(page)
     await page.addStyleTag({ content: 'html { font-size: 200% !important; }' })
     expect(await noHorizontalScroll(page)).toBeLessThanOrEqual(0)
     expect(await clipped(page)).toEqual([])
@@ -74,6 +78,7 @@ test.describe('layout ampliado (FR-025)', () => {
   test('espaçamento de texto do WCAG 1.4.12 sem corte', async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 900 })
     await page.goto('./')
+    await enterPortfolio(page)
     await page.addStyleTag({
       content:
         '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }',
@@ -88,6 +93,7 @@ test.describe('toque', () => {
 
   test('tocar num cartão não acende o brilho (FR-014)', async ({ page }) => {
     await page.goto('./#experiencia')
+    await enterPortfolio(page)
     const card = page.locator('#experiencia .base-card').first()
     await card.tap()
     const layer = card.locator('.spotlight-layer')
