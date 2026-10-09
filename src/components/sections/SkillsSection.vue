@@ -13,7 +13,7 @@ defineProps<{ groups: readonly SkillGroup[] }>()
   <SectionShell id="skills" title="skills" lead="ls -la /usr/lib/vittorio/">
     <SectionSubpart v-for="group in groups" :key="group.id" v-reveal :title="group.id" class="skill-subpart">
       <template #icon><component :is="SKILL_ICONS[group.icon]" class="skill-icon" aria-hidden="true" /></template>
-      <SkillLoop :items="group.items" />
+      <SkillLoop :items="group.items" :direction="group.loopDirection" />
     </SectionSubpart>
   </SectionShell>
 </template>

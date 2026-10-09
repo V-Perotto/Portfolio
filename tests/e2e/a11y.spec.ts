@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
+import { waitBootEnd } from './support/boot'
 
 // SC-005, SC-006 (quickstart V7).
 for (const reducedMotion of ['reduce', 'no-preference'] as const) {
@@ -8,9 +9,8 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
       await page.emulateMedia({ reducedMotion })
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
-      // sem a tela de boot por cima (com movimento ela some com qualquer tecla)
-      await page.keyboard.press('Escape')
-      await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 2000 })
+      // sem a tela de boot por cima (ela termina sozinha, sem pulo: FR-031 da 004)
+      await waitBootEnd(page)
       // revela tudo o que depende de rolagem antes de auditar
       await page.evaluate(async () => {
         for (let y = 0; y < document.body.scrollHeight; y += 400) {
@@ -140,3 +140,30 @@ test('a11y: ícones Lucide das skills decorativos e sem requisição externa (FR
   for (const [i, id] of ids.entries()) await expect(headings.nth(i)).toHaveAccessibleName(new RegExp(`^${id}/?$`))
   expect(external).toEqual([])
 })
+
+// Feature 004 (V18, SC-008): axe com o terminal aberto, janelas minimizada e fechada, e no topo com o
+// header escondido.
+for (const width of [390, 1440]) {
+  test(`a11y: axe com terminal aberto, janelas minimizadas e header escondido em ${width}px (feature 004)`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('./')
+    const audit = async (label: string) => {
+      const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
+      const serious = violations
+        .filter((v) => v.impact === 'critical' || v.impact === 'serious')
+        .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
+      expect(serious, label).toEqual([])
+    }
+    // topo: header escondido
+    await audit('topo')
+
+    await page.locator('#sobre .desktop-window button.t-min').click()
+    await page.locator('#contato .desktop-window button.t-close').click()
+    await page.locator('.app-dock .dock-btn').click()
+    await page.locator('#dock-terminal-input').fill('help')
+    await page.locator('#dock-terminal-input').press('Enter')
+    await page.locator('#dock-terminal-input').fill('find e')
+    await audit('terminal aberto, janelas minimizada e fechada')
+  })
+}

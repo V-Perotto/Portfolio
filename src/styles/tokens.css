@@ -63,6 +63,27 @@
   --section-pad: 5rem 1.5rem 2rem;
   --hero-pad: 6rem 1.5rem 4rem;
   --nav-height: 4.5rem;
+
+  /* feature 004 ---------------------------------------------------------------------------------- */
+
+  /* espaço vazio entre o fim do hero e o título do Sobre, onde o header surge (FR-014, research R6);
+     svh: a altura menor da tela, para não mudar com a barra do navegador do celular */
+  --hero-gap: 50svh;
+  /* reserva no fim da página para a dock não cobrir o rodapé (FR-027) */
+  --dock-space: 4.75rem;
+  /* quadrado do ícone de área de trabalho das janelas minimizadas ou fechadas (FR-002) */
+  --desktop-icon-size: 5.5rem;
+  /* sublinhado dos badges de downloads, na cor de cada badge (FR-042): Grape Glass 3,4:1 e Shadow
+     Lord 3,5:1 sobre --surface, acima dos 3:1 de elemento gráfico */
+  --grape: #852ffc;
+  --sith-badge: #d90404;
+  /* painel sob o texto do boot, sobre o Faulty Terminal (FR-029, research R2): com 92%, o texto
+     --text-dim fica em 4,9:1 mesmo sobre o dígito mais aceso (com 85%, 4,3:1) */
+  --boot-panel: color-mix(in srgb, var(--bg) 92%, transparent);
+  /* penumbra sob o texto do hero, sobre o fundo CRT (FR-038, research R13) */
+  --hero-scrim: color-mix(in srgb, var(--bg) 80%, transparent);
+  /* texto dos loops de skills: o dobro dos 0,85rem da 003 (FR-045) */
+  --loop-font: 1.7rem;
 }
 
 /* impressão (FR-027): tema claro, mesmos nomes de token */
@@ -85,6 +106,8 @@
     --spotlight: transparent;
     /* a fita roxa misturada ao branco deixaria o verde da impressão em ~1,8:1 */
     --ribbon-bg: var(--surface-2);
+    --boot-panel: transparent;
+    --hero-scrim: transparent;
   }
 }
 

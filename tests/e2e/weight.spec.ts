@@ -17,3 +17,28 @@ test('peso do carregamento inicial', async ({ page }) => {
   console.log(`peso inicial: ${(total / 1024).toFixed(1)} KB`, byType)
   expect(total).toBeLessThanOrEqual(500 * 1024)
 })
+
+// Feature 004 (FR-050, SC-006): uma visita completa (boot, rolagem até o fim, terminal aberto) só pede
+// arquivos do próprio site; a exceção são os badges do shields.io (Princípio III).
+test('nenhuma requisição a terceiros durante a visita', async ({ page }) => {
+  const outside: string[] = []
+  page.on('request', (request) => {
+    const url = new URL(request.url())
+    if (url.protocol === 'data:' || url.protocol === 'blob:') return
+    if (url.host === 'localhost:4173' || url.host === 'img.shields.io') return
+    outside.push(request.url())
+  })
+  await page.goto('./')
+  await page.waitForFunction(() => !document.querySelector('.boot-screen') && !document.documentElement.classList.contains('booting'), null, {
+    timeout: 9000,
+  })
+  for (let y = 0; y < 30; y++) {
+    await page.mouse.wheel(0, 600)
+    await page.waitForTimeout(80)
+  }
+  await page.locator('.app-dock .dock-btn').click()
+  await page.locator('#dock-terminal-input').fill('find sobre')
+  await page.locator('#dock-terminal-input').press('Enter')
+  await page.waitForLoadState('networkidle')
+  expect(outside).toEqual([])
+})

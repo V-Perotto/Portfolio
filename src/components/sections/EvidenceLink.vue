@@ -156,6 +156,14 @@ onMounted(() => {
   border-bottom: 1px dashed currentColor;
 }
 
+/* o sublinhado dos badges de downloads na cor de cada tema, a mesma do badge (FR-042 da 004); vale
+   também para o domínio que aparece quando o badge não carrega */
+.evidence-grape .badge-box img,
+.evidence-grape .badge-box .evidence-url { border-bottom-color: var(--grape); }
+
+.evidence-sith .badge-box img,
+.evidence-sith .badge-box .evidence-url { border-bottom-color: var(--sith-badge); }
+
 /* link privado: cadeado, caminho e etiqueta numa linha que quebra em telas estreitas (FR-039) */
 .evidence-private {
   flex-wrap: wrap;

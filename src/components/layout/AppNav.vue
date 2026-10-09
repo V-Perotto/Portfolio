@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
-import PromptLogo from '@/components/terminal/PromptLogo.vue'
 import { useActiveSection } from '@/composables/useActiveSection'
+import { useHeroPassed } from '@/composables/useHeroPassed'
 import type { NavSection } from '@/lib/sections'
 
 const props = defineProps<{ sections: readonly NavSection[] }>()
@@ -9,6 +9,8 @@ const props = defineProps<{ sections: readonly NavSection[] }>()
 const open = ref(false)
 const toggle = ref<HTMLButtonElement | null>(null)
 const active = useActiveSection(() => props.sections.map((s) => s.id))
+/** O header só aparece depois do hero (FR-012 da 004). */
+const shown = useHeroPassed()
 
 const close = () => {
   open.value = false
@@ -21,6 +23,11 @@ const onKeydown = (e: KeyboardEvent) => {
   toggle.value?.focus()
 }
 
+// de volta ao hero, o header some e o menu do celular fecha junto
+watch(shown, (isShown) => {
+  if (!isShown) close()
+})
+
 watch(open, (isOpen) => {
   if (isOpen) document.addEventListener('keydown', onKeydown)
   else document.removeEventListener('keydown', onKeydown)
@@ -30,9 +37,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <nav class="navbar" aria-label="Principal">
+  <nav :class="['navbar', { 'nav-shown': shown }]" aria-label="Principal">
     <div class="nav-inner">
-      <a href="#home" class="nav-logo"><PromptLogo /></a>
       <button
         ref="toggle"
         type="button"
@@ -70,21 +76,29 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   border-bottom: 1px solid var(--border);
 }
 
+/* com JS, escondido enquanto o hero está na tela (FR-012 da 004, research R5): sem `visibility` nem
+   `inert`, para o Tab ainda alcançar os links; o foco por teclado revela o header (FR-013). Sem JS, a
+   navegação fica como sempre (FR-016). Só se esconde com o app carregado (ou sob a capa do boot): se
+   o JS principal falhar ou atrasar demais (html.app-failed, do script inline de index.html), o header
+   fica visível, sem depender de timer. Com o menu do celular aberto, ele também fica visível: um
+   clique no link não pode tirá-lo de baixo do ponteiro */
+html.js:not(.app-failed):is(.app-loaded, .booting) .navbar:not(.nav-shown):not(:has(:focus-visible)):not(:has(.nav-links.open)) {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.motion .navbar { transition: transform 0.25s ease, opacity 0.25s ease; }
+
 .nav-inner {
   max-width: var(--container-page);
   margin: 0 auto;
   padding: calc(var(--spacing) * 3.6) calc(var(--spacing) * 6);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* itens centralizados; o prompt viper@portfolio:~$ foi para a dock (FR-017 da 004) */
+  justify-content: center;
   gap: calc(var(--spacing) * 4);
-}
-
-.nav-logo {
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  text-decoration: none;
-  white-space: nowrap;
 }
 
 .nav-links {
@@ -185,8 +199,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 
   html.js .nav-links li { border-top: 1px solid var(--border); }
 
+  /* itens do menu aberto também centralizados (FR-017 da 004) */
   html.js .nav-links a {
     display: block;
+    text-align: center;
     padding: calc(var(--spacing) * 3.6) calc(var(--spacing) * 6);
   }
 
@@ -195,6 +211,6 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
   /* sem JS: a navegação fica no fluxo, com os links expostos em linhas */
   html:not(.js) .navbar { position: static; }
   html:not(.js) .nav-inner { flex-wrap: wrap; }
-  html:not(.js) .nav-links { flex-wrap: wrap; gap: calc(var(--spacing) * 1.6); }
+  html:not(.js) .nav-links { flex-wrap: wrap; justify-content: center; gap: calc(var(--spacing) * 1.6); }
 }
 </style>

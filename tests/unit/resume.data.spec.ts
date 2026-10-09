@@ -116,4 +116,21 @@ describe('resume.ts — validação', () => {
     ]
     expect(shown.filter((name) => !TECH_ICONS[name])).toEqual([])
   })
+
+  it('(11) loops: conceitos_web e desenho_de_processos andam para a direita, os outros no padrão (FR-046 da 004)', () => {
+    expect(resume.skillGroups.map((g) => [g.id, g.loopDirection])).toEqual([
+      ['linguagens_frameworks', undefined],
+      ['conceitos_web', 'to-right'],
+      ['gestao_de_dados', undefined],
+      ['desenho_de_processos', 'to-right'],
+      ['devops_qualidade', undefined],
+    ])
+  })
+
+  it('(12) conteúdo da feature 004: chip JSON e papel no ItaliaMi (FR-041, FR-047)', () => {
+    const shown = [...resume.experiences.flatMap((e) => e.tech), ...projects.flatMap((p) => p.stack), ...resume.challenges.flatMap((c) => c.stack)]
+    expect(shown).not.toContain('JSON de tema')
+    expect(projects.find((p) => p.id === 'vscode-themes')!.stack).toContain('JSON')
+    expect(projects.find((p) => p.id === 'italiami')!.role).toBe('Autor e desenvolvedor')
+  })
 })

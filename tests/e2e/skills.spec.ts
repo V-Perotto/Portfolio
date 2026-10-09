@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitBootEnd } from './support/boot'
 
 // Feature 003, US1/US5: skills em sub-partes, cada uma com um loop (quickstart V7–V9, V11, V12).
 test.use({ reducedMotion: 'no-preference' })
@@ -6,10 +7,7 @@ test.use({ reducedMotion: 'no-preference' })
 const GROUPS = ['linguagens_frameworks', 'conceitos_web', 'gestao_de_dados', 'desenho_de_processos', 'devops_qualidade']
 const COUNTS = [8, 2, 3, 6, 9]
 
-const skipBoot = async (page: Page) => {
-  await page.keyboard.press('Escape')
-  await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 1500 })
-}
+const skipBoot = waitBootEnd
 
 const trackX = async (page: Page, index: number) =>
   (await page.locator('#skills .skill-loop').nth(index).locator('.loop-track').boundingBox())!.x
@@ -83,7 +81,7 @@ test('leitor de tela: cada grupo é uma lista com as próprias skills, uma vez (
   }
 })
 
-test('os loops não deslocam o layout; em 320 px cabem e os nomes têm ≥ 12 px (V12, FR-027, FR-029)', async ({ page }) => {
+test('os loops não deslocam o layout; em 320 px cabem e os nomes têm ≥ 24 px (V12, FR-027, FR-029; 2× na 004)', async ({ page }) => {
   await page.addInitScript(() => {
     ;(window as unknown as { __shifts: number[] }).__shifts = []
     new PerformanceObserver((list) => {
@@ -107,7 +105,53 @@ test('os loops não deslocam o layout; em 320 px cabem e os nomes têm ≥ 12 px
 
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0)
   const sizes = await page.locator('#skills .loop-name').evaluateAll((els) => els.map((el) => parseFloat(getComputedStyle(el).fontSize)))
-  expect(Math.min(...sizes)).toBeGreaterThanOrEqual(12)
+  expect(Math.min(...sizes)).toBeGreaterThanOrEqual(24)
+})
+
+// Feature 004, US6: fitas de borda a borda, texto 2× e direção por grupo (quickstart V14; FR-044 a FR-046)
+for (const width of [320, 768, 1440, 1920]) {
+  test(`fitas de borda a borda, sem rolagem horizontal, texto de 27,2 px, em ${width}px (V14, FR-044, FR-045)`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('./')
+    await skipBoot(page)
+    await page.locator('#skills').scrollIntoViewIfNeeded()
+    const { ribbons, client, overflow, titles, container } = await page.evaluate(() => ({
+      ribbons: [...document.querySelectorAll('#skills .skill-loop')].map((el) => {
+        const r = el.getBoundingClientRect()
+        return [r.left, r.right]
+      }),
+      client: document.documentElement.clientWidth,
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      titles: [...document.querySelectorAll('#skills h3')].map((el) => el.getBoundingClientRect().left),
+      container: document.querySelector('#skills .section-title')!.getBoundingClientRect().left,
+    }))
+    expect(overflow).toBeLessThanOrEqual(0)
+    for (const [left, right] of ribbons) {
+      expect(left!).toBeCloseTo(0, 0)
+      expect(Math.abs(right! - client)).toBeLessThanOrEqual(1)
+    }
+    // os títulos das sub-partes continuam alinhados ao conteúdo da página
+    for (const left of titles) expect(Math.abs(left - container)).toBeLessThanOrEqual(1)
+    const sizes = await page.locator('#skills .loop-item').evaluateAll((els) => [...new Set(els.map((el) => getComputedStyle(el).fontSize))])
+    expect(sizes).toEqual(['27.2px'])
+  })
+}
+
+test('conceitos_web e desenho_de_processos andam para a direita; os outros, para a esquerda (V14, FR-046)', async ({ page }) => {
+  await page.goto('./')
+  await skipBoot(page)
+  await expect(page.locator('#skills .skill-loop[data-loop-ready]')).toHaveCount(5)
+  for (const [i, id] of GROUPS.entries()) {
+    const loop = page.locator('#skills .skill-loop').nth(i)
+    await loop.scrollIntoViewIfNeeded()
+    await expect(loop).toHaveAttribute('data-loop-visible', 'true')
+    await page.mouse.move(0, 0) // o hover pausa o loop
+    const x1 = await trackX(page, i)
+    await page.waitForTimeout(1000)
+    const x2 = await trackX(page, i)
+    if (id === 'conceitos_web' || id === 'desenho_de_processos') expect(x2, id).toBeGreaterThan(x1)
+    else expect(x2, id).toBeLessThan(x1)
+  }
 })
 
 for (const reducedMotion of ['no-preference', 'reduce'] as const) {

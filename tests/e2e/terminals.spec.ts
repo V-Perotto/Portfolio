@@ -1,12 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
+import { waitBootEnd } from './support/boot'
 
 // Feature 002, US8: janelas de terminal que digitam ao entrar na tela (quickstart V8–V12, FR-025 a FR-033).
 test.use({ reducedMotion: 'no-preference' })
 
-const skipBoot = async (page: Page) => {
-  await page.keyboard.press('Escape')
-  await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 1500 })
-}
+const skipBoot = waitBootEnd
 
 /** Estados da janela, na ordem dos passos: "p" pending, "t" typing, "d" done. */
 const states = (page: Page, scope: string) =>
@@ -111,7 +109,7 @@ test('janela coberta pelo boot só anima depois que ele sai (FR-032)', async ({ 
   await page.waitForFunction(() => document.querySelector('#contato [data-t-anim]'), null, { polling: 20 })
   expect(await states(page, '#contato')).toMatch(/^p+$/)
 
-  await page.waitForFunction(() => !document.documentElement.classList.contains('booting'), null, { polling: 20, timeout: 6000 })
+  await page.waitForFunction(() => !document.documentElement.classList.contains('booting'), null, { polling: 20, timeout: 7500 })
   expect(await timeToDone(page, '#contato')).toBeLessThanOrEqual(2500)
 })
 
@@ -132,7 +130,7 @@ test('rolagem rápida até o fim: as janelas puladas terminam sozinhas (edge cas
   await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }))
   await page.waitForFunction(() => !document.querySelector('[data-t-state]:not([data-t-state="done"])'), null, {
     polling: 50,
-    timeout: 3000,
+    timeout: 6000,
   })
   await expect(page.locator('.t-typed')).toHaveCount(0)
 })

@@ -3,7 +3,8 @@ import type { TechIconId, TechName } from '@/types/resume'
 /**
  * Ícone de cada tecnologia exibida (chips e loops de skills; FR-012, FR-013, FR-017, research R1 e R3
  * da 003): id de um <symbol> de src/assets/tech-icons/sprite.svg. Ordem de preferência das fontes:
- * devicon → vectorlogo.zone → Lucide pelo assunto. Variações de nome da mesma tecnologia apontam para
+ * devicon → vectorlogo.zone → Lucide pelo assunto; o Valkey vem do homarr-labs/dashboard-icons, por
+ * pedido do autor (FR-043 da 004). Variações de nome da mesma tecnologia apontam para
  * o mesmo id. O `Record` obriga toda `TechName` a ter ícone; tests/unit/tech-icons.spec.ts confere
  * que cada id existe no sprite.
  */
@@ -38,15 +39,17 @@ export const TECH_ICONS: Record<TechName, TechIconId> = {
   Prisma: 'devicon-prisma',
   Vite: 'devicon-vitejs',
   Axios: 'devicon-axios',
-  'JSON de tema': 'devicon-json',
+  JSON: 'devicon-json',
   'VS Code Extension API': 'devicon-vscode',
 
   // vectorlogo.zone: falta no devicon (SAP) ou lá só existe o logotipo escrito (nginx)
   'SAP SD': 'vectorlogo-sap',
   Nginx: 'vectorlogo-nginx',
 
+  // homarr-labs/dashboard-icons, por pedido do autor (feature 004)
+  Valkey: 'dashboard-valkey',
+
   // Lucide, pelo assunto: sem logotipo no devicon nem no vectorlogo.zone
-  Valkey: 'lucide-database',
   OCR: 'lucide-scan-text',
   LLMs: 'lucide-brain-circuit',
   'Agentes de IA': 'lucide-bot',

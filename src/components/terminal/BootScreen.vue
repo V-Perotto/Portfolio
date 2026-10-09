@@ -1,129 +1,93 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import FaultyTerminal from '@/components/vendor/vue-bits/FaultyTerminal.vue'
+import {
+  BOOT_DEADLINE_MS,
+  BOOT_FADE_MS,
+  BOOT_LATEST_START_MS,
+  BOOT_SAFETY_MS,
+  BOOT_SEQUENCE_MS,
+  bootFrame,
+  type BootLine,
+} from '@/lib/boot'
 
 /**
- * Tela de boot SSH (FR-031) — porte da sequência anterior. Só existe no cliente e só quando o
- * script inline marcou `html.booting` (há movimento). Termina sozinha no prazo ou com qualquer
- * tecla/clique, e remove `html.booting`, liberando a capa que cobre a página. É decorativa: fica
- * fora da árvore de acessibilidade e não mexe no foco (FR-036).
+ * Tela de boot SSH (FR-028 a FR-033 da 004; constituição v2.3.0). Só existe no cliente e só quando o
+ * script inline marcou `html.booting` (há movimento). Não é pulável: a sessão é desenhada inteira
+ * pela linha do tempo de src/lib/boot.ts, guiada pelo relógio, sobre o Faulty Terminal do Vue Bits.
+ * No fim remove `html.booting`, liberando a capa que cobre a página, e some com um fade. É
+ * decorativa: fica fora da árvore de acessibilidade e não mexe no foco (FR-036 da 001).
  */
-interface Part {
-  cls?: string
-  text: string
-}
 
 const active = ref(false)
 const hiding = ref(false)
-const lines = ref<Part[][]>([])
+const lines = ref<BootLine[]>([])
+/** Cor dos dígitos do Faulty Terminal: o verde-neon do tema (research R2). */
+const tint = ref('#4ade9b')
 
 let finished = false
+let startedAt = 0
+let lastLogin = ''
 const timers: ReturnType<typeof setTimeout>[] = []
-const schedule = (delay: number, fn: () => void) => timers.push(setTimeout(fn, delay))
 
-/** Prazo contado do início da navegação: + o fade, a página fica descoberta em ~4,45 s. A folga até
- *  os 5 s (FR-031) cobre o reflow do fim do boot e timers atrasados sob carga: com 4,2 s, um celular
- *  lento (CPU 4× mais lenta) passava dos 5 s (research R13 da 002). É o mesmo prazo do script inline
- *  de `index.html`. */
-const DEADLINE_MS = 3900
-/** Duração do fade de saída (a transição do CSS tem 0,5 s). */
-const FADE_MS = 550
-/** Com menos que isto de prazo (bundle atrasado), o boot nem aparece: só piscaria. */
-const MIN_VISIBLE_MS = 1000
-
-const PROMPT = (user: string, host: string): Part[] => [
-  { cls: 'prompt-user', text: user },
-  { cls: 'prompt-at', text: '@' },
-  { cls: 'prompt-host', text: host },
-  { cls: 'prompt-colon', text: ':' },
-  { cls: 'prompt-path', text: '~' },
-  { cls: 'prompt-dollar', text: '$ ' },
-]
-
-function addLine(parts: Part[]): Part[][] {
-  lines.value.push(parts.map((p) => ({ ...p })))
-  return lines.value
+const draw = (elapsed: number) => {
+  lines.value = bootFrame(elapsed, lastLogin)
 }
 
-/** digita `text` num trecho novo no fim da última linha */
-function typeInto(text: string, speed: number, cls: string | undefined, onDone: () => void) {
-  const line = lines.value[lines.value.length - 1]
-  if (!line) return
-  line.push({ cls, text: '' })
-  const part = line[line.length - 1]!
-  let i = 0
-  const step = () => {
-    if (finished) return
-    part.text = text.slice(0, ++i)
-    if (i < text.length) schedule(speed, step)
-    else schedule(0, onDone)
-  }
-  step()
+/** Redesenha pelo relógio: timers atrasados não acumulam atraso (research R4). */
+function tick() {
+  if (finished) return
+  const elapsed = performance.now() - startedAt
+  draw(elapsed)
+  if (elapsed < BOOT_SEQUENCE_MS) timers.push(setTimeout(tick, 16))
 }
 
 function finish() {
   if (finished) return
   finished = true
   timers.forEach(clearTimeout)
-  document.removeEventListener('keydown', finish)
+  // nunca sai cortado (FR-030): se a CPU atrasou o relógio, a sessão aparece inteira antes do fade
+  draw(BOOT_SEQUENCE_MS)
   document.documentElement.classList.remove('booting')
   hiding.value = true
   setTimeout(() => {
     active.value = false
-  }, FADE_MS)
+  }, BOOT_FADE_MS)
 }
 
 onMounted(async () => {
   const root = document.documentElement
   if (!root.classList.contains('booting')) return
-  const remaining = DEADLINE_MS - performance.now()
-  if (remaining < MIN_VISIBLE_MS) {
+  // o JS chegou tarde demais para a sessão caber inteira no teto: sem boot (FR-032)
+  if (performance.now() > BOOT_LATEST_START_MS) {
     root.classList.remove('booting')
     return
   }
+  tint.value = getComputedStyle(root).getPropertyValue('--green-bright').trim() || tint.value
+  lastLogin = new Date().toLocaleString('pt-BR')
   active.value = true
   await nextTick()
 
-  document.addEventListener('keydown', finish)
-  schedule(remaining, finish)
-
-  addLine(PROMPT('anon', '127.0.0.1'))
-  typeInto('ssh viper@portfolio', 42, undefined, () => {
-    schedule(250, () => {
-      addLine([{ cls: 'boot-dim', text: 'Conectando a portfolio na porta 22...' }])
-      schedule(500, () => {
-        addLine([{ text: "viper@portfolio's password: " }])
-        typeInto('••••••••', 55, undefined, () => {
-          schedule(450, () => {
-            addLine([{ cls: 'boot-ok', text: 'Autenticado. ' }, { text: 'Bem-vindo ao PortfolioOS 1.0 LTS' }])
-            schedule(300, () => {
-              const now = new Date().toLocaleString('pt-BR')
-              addLine([{ cls: 'boot-dim', text: `Last login: ${now} from 127.0.0.1` }])
-              schedule(400, () => {
-                addLine(PROMPT('viper', 'portfolio'))
-                typeInto('./iniciar_portfolio.sh', 24, 'boot-ok', () => schedule(350, finish))
-              })
-            })
-          })
-        })
-      })
-    })
-  })
+  startedAt = performance.now()
+  draw(0)
+  timers.push(setTimeout(tick, 16))
+  timers.push(setTimeout(finish, BOOT_SEQUENCE_MS))
+  // segurança: com timers muito atrasados, a saída começa no mais tardar no fim natural do boot mais
+  // tardio possível, e a folga absorve o atraso até o teto de 7 s
+  timers.push(setTimeout(finish, Math.max(0, BOOT_DEADLINE_MS - BOOT_FADE_MS - BOOT_SAFETY_MS - performance.now())))
 })
 
-onBeforeUnmount(() => {
-  timers.forEach(clearTimeout)
-  document.removeEventListener('keydown', finish)
-})
+onBeforeUnmount(() => timers.forEach(clearTimeout))
 </script>
 
 <template>
-  <div v-if="active" :class="['boot-screen', { 'boot-hidden': hiding }]" aria-hidden="true" @click="finish">
+  <div v-if="active" :class="['boot-screen', { 'boot-hidden': hiding }]" aria-hidden="true">
+    <FaultyTerminal class="boot-bg" :tint="tint" />
     <div class="boot-body mono">
       <p v-for="(line, i) in lines" :key="i" class="boot-line">
         <span v-for="(part, j) in line" :key="j" :class="part.cls">{{ part.text }}</span><span v-if="i === lines.length - 1" class="cursor">▊</span>
       </p>
     </div>
-    <p class="boot-skip mono">[ pressione qualquer tecla para pular ]</p>
   </div>
 </template>
 
@@ -146,21 +110,26 @@ onBeforeUnmount(() => {
   transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
+/* o Faulty Terminal ocupa a tela toda, atrás do painel */
+.boot-bg {
+  position: absolute;
+  inset: 0;
+}
+
+/* painel sob o texto: o contraste não depende do quadro do shader (FR-029) */
 .boot-body {
+  position: relative;
   width: min(680px, 100%);
   font-size: clamp(0.78rem, 2.2vw, 0.95rem);
   color: var(--text);
   line-height: 1.75;
+  background: var(--boot-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-window);
+  padding: calc(var(--spacing) * 5) calc(var(--spacing) * 6);
 }
 
 .boot-line { min-height: 1.75em; }
 .boot-dim { color: var(--text-dim); }
 .boot-ok { color: var(--green-bright); }
-
-.boot-skip {
-  position: absolute;
-  bottom: 2rem;
-  color: var(--text-dim);
-  font-size: 0.72rem; /* sem o opacity: 0.7 anterior, que deixava a dica abaixo de 4,5:1 (FR-022) */
-}
 </style>

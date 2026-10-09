@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useMotion } from '@/composables/useMotion'
-import type { SkillItem } from '@/types/resume'
+import type { LoopDirection, SkillItem } from '@/types/resume'
 import TechIcon from './TechIcon.vue'
 
 /**
@@ -15,8 +15,11 @@ import TechIcon from './TechIcon.vue'
  * Com movimento, a fita tem uma linha só desde o primeiro paint (o script do <head> decide a classe),
  * e, depois de montar, o componente mede a sequência, acrescenta cópias `aria-hidden` até cobrir a
  * largura e liga a animação CSS, que só roda com o loop na tela.
+ *
+ * Feature 004 (FR-044 a FR-046): a fita vai de borda a borda da página, o texto e os ícones têm o
+ * dobro do tamanho, e cada grupo escolhe a direção (`to-right` anda da esquerda para a direita).
  */
-const props = defineProps<{ items: readonly SkillItem[] }>()
+const props = withDefaults(defineProps<{ items: readonly SkillItem[]; direction?: LoopDirection }>(), { direction: 'to-left' })
 
 /** Velocidade da trilha. Em 320px a fita tem ~288px: um item leva ~7 s para atravessar (FR-028). */
 const SPEED_PX_PER_S = 40
@@ -76,6 +79,7 @@ onBeforeUnmount(() => {
   <div
     ref="root"
     class="skill-loop"
+    :data-direction="props.direction"
     :data-loop-ready="ready || undefined"
     :data-loop-visible="visible || undefined"
     :style="ready ? { '--loop-shift': `${shift}px`, '--loop-duration': `${shift / SPEED_PX_PER_S}s` } : undefined"
@@ -100,11 +104,15 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* a fita: faixa roxa com fios em cima e embaixo (research R5) */
+/* a fita: faixa roxa com fios em cima e embaixo (research R5 da 003), de borda a borda da página
+   (FR-044 da 004): o `main` é contêiner de consulta, e 50cqw é metade da largura dele, sem a barra de
+   rolagem (com 100vw, a fita passaria por baixo dela) */
 .skill-loop {
+  margin-inline: calc(50% - 50cqw);
   background: var(--ribbon-bg);
   border-block: 1px solid var(--ribbon-edge);
-  padding: calc(var(--spacing) * 2.4) calc(var(--spacing) * 4);
+  /* parada (sem JS, "reduzir movimento"), a lista quebra em linhas alinhadas ao conteúdo da página */
+  padding: calc(var(--spacing) * 2.4) calc(50cqw - 50% + var(--spacing) * 2);
 }
 
 .loop-seq {
@@ -119,7 +127,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.5em;
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  /* o dobro dos 0,85rem da 003 (FR-045) */
+  font-size: var(--loop-font);
   line-height: 1.5;
   color: var(--green-bright);
   white-space: nowrap;
@@ -130,8 +139,11 @@ onBeforeUnmount(() => {
   margin-inline: 0.7em 1em;
 }
 
-/* parado (sem JS, "reduzir movimento"): o último separador não aponta para nada */
+/* parado (sem JS, "reduzir movimento"): o último separador não aponta para nada, e um item que não
+   cabe na largura (1,7rem num celular de 320px, FR-045 da 004) quebra dentro da fita em vez de vazar */
 html:not(.motion) .loop-item:last-child .loop-sep { display: none; }
+html:not(.motion) .loop-item { white-space: normal; max-width: 100%; }
+html:not(.motion) .loop-name { overflow-wrap: anywhere; }
 html:not(.motion) [data-loop-copy] { display: none; }
 
 /* com movimento: uma linha só desde o primeiro paint, sem mudar de altura ao ligar a animação
@@ -139,8 +151,8 @@ html:not(.motion) [data-loop-copy] { display: none; }
 html.motion .skill-loop {
   overflow: hidden;
   padding-inline: 0;
-  -webkit-mask-image: linear-gradient(to right, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
-  mask-image: linear-gradient(to right, transparent, black 2.5rem, black calc(100% - 2.5rem), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 4rem, black calc(100% - 4rem), transparent);
+  mask-image: linear-gradient(to right, transparent, black 4rem, black calc(100% - 4rem), transparent);
 }
 
 html.motion .loop-track {
@@ -159,6 +171,9 @@ html.motion .skill-loop[data-loop-ready] .loop-track {
   will-change: transform;
 }
 
+/* da esquerda para a direita (FR-046 da 004): a mesma trilha, de -shift até 0 */
+html.motion .skill-loop[data-direction="to-right"] .loop-track { animation-direction: reverse; }
+
 /* só anda na tela (FR-024) e para com o ponteiro em cima (FR-023) */
 html.motion .skill-loop[data-loop-ready][data-loop-visible] .loop-track { animation-play-state: running; }
 html.motion .skill-loop[data-loop-ready][data-loop-visible]:hover .loop-track { animation-play-state: paused; }
@@ -171,6 +186,7 @@ html.motion .skill-loop[data-loop-ready][data-loop-visible]:hover .loop-track { 
 @media print {
   html.motion .skill-loop {
     overflow: visible;
+    margin-inline: 0;
     padding-inline: calc(var(--spacing) * 4);
     -webkit-mask-image: none;
     mask-image: none;
@@ -181,5 +197,6 @@ html.motion .skill-loop[data-loop-ready][data-loop-visible]:hover .loop-track { 
   html.motion .skill-loop .loop-track { animation: none; transform: none; }
   [data-loop-copy] { display: none; }
   .loop-item:last-child .loop-sep { display: none; }
+  .loop-item { white-space: normal; max-width: 100%; }
 }
 </style>

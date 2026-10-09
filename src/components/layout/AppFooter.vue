@@ -10,10 +10,8 @@ onMounted(() => {
 
 <template>
   <footer class="footer mono">
-    <p>
-      <span class="prompt-dollar" aria-hidden="true">$ </span>echo "© {{ year }} Vittorio Perotto — feito com Vue, Tailwind e Vue Bits"
-    </p>
-    <p class="footer-exit">process finished with <span class="hl-green">exit code 0</span></p>
+    <!-- só o copyright (FR-040 da 004) -->
+    <p><span class="prompt-dollar" aria-hidden="true">$ </span>echo "© {{ year }} Vittorio Perotto"</p>
   </footer>
 </template>
 
@@ -28,6 +26,7 @@ onMounted(() => {
   background: var(--bg-alt);
 }
 
-/* sem o opacity: 0.7 anterior, que deixava o texto em 3,1:1 (FR-022) */
-.footer-exit { margin-top: calc(var(--spacing) * 2); }
+/* com JS existe a dock no centro de baixo (feature 004): o rodapé ganha o espaço dela, e o texto
+   fica inteiro acima da dock ao rolar até o fim (FR-027) */
+html.js .footer { padding-bottom: calc(var(--spacing) * 8.8 + var(--dock-space)); }
 </style>

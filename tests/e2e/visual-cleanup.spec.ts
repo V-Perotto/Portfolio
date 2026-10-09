@@ -1,4 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test'
+import { waitBootEnd } from './support/boot'
 
 // Feature 003: limpeza visual (quickstart V1–V5): fundo, comandos, títulos, rótulos e links.
 test.use({ reducedMotion: 'reduce' })
@@ -63,7 +64,11 @@ test('todo link de conteúdo sublinhado em repouso; hover e foco só acendem o b
     const rest = await borderBottom(line)
     expect(rest.style, name).toBe('dashed')
     expect(rest.width, name).toBe('1px')
-    expect(rest.color, name).toBe(rest.own)
+    // os badges dos temas VS Code sublinham na cor do tema (FR-042 da 004); os demais, na cor do link
+    const themed = await link.evaluate((el) =>
+      el.classList.contains('evidence-grape') ? 'rgb(133, 47, 252)' : el.classList.contains('evidence-sith') ? 'rgb(217, 4, 4)' : null,
+    )
+    expect(rest.color, name).toBe(themed ?? rest.own)
     expect(await dashedCount(link), name).toBe(1)
     const box = await offset(link)
 
@@ -92,7 +97,7 @@ test('badge que não carrega: o domínio no lugar leva um sublinhado só (V5, FR
   }
 })
 
-test('menu, logotipo, botões do hero e "▼ scroll" não recebem o sublinhado (V5, FR-010)', async ({ page }) => {
+test('menu, botões do hero e "▼ scroll" não recebem o sublinhado (V5, FR-010; o logotipo saiu do header na 004)', async ({ page }) => {
   await page.goto('./')
   const controls = page.locator('.navbar a, #home a')
   expect(await controls.count()).toBeGreaterThanOrEqual(9)
@@ -101,11 +106,18 @@ test('menu, logotipo, botões do hero e "▼ scroll" não recebem o sublinhado (
       els.filter((el) => [el, ...el.querySelectorAll('*')].some((e) => getComputedStyle(e).borderBottomStyle === 'dashed')).map((el) => el.textContent?.trim()),
     )
   expect(await noDashes()).toEqual([])
-  for (const control of await controls.all()) {
-    if (!(await control.isVisible())) continue
-    await control.hover()
-    expect(await dashedCount(control), (await control.textContent()) ?? '').toBe(0)
+  const hover = async (scope: Locator) => {
+    for (const control of await scope.all()) {
+      if (!(await control.isVisible())) continue
+      await control.hover()
+      expect(await dashedCount(control), (await control.textContent()) ?? '').toBe(0)
+    }
   }
+  await hover(page.locator('#home a'))
+  // o header só aparece depois do hero (feature 004)
+  await page.locator('#sobre').scrollIntoViewIfNeeded()
+  await expect(page.locator('.navbar')).toHaveClass(/nav-shown/)
+  await hover(page.locator('.navbar a'))
 })
 
 test('sem imagens de fundo nas seções (V1, FR-001, SC-001)', async ({ page }) => {
@@ -148,7 +160,7 @@ test.describe('com movimento', () => {
 
   test('a parte digitada já sai na cor final do comando (V2, FR-005)', async ({ page }) => {
     await page.goto('./')
-    await page.keyboard.press('Escape')
+    await waitBootEnd(page)
     await page.locator('#sobre').scrollIntoViewIfNeeded()
     const typed = page.locator('#sobre .t-typed').first()
     await expect(typed).toBeAttached({ timeout: 1500 })

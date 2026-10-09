@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import ExternalLink from '@/components/base/ExternalLink.vue'
 import SectionShell from '@/components/layout/SectionShell.vue'
+import DesktopWindow from '@/components/terminal/DesktopWindow.vue'
 import TerminalLine from '@/components/terminal/TerminalLine.vue'
 import TerminalWindow from '@/components/terminal/TerminalWindow.vue'
 import type { Contact } from '@/types/resume'
@@ -12,27 +13,33 @@ const display = (contact: Contact) => contact.label ?? contact.url.replace(/^htt
 
 <template>
   <SectionShell id="contato" title="contato">
-    <div v-reveal class="contact-window">
-      <TerminalWindow title="contato.sh">
-        <TerminalLine>./contato.sh --all</TerminalLine>
-        <ul class="contact-list">
-          <li v-for="contact in contacts" :key="contact.key">
-            <span class="c-key">{{ contact.key }}</span><span class="c-sep">=</span>
-            <ExternalLink :href="contact.url">{{ display(contact) }}</ExternalLink>
-          </li>
-        </ul>
-        <TerminalLine>
-          <span class="hl-green">Conexão estabelecida. Aguardando sua mensagem...</span><span class="cursor" aria-hidden="true">▊</span>
-        </TerminalLine>
-      </TerminalWindow>
-    </div>
+    <DesktopWindow v-reveal class="contact-slot" title="contato.sh" kind="script">
+      <div class="contact-window">
+        <TerminalWindow title="contato.sh">
+          <TerminalLine>./contato.sh --all</TerminalLine>
+          <ul class="contact-list">
+            <li v-for="contact in contacts" :key="contact.key">
+              <span class="c-key">{{ contact.key }}</span><span class="c-sep">=</span>
+              <ExternalLink :href="contact.url">{{ display(contact) }}</ExternalLink>
+            </li>
+          </ul>
+          <TerminalLine>
+            <span class="hl-green">Conexão estabelecida. Aguardando sua mensagem...</span><span class="cursor" aria-hidden="true">▊</span>
+          </TerminalLine>
+        </TerminalWindow>
+      </div>
+    </DesktopWindow>
   </SectionShell>
 </template>
 
 <style scoped>
-.contact-window {
+/* largura e margem no lugar da janela: minimizada, o ícone ocupa o mesmo lugar (feature 004) */
+.contact-slot {
   margin: calc(var(--spacing) * 6) auto 0;
   max-width: 720px;
+}
+
+.contact-window {
   border: 1px solid var(--border);
   border-radius: var(--radius-window);
   box-shadow: 0 8px 40px color-mix(in srgb, var(--shadow) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--purple-light) 8%, transparent);

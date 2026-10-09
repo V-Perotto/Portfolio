@@ -84,6 +84,26 @@ test.describe('sem JS', () => {
     await expect(page.locator('#sobre [data-t-cmd]').first()).toHaveText('$ cat sobre.txt')
     await expect(page.locator('#contato .contact-list')).toBeVisible()
   })
+
+  test('feature 004: sem dock, terminal, canvas, grade nem ícones; janelas abertas; rodapé de uma linha (V17)', async ({ page }) => {
+    await page.goto('./')
+    await expect(page.locator('.app-dock, #dock-terminal, .desktop-icon, canvas, .hero-grid')).toHaveCount(0)
+    // navegação com os 6 links, sem o prompt
+    await expect(page.locator('.nav-links a')).toHaveCount(6)
+    await expect(page.locator('.navbar')).not.toContainText('viper@portfolio')
+    // 8 janelas completas, com os controles só desenho
+    await expect(page.locator('.desktop-window')).toHaveCount(8)
+    await expect(page.locator('.terminal-bar button')).toHaveCount(0)
+    expect(await page.locator('.t-controls').evaluateAll((els) => els.every((el) => el.getAttribute('aria-hidden') === 'true'))).toBe(true)
+    await expect(page.locator('footer.footer p')).toHaveCount(1)
+    // meia tela antes do Sobre (FR-014)
+    const gap = await page.evaluate(
+      () => document.querySelector('#sobre h2')!.getBoundingClientRect().top - document.getElementById('home')!.getBoundingClientRect().bottom,
+    )
+    const height = page.viewportSize()!.height
+    expect(gap).toBeGreaterThanOrEqual(height * 0.45)
+    expect(gap).toBeLessThanOrEqual(height * 0.55)
+  })
 })
 
 // FR-018: o script inline rodou, mas o JavaScript principal falhou — nada fica escondido

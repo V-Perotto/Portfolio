@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import RichText from '@/components/base/RichText.vue'
 import SectionShell from '@/components/layout/SectionShell.vue'
+import DesktopWindow from '@/components/terminal/DesktopWindow.vue'
 import TerminalLine from '@/components/terminal/TerminalLine.vue'
 import TerminalWindow from '@/components/terminal/TerminalWindow.vue'
 import type { Profile } from '@/types/resume'
@@ -10,24 +11,28 @@ defineProps<{ profile: Profile }>()
 
 <template>
   <SectionShell id="sobre" title="sobre">
-    <div v-reveal class="about-window">
-      <TerminalWindow title="sobre.txt">
-        <TerminalLine>cat sobre.txt</TerminalLine>
-        <TerminalLine output><RichText :value="profile.about" /></TerminalLine>
-        <TerminalLine>whois vittorio --info</TerminalLine>
-        <ul class="badges">
-          <li v-for="attr in profile.attributes" :key="attr.label" class="badge">
-            <span aria-hidden="true">{{ attr.icon }}</span> {{ attr.label }}
-          </li>
-        </ul>
-      </TerminalWindow>
-    </div>
+    <DesktopWindow v-reveal class="about-slot" title="sobre.txt" kind="document">
+      <div class="about-window">
+        <TerminalWindow title="sobre.txt">
+          <TerminalLine>cat sobre.txt</TerminalLine>
+          <TerminalLine output><RichText :value="profile.about" /></TerminalLine>
+          <TerminalLine>whois vittorio --info</TerminalLine>
+          <ul class="badges">
+            <li v-for="attr in profile.attributes" :key="attr.label" class="badge">
+              <span aria-hidden="true">{{ attr.icon }}</span> {{ attr.label }}
+            </li>
+          </ul>
+        </TerminalWindow>
+      </div>
+    </DesktopWindow>
   </SectionShell>
 </template>
 
 <style scoped>
+/* a margem fica no lugar da janela: minimizada, o ícone ocupa o mesmo lugar (feature 004) */
+.about-slot { margin-top: calc(var(--spacing) * 6); }
+
 .about-window {
-  margin-top: calc(var(--spacing) * 6);
   border: 1px solid var(--border);
   border-radius: var(--radius-window);
   box-shadow: 0 8px 40px color-mix(in srgb, var(--shadow) 50%, transparent), 0 0 0 1px color-mix(in srgb, var(--purple-light) 8%, transparent);

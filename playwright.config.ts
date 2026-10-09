@@ -1,5 +1,14 @@
 import { defineConfig, devices } from '@playwright/test'
 
+/**
+ * Testes que dependem de WebGL (feature 004: Faulty Terminal no boot, CRT no hero, peso com os
+ * workers das cenas). No Chromium headless o WebGL é por software e pesa na CPU: com muitas páginas
+ * WebGL em paralelo, os timers de todas atrasam. Esses arquivos rodam num projeto próprio, um teste
+ * de cada vez; o resto roda com WebGL desligado, o que também exercita os fundos estáticos de quem
+ * não tem WebGL (FR-033, FR-039).
+ */
+const WEBGL = /(^|[\\/])(boot|hero-crt|motion|weight)\.spec\.ts$/
+
 export default defineConfig({
   testDir: 'tests/e2e',
   fullyParallel: true,
@@ -12,5 +21,19 @@ export default defineConfig({
     url: 'http://localhost:4173/Portfolio/',
     reuseExistingServer: !process.env.CI,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      testIgnore: WEBGL,
+      use: { ...devices['Desktop Chrome'], launchOptions: { args: ['--disable-webgl'] } },
+    },
+    {
+      name: 'webgl',
+      testMatch: WEBGL,
+      fullyParallel: false,
+      // uma página com WebGL por software de cada vez, em paralelo ao projeto principal
+      workers: 1,
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
 })

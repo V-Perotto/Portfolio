@@ -12,6 +12,10 @@ import { planTyping, TYPING_BUDGET_MS, type TypingPlan } from '@/lib/typing'
  *
  * Passos = filhos diretos do corpo: cada `[data-t-cmd]` abre um passo, e os elementos seguintes, até
  * o próximo comando, são a saída dele.
+ *
+ * Feature 004 (janelas que minimizam e fecham, FR-004, FR-005): devolve `complete()`, que termina a
+ * digitação na hora (minimizar), e `replay()`, que digita tudo de novo, com o mesmo plano e o mesmo
+ * teto (reabrir uma janela fechada). Sem movimento, `replay()` não faz nada.
  */
 type StepState = 'pending' | 'typing' | 'done'
 
@@ -30,7 +34,12 @@ const ROOT_MARGIN = '100000px 0px -20% 0px'
 /** Teto rígido: com a CPU ocupada os timers atrasam, mas a janela completa até aqui (FR-026: 2,5 s). */
 const HARD_CAP_MS = TYPING_BUDGET_MS + 250
 
-export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref<HTMLElement | null>): void {
+export interface TerminalTyping {
+  complete(): void
+  replay(): void
+}
+
+export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref<HTMLElement | null>): TerminalTyping {
   const motion = useMotion()
   const root = typeof document === 'undefined' ? null : document.documentElement
 
@@ -67,7 +76,8 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
     stopWatching()
   }
 
-  function arm(win: HTMLElement, body: HTMLElement): boolean {
+  function collectSteps(body: HTMLElement) {
+    if (steps.length) return
     let current: Step | null = null
     for (const child of Array.from(body.children) as HTMLElement[]) {
       if (child.hasAttribute('data-t-cmd')) {
@@ -77,10 +87,15 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
         current.outputs.push(child)
       } // antes do primeiro comando: fica visível desde o início
     }
+  }
+
+  function arm(win: HTMLElement, body: HTMLElement): boolean {
+    collectSteps(body)
     if (!steps.length) return false
 
     win.setAttribute('data-t-anim', '')
     for (const { cmd, outputs } of steps) {
+      cmd.querySelector(':scope > .t-typed')?.remove()
       setState(cmd, 'pending')
       outputs.forEach((el) => setState(el, 'pending'))
     }
@@ -88,6 +103,19 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
     win.addEventListener('focusin', finish)
     phase = 'armed'
     return true
+  }
+
+  /** Janela fechada e reaberta: digita tudo de novo, na hora (ela está na tela). */
+  function replay() {
+    const win = windowEl.value
+    const body = bodyEl.value
+    if (!win || !body || !root?.classList.contains('motion')) return
+    timers.forEach(clearTimeout)
+    timers.length = 0
+    stopWatching()
+    if (!arm(win, body)) return
+    visible = true
+    run()
   }
 
   function tryStart() {
@@ -209,4 +237,6 @@ export function useTerminalTyping(windowEl: Ref<HTMLElement | null>, bodyEl: Ref
     timers.forEach(clearTimeout)
     stopWatching()
   })
+
+  return { complete: finish, replay }
 }

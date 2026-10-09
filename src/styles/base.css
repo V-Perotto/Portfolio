@@ -30,6 +30,15 @@
     outline-offset: 2px;
   }
 
+  /* meia tela vazia entre o fim do hero e o título do Sobre, onde o header surge (FR-014 da 004,
+     research R6). É margem (e não padding da seção) para a âncora #sobre parar no topo da seção,
+     como nas outras; os 5rem são o padding de cima de toda seção (--section-pad) */
+  .hero + main { margin-top: max(0px, calc(var(--hero-gap) - 5rem)); }
+
+  /* contêiner de consulta da largura da página: as fitas das skills vão de borda a borda com
+     `calc(50% - 50cqw)` (FR-044 da 004, research R9) */
+  main { container-type: inline-size; }
+
   /* boot: enquanto html.booting existir, uma capa cobre a página (o BootScreen fica acima, z 9999) */
   html.booting { overflow: hidden; }
   html.booting::before {

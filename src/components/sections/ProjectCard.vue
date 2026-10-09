@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import BaseCard from '@/components/base/BaseCard.vue'
 import MetricBadge from '@/components/base/MetricBadge.vue'
 import TagChip from '@/components/base/TagChip.vue'
+import DesktopWindow from '@/components/terminal/DesktopWindow.vue'
 import TerminalLine from '@/components/terminal/TerminalLine.vue'
 import TerminalWindow from '@/components/terminal/TerminalWindow.vue'
 import type { Project, ProjectKind } from '@/types/resume'
@@ -22,47 +23,49 @@ const privateCount = computed(() => props.project.evidence.filter((e) => e.priva
 </script>
 
 <template>
-  <BaseCard variant="window">
-    <TerminalWindow :title="project.name">
-      <TerminalLine>{{ project.command }}</TerminalLine>
-      <!-- saída do comando: informações à esquerda e links à direita a partir de 900px (research R7) -->
-      <div class="project-body">
-        <div class="project-info">
-          <h3 class="t-output project-name">
-            <span class="hl-purple">{{ project.name }}</span> — {{ project.subtitle }}
-            <span v-if="project.inProgress" class="tag-now">EM DESENVOLVIMENTO</span>
-          </h3>
-          <p class="t-output t-desc">{{ project.purpose }}</p>
-          <ul v-if="project.highlights?.length" class="metrics" aria-label="Resultados">
-            <MetricBadge v-for="metric in project.highlights" :key="metric.label" :metric="metric" />
-          </ul>
-          <dl class="project-meta">
-            <div><dt>papel</dt><dd>{{ project.role }}</dd></div>
-            <div><dt>tipo</dt><dd>{{ KIND_LABEL[project.kind] }}</dd></div>
-            <div v-if="project.relatedTo"><dt>contexto</dt><dd>{{ project.relatedTo }}</dd></div>
-          </dl>
-          <ul class="chips project-stack" aria-label="Stack">
-            <TagChip v-for="tech in project.stack" :key="tech" :tech="tech" />
-          </ul>
+  <DesktopWindow :title="project.name" kind="project">
+    <BaseCard variant="window">
+      <TerminalWindow :title="project.name">
+        <TerminalLine>{{ project.command }}</TerminalLine>
+        <!-- saída do comando: informações à esquerda e links à direita a partir de 900px (research R7) -->
+        <div class="project-body">
+          <div class="project-info">
+            <h3 class="t-output project-name">
+              <span class="hl-purple">{{ project.name }}</span> — {{ project.subtitle }}
+              <span v-if="project.inProgress" class="tag-now">EM DESENVOLVIMENTO</span>
+            </h3>
+            <p class="t-output t-desc">{{ project.purpose }}</p>
+            <ul v-if="project.highlights?.length" class="metrics" aria-label="Resultados">
+              <MetricBadge v-for="metric in project.highlights" :key="metric.label" :metric="metric" />
+            </ul>
+            <dl class="project-meta">
+              <div><dt>papel</dt><dd>{{ project.role }}</dd></div>
+              <div><dt>tipo</dt><dd>{{ KIND_LABEL[project.kind] }}</dd></div>
+              <div v-if="project.relatedTo"><dt>contexto</dt><dd>{{ project.relatedTo }}</dd></div>
+            </dl>
+            <ul class="chips project-stack" aria-label="Stack">
+              <TagChip v-for="tech in project.stack" :key="tech" :tech="tech" />
+            </ul>
+          </div>
+          <div class="project-links">
+            <ul v-if="project.evidence.length" class="t-badges">
+              <EvidenceLink v-for="evidence in project.evidence" :key="evidence.url" :evidence="evidence" />
+            </ul>
+            <p v-else class="t-output no-evidence"># {{ project.noEvidenceReason }}</p>
+            <p v-if="privateCount === 1" class="t-output no-evidence">
+              # repositório privado: pode abrir uma página de "não encontrado" para quem não tem acesso.
+            </p>
+            <p v-else-if="privateCount > 1" class="t-output no-evidence">
+              # repositórios privados: podem abrir uma página de "não encontrado" para quem não tem acesso.
+            </p>
+          </div>
         </div>
-        <div class="project-links">
-          <ul v-if="project.evidence.length" class="t-badges">
-            <EvidenceLink v-for="evidence in project.evidence" :key="evidence.url" :evidence="evidence" />
-          </ul>
-          <p v-else class="t-output no-evidence"># {{ project.noEvidenceReason }}</p>
-          <p v-if="privateCount === 1" class="t-output no-evidence">
-            # repositório privado: pode abrir uma página de "não encontrado" para quem não tem acesso.
-          </p>
-          <p v-else-if="privateCount > 1" class="t-output no-evidence">
-            # repositórios privados: podem abrir uma página de "não encontrado" para quem não tem acesso.
-          </p>
-        </div>
-      </div>
-      <p class="t-line project-footer">
-        <span class="hl-green">{{ project.tag }}</span> <span class="t-exit">exit 0</span>
-      </p>
-    </TerminalWindow>
-  </BaseCard>
+        <p class="t-line project-footer">
+          <span class="hl-green">{{ project.tag }}</span> <span class="t-exit">exit 0</span>
+        </p>
+      </TerminalWindow>
+    </BaseCard>
+  </DesktopWindow>
 </template>
 
 <style scoped>

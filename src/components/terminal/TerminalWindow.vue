@@ -1,25 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import { useTerminalTyping } from '@/composables/useTerminalTyping'
+import TerminalBar from './TerminalBar.vue'
+import { WINDOW_CONTROLS } from './window-controls'
 
-/** Janela de terminal. Com `animate` (padrão), digita os comandos ao entrar na tela (FR-025). */
+/**
+ * Janela de terminal. Com `animate` (padrão), digita os comandos ao entrar na tela (FR-025 da 002).
+ * Dentro de um `DesktopWindow` (feature 004), `−` e `✕` funcionam depois de montar.
+ */
 const props = withDefaults(defineProps<{ title: string; animate?: boolean }>(), { animate: true })
 
 const win = ref<HTMLElement | null>(null)
 const body = ref<HTMLElement | null>(null)
-if (props.animate) useTerminalTyping(win, body)
+const controls = inject(WINDOW_CONTROLS, null)
+const typing = props.animate ? useTerminalTyping(win, body) : { complete() {}, replay() {} }
+controls?.register(typing)
 </script>
 
 <template>
   <div ref="win" class="terminal-window">
-    <div class="terminal-bar">
-      <span class="terminal-title mono">{{ title }}</span>
-      <div class="t-controls" aria-hidden="true">
-        <span class="t-btn t-min">−</span>
-        <span class="t-btn t-max">□</span>
-        <span class="t-btn t-close">✕</span>
-      </div>
-    </div>
+    <TerminalBar
+      :title="title"
+      :controls="controls?.mounted.value ? 'functional' : 'decorative'"
+      @minimize="controls?.minimize()"
+      @close="controls?.close()"
+    />
     <div ref="body" class="terminal-body mono">
       <slot />
     </div>
@@ -34,60 +39,6 @@ if (props.animate) useTerminalTyping(win, body)
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.terminal-bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: calc(var(--spacing) * 1.8) calc(var(--spacing) * 2.4);
-  background: var(--surface-2);
-  border-bottom: 1px solid var(--border);
-}
-
-.terminal-title {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-
-.t-controls {
-  display: flex;
-  gap: calc(var(--spacing) * 1.5);
-}
-
-.t-btn {
-  width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1;
-  user-select: none;
-  transition: filter 0.15s;
-}
-
-.t-btn:hover { filter: brightness(1.35); }
-
-.t-min, .t-max {
-  background: color-mix(in srgb, var(--green) 15%, transparent);
-  border: 1px solid var(--green);
-  color: var(--green-bright);
-}
-
-/* o glifo □ assenta na baseline e fica visualmente baixo dentro do círculo */
-.t-max { padding-bottom: calc(var(--spacing) * 0.75); }
-
-.t-close {
-  background: var(--purple);
-  border: 1px solid var(--purple-light);
-  color: var(--on-purple);
 }
 
 .terminal-body {

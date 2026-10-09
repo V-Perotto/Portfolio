@@ -141,6 +141,7 @@ const data = {
     {
       id: 'conceitos_web',
       icon: 'globe',
+      loopDirection: 'to-right',
       items: [{ name: 'Programação Web' }, { name: 'APIs REST' }],
     } satisfies SkillGroup,
     {
@@ -155,6 +156,7 @@ const data = {
     {
       id: 'desenho_de_processos',
       icon: 'workflow',
+      loopDirection: 'to-right',
       items: [
         { name: 'Design Patterns' },
         { name: 'Singleton' },
@@ -208,7 +210,7 @@ const data = {
       subtitle: 'Open VSX Registry',
       command: 'ovsx get DistroLinux/* --describe',
       purpose: 'Dois temas visuais criados e publicados no Open VSX para VS Code e VSCodium.',
-      stack: ['JSON de tema', 'VS Code Extension API', 'Open VSX Registry'],
+      stack: ['JSON', 'VS Code Extension API', 'Open VSX Registry'],
       role: 'Autor e mantenedor',
       kind: 'open-source',
       tag: '[open-vsx · DistroLinux]',
@@ -243,7 +245,7 @@ const data = {
       purpose:
         'Sistema para otimização de processos de agendamento de passaportes, reduzindo o tempo de pesquisa manual e sugerindo melhorias na jornada do usuário.',
       stack: ['Angular', 'C#', '.NET'],
-      role: 'Automatizou o processo de agendamento do passaporte italiano',
+      role: 'Autor e desenvolvedor',
       kind: 'pessoal',
       tag: '[projeto pessoal]',
       evidence: [

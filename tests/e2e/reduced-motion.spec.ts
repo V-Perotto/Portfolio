@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { waitBootEnd } from './support/boot'
 import { expectStaticSkillLoops } from './support/skills'
 
 // FR-020, SC-007 (quickstart V5).
@@ -25,8 +26,9 @@ test.describe('movimento reduzido', () => {
   test('ativar "reduzir movimento" com a página aberta para tudo na hora (FR-020)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto('./')
-    await page.keyboard.press('Escape') // pula o boot
-    await expect(page.locator('#home canvas')).toHaveCount(1)
+    await waitBootEnd(page)
+    // o fundo CRT (feature 004) é coberto em hero-crt.spec.ts, no projeto com WebGL
+    await expect(page.locator('#skills .skill-loop[data-loop-ready]')).toHaveCount(5)
 
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await expect(page.locator('html')).not.toHaveClass(/\bmotion\b/)
@@ -51,8 +53,7 @@ test.describe('movimento reduzido', () => {
   test('ativar "reduzir movimento" no meio da digitação completa a janela na hora (FR-029)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto('./')
-    await page.keyboard.press('Escape')
-    await expect(page.locator('.boot-screen')).toHaveCount(0, { timeout: 1500 })
+    await waitBootEnd(page)
     await page.locator('#sobre').scrollIntoViewIfNeeded()
     await page.waitForFunction(() => document.querySelector('#sobre [data-t-state="typing"]'), null, { polling: 20 })
 
@@ -75,10 +76,30 @@ test.describe('movimento reduzido', () => {
   test('na impressão os loops também ficam parados e completos (V10, FR-025)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.goto('./')
-    await page.keyboard.press('Escape')
+    await waitBootEnd(page)
     await page.locator('#skills').scrollIntoViewIfNeeded()
     await expect(page.locator('#skills .skill-loop[data-loop-ready]')).toHaveCount(5)
     await page.emulateMedia({ media: 'print' })
     await expectStaticSkillLoops(page)
+  })
+
+  test('feature 004: header sem transição, terminal e janelas sem animação (V17, FR-008, FR-016, FR-019)', async ({ page }) => {
+    await page.goto('./')
+    const duration = await page.locator('.navbar').evaluate((el) => getComputedStyle(el).transitionDuration)
+    // o CSS global de movimento reduzido zera as transições (1e-05s)
+    expect(duration.split(',').every((d) => parseFloat(d) <= 0.01)).toBe(true)
+
+    await page.locator('.app-dock .dock-btn').click()
+    await expect(page.locator('#dock-terminal')).toBeVisible()
+    expect(await page.evaluate(() => document.getAnimations().filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition)).length)).toBe(0)
+    await page.keyboard.press('Escape')
+
+    await page.locator('#sobre').scrollIntoViewIfNeeded()
+    const about = page.locator('#sobre .desktop-window')
+    await about.locator('button.t-close').click()
+    expect(await page.evaluate(() => document.getAnimations().filter((a) => !(a instanceof CSSAnimation) && !(a instanceof CSSTransition)).length)).toBe(0)
+    await about.locator('button.desktop-icon').click()
+    await expect(about.locator('[data-t-anim]')).toHaveCount(0)
+    expect(await about.locator('[data-t-state]:not([data-t-state="done"])').count()).toBe(0)
   })
 })

@@ -3,7 +3,8 @@
 //
 // Cada chip e cada item dos loops de skills usa <svg><use href="sprite.svg#id"></svg>. Os ícones vêm,
 // nesta ordem de preferência, do devicon (v2.17.0, MIT), do vectorlogo.zone e do Lucide (ISC, pelo
-// assunto da tecnologia). Este script baixa os escolhidos, otimiza com o svgo, tira as cores das
+// assunto da tecnologia). O Valkey vem do homarr-labs/dashboard-icons (Apache-2.0), por pedido do
+// autor (feature 004, research R11). Este script baixa os escolhidos, otimiza com o svgo, tira as cores das
 // marcas (tudo pinta com currentColor, a cor do texto do chip) e grava:
 //
 //   src/assets/tech-icons/sprite.svg   um <symbol id="devicon-python"> etc. por ícone
@@ -18,8 +19,9 @@
 //      --preview grava também uma grade com todos os ícones (16px e 32px) para conferir que nenhum
 //      virou borrão ao ganhar uma cor só.
 //
-// Precisa de rede (jsDelivr e vectorlogo.zone) e do npx (o svgo roda com versão fixa, sem entrar no
-// package.json, como o build-fonts.sh faz com o pyftsubset).
+// Precisa de rede (jsDelivr, com o devicon e o dashboard-icons em versões fixas, e vectorlogo.zone)
+// e do npx (o svgo roda com versão fixa, sem entrar no package.json, como o build-fonts.sh faz com o
+// pyftsubset).
 
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -76,9 +78,18 @@ const VECTORLOGO = {
   nginx: 'https://www.vectorlogo.zone/logos/nginx/nginx-icon.svg',
 }
 
+/**
+ * homarr-labs/dashboard-icons (Apache-2.0), num commit fixo: nome → caminho no repositório. O Valkey
+ * vem daqui (antes era o `database` genérico do Lucide).
+ */
+const DASHBOARD_ICONS_COMMIT = '57e939e504eda0ea764098015da93aa666ad6f31'
+const DASHBOARD = {
+  valkey: 'svg/valkey.svg',
+}
+const dashboardUrl = (path) => `https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@${DASHBOARD_ICONS_COMMIT}/${path}`
+
 /** Lucide: id do símbolo → componente do @lucide/vue instalado (ícone genérico pelo assunto). */
 const LUCIDE = {
-  database: 'Database',
   'scan-text': 'ScanText',
   'brain-circuit': 'BrainCircuit',
   bot: 'Bot',
@@ -115,6 +126,21 @@ function splitSvg(svg) {
   const width = attrs.match(/\bwidth="([\d.]+)"/)?.[1]
   const height = attrs.match(/\bheight="([\d.]+)"/)?.[1]
   return { viewBox: viewBox ?? (width && height ? `0 0 ${width} ${height}` : null), inner: m[2] }
+}
+
+/**
+ * Passa as declarações do atributo `style` para atributos de apresentação. O `decolor()` apaga o
+ * `style` inteiro, e o Valkey traz nele o `fill-rule: evenodd` que fura o miolo do logotipo.
+ */
+function styleToAttrs(svg) {
+  return svg.replace(/\sstyle="([^"]*)"/g, (_, css) =>
+    css
+      .split(';')
+      .map((rule) => rule.split(':').map((part) => part.trim()))
+      .filter(([prop, value]) => prop && value)
+      .map(([prop, value]) => ` ${prop}="${value}"`)
+      .join(''),
+  )
 }
 
 /** Tira toda cor fixa: o símbolo inteiro pinta com o currentColor do <g> que o embrulha. */
@@ -193,6 +219,7 @@ const dirs = {
   raw: join(work, 'raw'),
   rawVectorlogo: join(work, 'raw-vectorlogo'),
   rawLucide: join(work, 'raw-lucide'),
+  rawDashboard: join(work, 'raw-dashboard'),
   min: join(work, 'min'),
 }
 Object.values(dirs).forEach((d) => mkdirSync(d))
@@ -205,6 +232,9 @@ try {
   }
   for (const [name, url] of Object.entries(VECTORLOGO)) {
     writeFileSync(join(dirs.rawVectorlogo, `vectorlogo-${name}.svg`), await fetchText(url))
+  }
+  for (const [name, path] of Object.entries(DASHBOARD)) {
+    writeFileSync(join(dirs.rawDashboard, `dashboard-${name}.svg`), styleToAttrs(await fetchText(dashboardUrl(path))))
   }
   for (const [id, component] of Object.entries(LUCIDE)) {
     if (!(component in lucide)) throw new Error(`@lucide/vue não tem ${component}`)
@@ -221,6 +251,7 @@ try {
   svgo(dirs.raw, 0)
   svgo(dirs.rawVectorlogo, 1)
   svgo(dirs.rawLucide, 1)
+  svgo(dirs.rawDashboard, 1)
 
   const symbols = []
   for (const file of readdirSync(dirs.min).sort()) {
@@ -245,6 +276,7 @@ try {
   writeFileSync(join(OUT, 'sprite.svg'), sprite)
 
   const deviconLicense = await fetchText(`https://cdn.jsdelivr.net/gh/devicons/devicon@v${DEVICON_VERSION}/LICENSE`)
+  const dashboardLicense = await fetchText(dashboardUrl('LICENSE'))
   const lucideLicense = readFileSync(join(ROOT, 'node_modules/@lucide/vue/LICENSE'), 'utf8')
   const lucideVersion = JSON.parse(readFileSync(join(ROOT, 'node_modules/@lucide/vue/package.json'), 'utf8')).version
   const today = new Date().toISOString().slice(0, 10)
@@ -275,6 +307,18 @@ o devicon só tem o logotipo escrito por extenso, ilegível no tamanho do chip.
 Termos do vectorlogo.zone: "The logos themselves remain property of their original owners. [...] Any
 modifications to the logos are in the public domain." Os logotipos são marcas dos donos e aparecem
 aqui só para identificar a tecnologia.
+
+## homarr-labs/dashboard-icons — ${Object.keys(DASHBOARD).length} ícone(s)
+
+Fonte: https://github.com/homarr-labs/dashboard-icons (jsDelivr, commit ${DASHBOARD_ICONS_COMMIT}).
+Símbolos \`dashboard-*\`: ${Object.entries(DASHBOARD).map(([n, p]) => `\`${n}\` (${p})`).join(', ')}. O Valkey vem
+daqui por pedido do autor (feature 004); o \`fill-rule="evenodd"\` do original foi mantido, para o miolo
+continuar vazado numa cor só. Os logotipos são marcas dos donos e aparecem aqui só para identificar a
+tecnologia.
+
+\`\`\`text
+${dashboardLicense.trim()}
+\`\`\`
 
 ## Lucide (@lucide/vue ${lucideVersion}) — ${Object.keys(LUCIDE).length} ícones
 

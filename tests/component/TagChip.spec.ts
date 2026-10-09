@@ -19,7 +19,7 @@ describe('TagChip', () => {
     const href = (tech: TechName) => chip(tech).get('use').attributes('href')
     expect(href('SAP SD')).toMatch(/#vectorlogo-sap$/)
     expect(href('Nginx')).toMatch(/#vectorlogo-nginx$/)
-    expect(href('Valkey')).toMatch(/#lucide-database$/)
+    expect(href('Valkey')).toMatch(/#dashboard-valkey$/)
   })
 
   it('o texto do chip é só o nome da tecnologia', () => {

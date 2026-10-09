@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppDock from '@/components/dock/AppDock.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import AppNav from '@/components/layout/AppNav.vue'
 import AboutSection from '@/components/sections/AboutSection.vue'
@@ -36,4 +37,5 @@ const shows = (id: string) => sections.some((s) => s.id === id)
     <ContactSection v-if="shows('contato')" :contacts="resume.contacts" />
   </main>
   <AppFooter />
+  <AppDock :sections="sections" />
 </template>

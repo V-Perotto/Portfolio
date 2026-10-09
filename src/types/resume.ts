@@ -1,5 +1,11 @@
 /**
- * Contrato da fonte de dados do portfólio (FR-001, FR-002 da 001; revisado pela 002 e pela 003).
+ * Contrato da fonte de dados do portfólio (FR-001, FR-002 da 001; revisado pela 002, pela 003 e pela
+ * 004).
+ *
+ * Mudanças da 004 (specs/004-dock-windows-crt/data-model.md):
+ * - TechName: 'JSON de tema' → 'JSON' (FR-041);
+ * - TechIconId: prefixo novo `dashboard-` (homarr-labs/dashboard-icons, logotipo do Valkey, FR-043);
+ * - SkillGroup.loopDirection (FR-046).
  *
  * `src/data/resume.ts` exporta
  * `export const resume = { ... } satisfies Resume`, então qualquer campo obrigatório ausente
@@ -73,15 +79,20 @@ export type TechName =
   | '.NET' | 'Agentes de IA' | 'Agile/Scrum' | 'Angular' | 'Análise Funcional' | 'APIs REST'
   | 'Arquitetura' | 'Axios' | 'C#' | 'Clean Code' | 'DDD' | 'Design Patterns' | 'Docker'
   | 'Elasticsearch' | 'Factory' | 'Flask' | 'Git' | 'Java' | 'Java (Quarkus)' | 'Jenkins'
-  | 'JSON de tema' | 'JSON Server' | 'Kibana' | 'LLMs' | 'MongoDB' | 'MVC' | 'MySQL' | 'NestJS'
+  | 'JSON' | 'JSON Server' | 'Kibana' | 'LLMs' | 'MongoDB' | 'MVC' | 'MySQL' | 'NestJS'
   | 'Nginx' | 'Node.js' | 'OCR' | 'Open VSX Registry' | 'PostgreSQL' | 'Prisma' | 'Processos'
   | 'Programação Web' | 'Python' | 'Python (Flask)' | 'Quarkus' | 'RabbitMQ' | 'React' | 'Redis'
   | 'Robocorp (RPA Framework)' | 'Robot Framework' | 'SAP SD' | 'Singleton' | 'SQL Server' | 'TDD'
   | 'TypeScript' | 'Valkey' | 'Vite' | 'VS Code Extension API' | 'Vue 3' | 'Vue.js'
 
 /** Id de um <symbol> de src/assets/tech-icons/sprite.svg, prefixado pela fonte (devicon →
- *  vectorlogo.zone → Lucide, research R1 da 003). Gerado por tools/build-tech-icons.mjs. */
-export type TechIconId = `devicon-${string}` | `vectorlogo-${string}` | `lucide-${string}`
+ *  vectorlogo.zone → Lucide, research R1 da 003; dashboard-icons para o Valkey, research R11 da
+ *  004). Gerado por tools/build-tech-icons.mjs. */
+export type TechIconId =
+  | `devicon-${string}`
+  | `vectorlogo-${string}`
+  | `dashboard-${string}`
+  | `lucide-${string}`
 
 export interface SkillItem {
   name: TechName
@@ -91,10 +102,15 @@ export interface SkillItem {
  *  componente fica em src/lib/icons.ts e precisa cobrir todos os nomes desta união. */
 export type SkillIconName = 'code-xml' | 'globe' | 'database' | 'workflow' | 'server-cog'
 
+/** Sentido em que os itens do loop correm. Padrão: da direita para a esquerda (FR-046 da 004). */
+export type LoopDirection = 'to-left' | 'to-right'
+
 export interface SkillGroup {
   id: string
   icon: SkillIconName
   items: NonEmpty<SkillItem>
+  /** Ausente = 'to-left'. `conceitos_web` e `desenho_de_processos` usam 'to-right'. */
+  loopDirection?: LoopDirection
 }
 
 /** Link simples: fontes da formação e do projeto comunitário. */

@@ -32,7 +32,7 @@ describe('SkillLoop', () => {
       expect(li.querySelector('.loop-sep')?.getAttribute('aria-hidden')).toBe('true')
       expect(li.querySelector('.loop-sep')?.textContent).toBe('✦')
     }
-    expect(lis[1]!.querySelector('use')?.getAttribute('href')).toMatch(/#lucide-database$/)
+    expect(lis[1]!.querySelector('use')?.getAttribute('href')).toMatch(/#dashboard-valkey$/)
   })
 
   it('sem movimento, continua uma lista só depois de montar', async () => {
@@ -65,5 +65,10 @@ describe('SkillLoop', () => {
     expect(style).toContain('--loop-shift: 300px')
     expect(style).toContain('--loop-duration: 7.5s')
     wrapper.unmount()
+  })
+
+  it('a direção vai para o atributo data-direction (padrão: to-left; FR-046 da 004)', () => {
+    expect(mount(SkillLoop, { props: { items } }).get('.skill-loop').attributes('data-direction')).toBe('to-left')
+    expect(mount(SkillLoop, { props: { items, direction: 'to-right' } }).get('.skill-loop').attributes('data-direction')).toBe('to-right')
   })
 })

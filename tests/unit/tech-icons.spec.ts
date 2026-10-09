@@ -26,9 +26,14 @@ describe('ícones de tecnologia', () => {
   })
 
   it('a fonte do ícone segue a ordem devicon → vectorlogo.zone → Lucide, pelo prefixo do id', () => {
-    for (const id of used) expect(id).toMatch(/^(devicon|vectorlogo|lucide)-[a-z0-9-]+$/)
+    for (const id of used) expect(id).toMatch(/^(devicon|vectorlogo|dashboard|lucide)-[a-z0-9-]+$/)
     expect(TECH_ICONS['SAP SD']).toBe('vectorlogo-sap')
-    expect(TECH_ICONS.Valkey).toBe('lucide-database')
+  })
+
+  it('o Valkey usa o logotipo do homarr-labs/dashboard-icons, vazado no miolo (FR-043 da 004)', () => {
+    expect(TECH_ICONS.Valkey).toBe('dashboard-valkey')
+    expect(symbols.get('dashboard-valkey')).toContain('fill-rule="evenodd"')
+    expect(symbols.has('lucide-database')).toBe(false)
   })
 
   it('variações de nome da mesma tecnologia usam o mesmo ícone', () => {

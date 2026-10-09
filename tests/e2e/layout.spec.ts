@@ -13,6 +13,11 @@ test.describe('layout', () => {
       page.on('pageerror', (err) => messages.push(`pageerror: ${err.message}`))
 
       await page.setViewportSize({ width, height: 900 })
+      // os badges do shields.io (terceiro) não importam ao layout e podem segurar o networkidle: um
+      // SVG do mesmo tamanho responde no lugar (abortar geraria erro no console)
+      await page.route('**/img.shields.io/**', (route) =>
+        route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="174" height="28"/>' }),
+      )
       await page.goto('./')
       await page.waitForLoadState('networkidle')
 

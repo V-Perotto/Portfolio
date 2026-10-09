@@ -1,18 +1,33 @@
 <script setup lang="ts">
+import { defineAsyncComponent, onMounted, ref } from 'vue'
 import RevealText from '@/components/base/RevealText.vue'
 import GlitchTitle from '@/components/terminal/GlitchTitle.vue'
-import MatrixRain from '@/components/terminal/MatrixRain.vue'
 import PromptLogo from '@/components/terminal/PromptLogo.vue'
 import TypedPrompt from '@/components/terminal/TypedPrompt.vue'
+import { useBootDone } from '@/composables/useBootDone'
+import { useMotion } from '@/composables/useMotion'
+import { hasWebGL } from '@/lib/webgl'
 import type { Profile } from '@/types/resume'
 
 defineProps<{ profile: Profile }>()
+
+/**
+ * Fundo CRT com a chuva Matrix (feature 004, FR-034 a FR-039): chunk à parte, carregado só no cliente,
+ * com movimento e WebGL, depois do boot. Sem isso (sem JS, "reduzir movimento", sem WebGL), o fundo
+ * são os degradês estáticos do .hero; a grade de quadrados saiu em todos os modos.
+ */
+const HeroCrt = defineAsyncComponent(() => import('@/components/terminal/HeroCrt.vue'))
+const motion = useMotion()
+const bootDone = useBootDone()
+const webgl = ref(false)
+onMounted(() => {
+  webgl.value = hasWebGL()
+})
 </script>
 
 <template>
   <header id="home" class="hero">
-    <MatrixRain />
-    <div class="hero-grid" aria-hidden="true" />
+    <HeroCrt v-if="motion && bootDone && webgl" />
     <div class="hero-content">
       <p class="hero-boot mono">[ OK ] Inicializando portfolio.service ...</p>
       <GlitchTitle :text="profile.name" />
@@ -46,28 +61,30 @@ defineProps<{ profile: Profile }>()
     var(--bg);
 }
 
-.hero-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--purple-light) 7%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--purple-light) 7%, transparent) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
-}
-
 .hero-content {
   position: relative;
   z-index: 2;
   max-width: var(--container-hero);
 }
 
+/* penumbra sob o texto: o contraste não depende do quadro do fundo CRT (FR-038, research R13). Só com
+   movimento, quando o CRT pode existir; `closest-side` chega a transparente antes das bordas da caixa,
+   sem deixar linha visível */
+html.motion .hero-content::before {
+  content: "";
+  position: absolute;
+  inset: -7rem -8rem;
+  z-index: -1;
+  background: radial-gradient(closest-side, var(--hero-scrim) 70%, transparent);
+  pointer-events: none;
+}
+
 .hero-boot {
   color: var(--green-light);
   font-size: 0.8rem;
   margin-bottom: calc(var(--spacing) * 4.8);
-  opacity: 0.8;
+  /* sem o opacity: 0.8 anterior, que deixava a linha em ~4,5:1 no fundo liso e abaixo disso sobre
+     a chuva do fundo CRT (FR-038 da 004); o verde cheio dá 6,3:1 */
 }
 
 
@@ -144,6 +161,9 @@ defineProps<{ profile: Profile }>()
 }
 
 .hero-scroll:hover { color: var(--green-bright); }
+
+/* com JS, a dock ocupa o centro de baixo da tela (feature 004): o "▼ scroll" sobe para cima dela */
+html.js .hero-scroll { bottom: calc(var(--dock-space) + 0.6rem); }
 
 @keyframes float {
   0%, 100% { transform: translateX(-50%) translateY(0); }
