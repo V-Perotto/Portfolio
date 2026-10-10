@@ -39,6 +39,12 @@ test.describe('sem JS', () => {
     ]
     // o texto das janelas de editor (006) aparece duas vezes no HTML: no YAML, só com JS, e nos cartões
     for (const text of texts) await expect(page.getByText(text, { exact: false }).filter({ visible: true }).first()).toBeVisible()
+    // feature 008 (FR-012, SC-004): a Educação mostra os 4 cartões, sem árvore nem rodapé do editor
+    const education = page.locator('#educacao')
+    await expect(education.locator('.edu-list > li h3')).toHaveCount(4)
+    for (const title of await education.locator('.edu-list > li h3').all()) await expect(title).toBeVisible()
+    await expect(education.locator('.editor-tree')).toBeHidden()
+    await expect(education.locator('.editor-footer')).toBeHidden()
   })
 
   test('nenhum texto escondido por estado inicial de animação', async ({ page }) => {
@@ -69,7 +75,8 @@ test.describe('sem JS', () => {
   test('feature 006: □ desenhado como desativado, loader no estado final e favicon (V9, V13, V15, FR-025, FR-042)', async ({ page }) => {
     await page.goto('./')
     const max = page.locator('.t-max')
-    expect(await max.count()).toBe(11)
+    // 12 janelas: a de Educação entrou na 008
+    expect(await max.count()).toBe(12)
     expect(await max.evaluateAll((els) => els.every((el) => el.tagName === 'SPAN' && el.classList.contains('t-btn--disabled')))).toBe(true)
     await expect(page.locator('#home .hero-boot')).toHaveAttribute('data-loader', 'done')
     await expect(page.locator('#home .ll-text[data-active]')).toHaveText('portfolio.service carregado com sucesso!')
@@ -105,8 +112,8 @@ test.describe('sem JS', () => {
     // navegação com os 6 links, sem o prompt
     await expect(page.locator('.nav-links a')).toHaveCount(6)
     await expect(page.locator('.navbar')).not.toContainText('viper@portfolio')
-    // 11 janelas completas (as 3 de editor da 006), com os controles só desenho
-    await expect(page.locator('.desktop-window')).toHaveCount(11)
+    // 12 janelas completas (as 4 de editor: as 3 da 006 e a de Educação da 008), com os controles só desenho
+    await expect(page.locator('.desktop-window')).toHaveCount(12)
     await expect(page.locator('.terminal-bar button')).toHaveCount(0)
     expect(await page.locator('.t-controls').evaluateAll((els) => els.every((el) => el.getAttribute('aria-hidden') === 'true'))).toBe(true)
     await expect(page.locator('footer.footer p')).toHaveCount(1)
@@ -148,6 +155,11 @@ test.describe('impressão com a porta na tela', () => {
     expect(cover).toBe('none')
     await expect(page.locator('h1')).toBeVisible()
     await expect(page.locator('#contato .contact-list')).toBeVisible()
+    // feature 008 (FR-012, SC-004): os 4 cartões de formação saem, sem a árvore da `~/formacao`
+    const education = page.locator('#educacao')
+    await expect(education.locator('.edu-list > li h3')).toHaveCount(4)
+    for (const title of await education.locator('.edu-list > li h3').all()) await expect(title).toBeVisible()
+    await expect(education.locator('.editor-tree')).toBeHidden()
   })
 })
 

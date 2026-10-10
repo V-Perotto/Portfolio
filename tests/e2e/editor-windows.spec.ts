@@ -2,13 +2,15 @@ import { expect, test, type Locator, type Page } from './support/test'
 import { enterPortfolio } from './support/boot'
 
 // Feature 006, US1: Experiência, Challenges e Comunitário em janelas de editor (quickstart V1–V9;
-// FR-001 a FR-019; contracts/editor-window.md).
+// FR-001 a FR-019; contracts/editor-window.md). Feature 008: a Educação também (`~/formacao`, quickstart
+// V1–V7; contracts/education-window.md), e os nomes da árvore que não cabem terminam em reticências (FR-020).
 test.use({ reducedMotion: 'no-preference' })
 
 const EDITORS = [
   { label: 'carreira', path: '~/carreira', section: '#experiencia', count: 5 },
   { label: 'challenges', path: '~/projetos/challenges', section: '#projetos', count: 7 },
   { label: 'comunitario', path: '~/projetos/comunitario', section: '#projetos', count: 1 },
+  { label: 'formacao', path: '~/formacao', section: '#educacao', count: 4 },
 ] as const
 
 const editor = (page: Page, label: string) => page.locator(`.editor-window[data-editor="${label}"]`)
@@ -48,8 +50,8 @@ test('estrutura: comando digitado, aba, árvore na ordem, arquivo 1 e rodapé; a
     await expect(win.locator('.t-line').first()).toContainText(`code ${path}`)
     const names = await win.locator('.bm-child').allTextContents()
     expect(names).toHaveLength(count)
-    // datas no nome, da mais recente para a mais antiga
-    const dates = names.map((n) => n.trim().slice(0, 7))
+    // datas no nome, da mais recente para a mais antiga (AAAA-MM, ou AAAA na formação, antes do `_`)
+    const dates = names.map((n) => n.trim().split('_')[0]!)
     expect([...dates].sort().reverse()).toEqual(dates)
     await expect(win.locator('.editor-tab')).toHaveText(names[0]!.trim())
     await expect(win.locator('.editor-file[data-active]')).toHaveCount(1)
@@ -131,6 +133,33 @@ test('celular: árvore acima do arquivo; nenhuma largura com rolagem horizontal 
       const tree = await win.locator('.editor-tree').boundingBox()
       const pane = await win.locator('.editor-pane').boundingBox()
       expect(tree!.y + tree!.height).toBeLessThanOrEqual(pane!.y + 0.5)
+      // nenhum nome cortado no meio da letra: o que não cabe termina em reticências, dentro da árvore
+      // (feature 008, FR-020, SC-001)
+      const labels = await win.locator('.editor-tree').evaluate((el) => {
+        const right = el.getBoundingClientRect().right
+        return [...el.querySelectorAll<HTMLElement>('.bm-child .bm-label')].map((label) => ({
+          name: label.textContent ?? '',
+          ellipsis: getComputedStyle(label).textOverflow === 'ellipsis',
+          inside: label.getBoundingClientRect().right <= right + 0.5,
+          truncated: label.scrollWidth > label.clientWidth,
+        }))
+      })
+      for (const l of labels) {
+        expect(l.ellipsis, `${width}px ${l.name}`).toBe(true)
+        expect(l.inside, `${width}px ${l.name}`).toBe(true)
+      }
+      if (label === 'formacao') {
+        // o rótulo tem 130 px em 320 px (~18 caracteres) e 200 px em 390 px (~28; research R13): em 320,
+        // os 4 nomes terminam em reticências; em 390, só o de Sistemas de Informação (31 caracteres)
+        const byName = Object.fromEntries(labels.map((l) => [l.name.trim(), l.truncated]))
+        expect(byName['2020_sistemas-de-informacao.yml']).toBe(true)
+        expect(byName['2018_tecnico-ads.yml']).toBe(width === 320)
+        // aberto, o rodapé mostra o caminho inteiro
+        await win.locator('.bm-child', { hasText: 'sistemas-de-informacao' }).click()
+        await expect(win.locator('.editor-path')).toHaveText('~/formacao/2020_sistemas-de-informacao.yml')
+        const path = await win.locator('.editor-path').evaluate((el) => el.scrollWidth <= el.clientWidth + 0.5)
+        expect(path).toBe(true)
+      }
     }
   }
   for (const width of [320, 390, 768, 1366, 1920]) {
@@ -256,7 +285,7 @@ test('Ctrl+Alt+T não abre o terminal da dock com a janela maximizada (V8)', asy
   await expect(page.locator('#dock-terminal')).toHaveCount(0)
 })
 
-test('sem JavaScript: as três seções mostram os cartões, sem árvore nem YAML (V9, FR-012)', async ({ browser }) => {
+test('sem JavaScript: as quatro janelas mostram os cartões, sem árvore nem YAML (V9, FR-012; 008 FR-012)', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false })
   const page = await context.newPage()
   await page.goto('./')
@@ -272,7 +301,7 @@ test('sem JavaScript: as três seções mostram os cartões, sem árvore nem YAM
   await context.close()
 })
 
-test('impressão: as três seções saem com os cartões (V9, FR-012)', async ({ page }) => {
+test('impressão: as quatro janelas saem com os cartões (V9, FR-012; 008 FR-012)', async ({ page }) => {
   await open(page)
   await page.emulateMedia({ media: 'print' })
   for (const { label, count } of EDITORS) {
@@ -282,4 +311,102 @@ test('impressão: as três seções saem com os cartões (V9, FR-012)', async ({
     await expect(win.locator('.editor-tree')).toBeHidden()
     await expect(win.locator('.editor-files')).toBeHidden()
   }
+})
+
+// Feature 008 (quickstart V2–V5; FR-005, FR-007, FR-009 a FR-011; SC-002, SC-003)
+test('Educação: EM CURSO só na Pós; fontes do Empregotech como links; trocar de arquivo sem mudar a altura (008 V2, V3)', async ({ page }) => {
+  await open(page)
+  const win = await ready(page, 'formacao')
+  const fileOf = (id: string) => win.locator(`.editor-file[data-file-id="${id}"]`)
+  const text = (id: string) => fileOf(id).evaluate((el) => el.textContent ?? '')
+  expect(await text('ciberseguranca')).toContain('em_curso: true  # EM CURSO')
+  for (const id of ['sistemas-de-informacao', 'empregotech', 'tecnico-ads']) expect(await text(id)).not.toContain('em_curso')
+
+  const frame = win.locator('.editor-frame')
+  const h0 = await height(frame)
+  const empregotech = win.locator('.bm-child', { hasText: '2020_empregotech.yml' })
+  await empregotech.focus()
+  await page.keyboard.press('Enter')
+  await expect(fileOf('empregotech')).toHaveAttribute('data-active', '')
+  await expect(win.locator('.editor-path')).toHaveText('~/formacao/2020_empregotech.yml')
+  await expect(win.locator('.editor-pos')).toHaveText('3 / 4')
+  // 0 px, com a tolerância de subpixel dos testes da 006
+  expect(Math.abs((await height(frame)) - h0)).toBeLessThanOrEqual(0.5)
+  expect(await text('empregotech')).toContain('fontes:')
+  const links = fileOf('empregotech').locator('a')
+  // o texto do link inclui o "(abre em nova aba)" escondido do ExternalLink
+  await expect(links).toHaveText([/^overbr\.com\.br/, /^curitiba\.pr\.gov\.br/])
+  for (const a of await links.all()) {
+    await expect(a).toHaveAttribute('target', '_blank')
+    await expect(a).toHaveAttribute('rel', 'noopener noreferrer')
+  }
+})
+
+for (const viewport of [
+  { width: 1366, height: 800 },
+  { width: 390, height: 844 },
+]) {
+  test(`Educação maximizada: ≤ 400 ms, cobre a tela, 4 cartões, rola até o escolhido; restaurar abre o arquivo dele (008 V4, SC-003), ${viewport.width}px`, async ({ page }) => {
+    await open(page, viewport)
+    await ready(page, 'formacao')
+    const frame = frameOf(page, '~/formacao')
+    const max = frame.locator('button.t-max')
+    const longest = () => frame.evaluate((el) => Math.max(0, ...el.getAnimations().map((a) => Number((a.effect as KeyframeEffect).getComputedTiming().duration))))
+
+    await max.click()
+    await expect(frame).toHaveAttribute('role', 'dialog')
+    await expect(frame).toHaveAttribute('aria-label', '~/formacao (maximizada)')
+    expect(await longest()).toBeLessThanOrEqual(400)
+    await page.waitForTimeout(450)
+    const box = (await frame.boundingBox())!
+    const backdrop = (await page.locator('.maximize-backdrop').boundingBox())!
+    const min = viewport.width < 760 ? 0.95 : 0.9
+    expect(box.width / backdrop.width).toBeGreaterThanOrEqual(min)
+    expect(box.height / backdrop.height).toBeGreaterThanOrEqual(min)
+    await expect(frame.locator('.editor-cards .edu-list > li h3')).toHaveText([
+      'Pós-Graduação em Cibersegurança',
+      'Bacharelado em Sistemas de Informação',
+      '1º Empregotech',
+      'Técnico em Análise e Desenvolvimento de Sistemas',
+    ])
+
+    await frame.locator('.bm-child', { hasText: '2018_tecnico-ads.yml' }).click()
+    await expect
+      .poll(() =>
+        frame.evaluate((el) => {
+          const list = el.querySelector('.editor-cards')!.getBoundingClientRect()
+          const title = el.querySelector('[data-card-id="tecnico-ads"] h3')!.getBoundingClientRect()
+          return title.top >= list.top && title.bottom <= list.bottom
+        }),
+      )
+      .toBe(true)
+
+    await page.keyboard.press('Escape')
+    await expect(frame).not.toHaveAttribute('role', 'dialog')
+    expect(await longest()).toBeLessThanOrEqual(400)
+    await expect(max).toBeFocused()
+    await expect(frame.locator('.editor-file[data-active]')).toHaveAttribute('data-file-id', 'tecnico-ads')
+    await expect(frame.locator('.editor-pos')).toHaveText('4 / 4')
+  })
+}
+
+test('Educação: minimizar e fechar até o ícone ~/formacao; fechada, digita o comando de novo (008 V5, FR-010, FR-011)', async ({ page }) => {
+  await open(page)
+  const win = await ready(page, 'formacao')
+  await win.locator('button.t-min').click()
+  await expect(win).toHaveAttribute('data-window-state', 'minimized')
+  const icon = win.locator('button.desktop-icon')
+  await expect(icon).toHaveAttribute('aria-label', 'Abrir ~/formacao')
+  await icon.click()
+  await expect(win).toHaveAttribute('data-window-state', 'open')
+  // minimizada reabre completa
+  await expect(win.locator('.editor')).not.toHaveAttribute('data-t-state', /pending|typing/)
+
+  await win.locator('button.t-close').click()
+  await expect(win).toHaveAttribute('data-window-state', 'closed')
+  await win.locator('button.desktop-icon').click()
+  await expect(win).toHaveAttribute('data-window-state', 'open')
+  await expect(win.locator('.t-line').first()).toContainText('code ~/formacao')
+  await expect(win.locator('.editor')).toHaveAttribute('data-t-state', /pending|typing/)
+  await expect(win.locator('.editor')).not.toHaveAttribute('data-t-state', /pending|typing/, { timeout: 5000 })
 })

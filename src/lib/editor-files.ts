@@ -1,18 +1,20 @@
-import { formatPeriod, formatYearMonth } from '@/lib/period'
-import { byCreatedDesc, byStartDesc } from '@/lib/sort'
-import type { Challenge, CommunityProject, Experience } from '@/types/resume'
+import { formatPeriod, formatYearMonth, formatYears } from '@/lib/period'
+import { byCreatedDesc, byStartDesc, byStartYearDesc } from '@/lib/sort'
+import type { Challenge, CommunityProject, Education, Experience } from '@/types/resume'
 
 /**
  * Arquivos das janelas de editor (feature 006, FR-005 a FR-009, research R3, data-model §1): cada item
- * de Experiência, Challenges e Comunitário vira um "arquivo" YAML (clarify), gerado dos mesmos dados dos
- * cartões, sem texto escrito à mão. Funções puras: o componente só desenha os trechos.
+ * de Experiência, Challenges, Comunitário e Educação (feature 008) vira um "arquivo" YAML (clarify),
+ * gerado dos mesmos dados dos cartões, sem texto escrito à mão. Funções puras: o componente só desenha
+ * os trechos.
  *
  * - Uma chave por fato do cartão, sem acento (`cargo`, `periodo`, `instituicao`…); nada além deles
  *   (Princípio I). A 1ª linha é um comentário com a posição na sequência e o nome do item.
  * - Datas e períodos no formato único da página (`formatPeriod`, `formatYearMonth`).
  * - Textos longos (`resumo`) ficam num bloco `>` de uma linha lógica; quem quebra é o CSS.
  * - `repositorio` e `fonte` são trechos `link`: o componente os desenha como links externos.
- * - Nome do arquivo: `AAAA-MM_<slug>.yml`, a data do item e um slug curto.
+ * - Nome do arquivo: `AAAA-MM_<slug>.yml`, a data do item e um slug curto; na formação, que só tem anos,
+ *   `AAAA_<id>.yml` (feature 008, clarify).
  */
 export type SyntaxKind = 'key' | 'str' | 'date' | 'punct' | 'comment' | 'link'
 
@@ -43,9 +45,9 @@ export interface EditorFile {
 }
 
 export interface EditorFolder {
-  /** `carreira` | `challenges` | `comunitario` */
+  /** `carreira` | `challenges` | `comunitario` | `formacao` */
   label: string
-  /** `~/carreira` | `~/projetos/challenges` | `~/projetos/comunitario` (título da janela e comando). */
+  /** `~/carreira` | `~/projetos/challenges` | `~/projetos/comunitario` | `~/formacao` (título da janela e comando). */
   path: string
   files: EditorFile[]
 }
@@ -163,6 +165,30 @@ export function communityFolder(community: readonly CommunityProject[]): EditorF
       link('fonte', p.source.label, p.source.url),
     ],
   }))
+}
+
+/**
+ * Formações, da mais recente para a mais antiga (a ordem dos cartões), na pasta `~/formacao` (feature 008,
+ * research R2–R5). O selo `EM CURSO` vira a linha `em_curso`, como o `HEAD` da Experiência, e só na formação
+ * em andamento; a observação e as fontes, só quando existem; as fontes sempre em lista (clarify).
+ */
+export function educationFolder(education: readonly Education[]): EditorFolder {
+  return folder('formacao', '~/formacao', byStartYearDesc(education), (edu) => {
+    const lines: EditorLine[] = [
+      pair('curso', edu.course),
+      pair('instituicao', edu.institution),
+      pair('local', edu.location),
+      pair('periodo', formatYears(edu.startYear, edu.endYear), 'date'),
+    ]
+    if (edu.status === 'em-curso')
+      lines.push(line([t('key', 'em_curso'), t('punct', ': '), t('str', 'true'), t('comment', '  # EM CURSO')]))
+    if (edu.note) lines.push(...block('observacao', edu.note))
+    if (edu.sources) {
+      lines.push(line([t('key', 'fontes'), t('punct', ':')]))
+      for (const source of edu.sources) lines.push(line([t('punct', '- '), t('link', source.label, source.url)], 1))
+    }
+    return { id: edu.id, date: String(edu.startYear), slug: edu.id, title: edu.course, lines }
+  })
 }
 
 /** Texto corrido de um arquivo (testes e conferências). */

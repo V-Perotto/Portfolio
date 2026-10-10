@@ -43,9 +43,19 @@ describe('resume.ts — validação', () => {
       projects: projects.map((p) => p.id),
       challenges: resume.challenges.map((c) => c.id),
       community: resume.community.map((c) => c.id),
+      education: resume.education.map((e) => e.id),
     }
     for (const [name, ids] of Object.entries(collections)) {
       expect(new Set(ids).size, name).toBe(ids.length)
+    }
+  })
+
+  // Feature 008 (FR-004, research R3): o id da formação é o slug do arquivo `AAAA_<id>.yml` da janela
+  // `~/formacao`, que precisa ser curto
+  it('(3b) id de formação em slug, com o nome do arquivo em até 31 caracteres', () => {
+    for (const edu of resume.education) {
+      expect(edu.id, edu.course).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/)
+      expect(`${edu.startYear}_${edu.id}.yml`.length, edu.id).toBeLessThanOrEqual(31)
     }
   })
 

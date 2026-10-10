@@ -26,9 +26,10 @@ describe('visibleSections', () => {
   })
 })
 
-// Feature 007 (FR-002, FR-003, research R1): alvos do comando `open`.
+// Feature 007 (FR-002, FR-003, research R1): alvos do comando `open`. Feature 008 (FR-015, FR-016,
+// research R7): a Educação é a 10ª opção.
 describe('openTargets', () => {
-  it('as 9 opções na ordem da página', () => {
+  it('as 10 opções na ordem da página', () => {
     expect(openTargets(resume).map((t) => t.name)).toEqual([
       'experiencia',
       'srg',
@@ -39,6 +40,7 @@ describe('openTargets', () => {
       'monitor-de-curso',
       'challenges',
       'comunitario',
+      'educacao',
     ])
   })
 
@@ -47,10 +49,10 @@ describe('openTargets', () => {
     expect(new Set(names).size).toBe(names.length)
     for (const name of names) expect(name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/)
     const projects = openTargets(resume).filter((t) => t.mode === 'open')
-    for (const reserved of ['experiencia', 'challenges', 'comunitario']) expect(projects.map((t) => t.name)).not.toContain(reserved)
+    for (const reserved of ['experiencia', 'challenges', 'comunitario', 'educacao']) expect(projects.map((t) => t.name)).not.toContain(reserved)
   })
 
-  it('projeto abre; experiência, challenges e comunitário maximizam (Q1)', () => {
+  it('projeto abre; experiência, challenges, comunitário e educação maximizam (Q1; 008 Q1)', () => {
     const byName = Object.fromEntries(openTargets(resume).map((t) => [t.name, t]))
     expect(byName['italiami']).toEqual({
       name: 'italiami',
@@ -62,12 +64,14 @@ describe('openTargets', () => {
     expect(byName['experiencia']).toEqual({ name: 'experiencia', windowId: 'experiencia', path: '~/carreira', alias: 'carreira', mode: 'maximize' })
     expect(byName['challenges']).toMatchObject({ windowId: 'challenges', path: '~/projetos/challenges', alias: 'projetos/challenges', mode: 'maximize' })
     expect(byName['comunitario']).toMatchObject({ windowId: 'comunitario', path: '~/projetos/comunitario', alias: 'projetos/comunitario', mode: 'maximize' })
+    expect(byName['educacao']).toEqual({ name: 'educacao', windowId: 'educacao', path: '~/formacao', alias: 'formacao', mode: 'maximize' })
   })
 
   it('coleção vazia não tem alvo', () => {
     // o tipo exige ao menos um vínculo; o caso vazio só existe para provar a regra
-    const empty = { ...resume, experiences: [], challenges: [], community: [] } as unknown as Resume
+    const empty = { ...resume, experiences: [], challenges: [], community: [], education: [] } as unknown as Resume
     const names = openTargets(empty).map((t) => t.name)
     expect(names).toEqual(['srg', 'temas-vs-code', 'italiami', 'ocr-de-prontuarios', 'qclass-bot', 'monitor-de-curso'])
+    expect(openTargets({ ...resume, education: [] }).map((t) => t.name)).not.toContain('educacao')
   })
 })

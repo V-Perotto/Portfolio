@@ -277,10 +277,16 @@ test.describe('a11y da 006', () => {
   }
 
   test('janelas de editor: normal (arquivo do meio), Challenges maximizada e Experiência minimizada', async ({ page }) => {
-    test.setTimeout(60_000)
+    test.setTimeout(90_000)
+    // feature 008 (SC-008): console sem erros do site durante o teste
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(String(e)))
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text())
+    })
     await page.goto('./')
     await enterPortfolio(page)
-    for (const label of ['carreira', 'challenges', 'comunitario']) {
+    for (const label of ['carreira', 'challenges', 'comunitario', 'formacao']) {
       const win = page.locator(`.editor-window[data-editor="${label}"]`)
       await win.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
       await expect(win.locator('.editor')).not.toHaveAttribute('data-t-state', /pending|typing/, { timeout: 5000 })
@@ -300,6 +306,20 @@ test.describe('a11y da 006', () => {
     // depois da animação de encolher (o quadro semitransparente reprovaria o contraste no meio dela)
     await expect(exp.locator('.desktop-window-frame')).toBeHidden()
     expect(await audit(page, '#experiencia'), 'minimizada').toEqual([])
+
+    // feature 008 (SC-008): a janela de Educação maximizada e minimizada
+    const edu = page.locator('.editor-window[data-editor="formacao"]')
+    await edu.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+    await edu.locator('button.t-max').click()
+    await page.waitForTimeout(500)
+    expect(await audit(page), 'Educação maximizada').toEqual([])
+    await page.keyboard.press('Escape')
+    await expect(page.locator('html')).not.toHaveClass(/window-maximized/)
+    await edu.locator('button.t-min').click()
+    await expect(edu).toHaveAttribute('data-window-state', 'minimized')
+    await expect(edu.locator('.desktop-window-frame')).toBeHidden()
+    expect(await audit(page, '#educacao'), 'Educação minimizada').toEqual([])
+    expect(errors).toEqual([])
   })
 
   for (const phase of ['working', 'done']) {

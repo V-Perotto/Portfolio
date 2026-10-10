@@ -139,10 +139,15 @@ test('projeto comunitário da PUC-PR (US6, V6)', async ({ page }) => {
   expect(order.map((t) => t.replace(/[#/]/g, '').trim())).toEqual(['challenges', 'comunitario'])
 })
 
+// Feature 008: com JS, os cartões de formação ficam na janela `~/formacao` e só aparecem maximizada (a lista
+// `#educacao ol` também pegaria as linhas do editor)
 test('1º Empregotech entre o Bacharelado e o Técnico, com observação e fontes (US7, V7)', async ({ page }) => {
   await page.goto('./#educacao')
   await enterPortfolio(page)
-  const items = page.locator('#educacao ol > li')
+  const win = page.locator('.editor-window[data-editor="formacao"]')
+  await win.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+  await win.locator('button.t-max').click()
+  const items = page.locator('.editor-frame.is-maximized .editor-cards .edu-list > li')
   await expect(items.locator('h3')).toHaveText([
     'Pós-Graduação em Cibersegurança',
     'Bacharelado em Sistemas de Informação',

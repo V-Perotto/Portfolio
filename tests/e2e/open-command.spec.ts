@@ -2,8 +2,9 @@ import { expect, mockIpService, test, type Locator, type Page } from './support/
 import { enterPortfolio } from './support/boot'
 
 // Feature 007, US1: o comando `open <OPTIONS>` do terminal da dock (quickstart V1–V7; FR-001 a FR-009;
-// contracts/terminal-open.md). Projetos abrem a janela deles; experiencia, challenges e comunitario
-// abrem a janela de editor maximizada; depois de um `open` válido, o terminal minimiza sozinho.
+// contracts/terminal-open.md). Projetos abrem a janela deles; experiencia, challenges, comunitario e
+// educacao (feature 008, FR-015 a FR-018) abrem a janela de editor maximizada; depois de um `open`
+// válido, o terminal minimiza sozinho.
 test.use({ reducedMotion: 'no-preference' })
 
 const PROJECTS = [
@@ -18,9 +19,10 @@ const EDITORS = [
   ['experiencia', 'carreira', '~/carreira'],
   ['challenges', 'challenges', '~/projetos/challenges'],
   ['comunitario', 'comunitario', '~/projetos/comunitario'],
+  ['educacao', 'formacao', '~/formacao'],
 ] as const
 const OPEN_OPTIONS =
-  'OPTIONS: experiencia | srg | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario'
+  'OPTIONS: experiencia | srg | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao'
 
 const dock = (page: Page) => page.locator('.app-dock .dock-btn')
 const input = (page: Page) => page.locator('#dock-terminal-input')
@@ -218,6 +220,23 @@ test('open das janelas de editor: maximizada, restaurar volta à seção e o ter
   await expect(maximized(page).locator('.terminal-title')).toHaveText('~/projetos/comunitario')
   await page.keyboard.press('Escape')
   await expect(community).toHaveAttribute('data-window-state', 'open')
+
+  // feature 008: a Educação fechada, pelo apelido `formacao`; restaurar deixa a página na seção
+  const education = editorWindow(page, 'formacao')
+  await setState(education, 'closed')
+  await run(page, 'open formacao')
+  await expect(maximized(page).locator('.terminal-title')).toHaveText('~/formacao')
+  await expect(maximized(page).locator('[data-t-state="pending"], [data-t-state="typing"]')).toHaveCount(0)
+  await expect(maximized(page).locator('button.t-max')).toBeFocused()
+  await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+  await page.keyboard.press('Escape')
+  await expect(maximized(page)).toHaveCount(0)
+  const section = (await page.locator('#educacao').boundingBox())!
+  expect(section.y).toBeLessThan(768)
+  expect(section.y + section.height).toBeGreaterThan(0)
+  await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+  await terminal(page)
+  await expect(log(page)).toContainText('→ ~/formacao')
 })
 
 for (const viewport of [
@@ -227,8 +246,8 @@ for (const viewport of [
   // SC-001: ≤ 1 s. Medido com um navegador só (2026-10-09): mediana 283 ms, pior 517 ms. Com a suíte
   // rodando 4 navegadores, picos isolados passam de 1 s (a página com o Letter Glitch e as janelas de
   // editor é pesada); como no teste da dica da dock (006), cada tentativa tem folga (≤ 1,5 s) e a
-  // mediana das 27 tem de ficar ≤ 1 s. O teto de 1 s sem folga fica no V1.
-  test(`as 9 opções, com a janela aberta, minimizada e fechada, em ≤ 1 s, ${viewport.width}px (V4, SC-001)`, async ({ page }) => {
+  // mediana das 30 (27 até a 007) tem de ficar ≤ 1 s. O teto de 1 s sem folga fica no V1.
+  test(`as 10 opções, com a janela aberta, minimizada e fechada, em ≤ 1 s, ${viewport.width}px (V4, SC-001; 008 SC-006)`, async ({ page }) => {
     test.setTimeout(240_000)
     await enter(page, viewport)
     const share = viewport.width < 760 ? 0.95 : 0.9
@@ -287,7 +306,6 @@ test('erros: nada abre nem rola, e o terminal continua aberto (V5, FR-006, SC-00
     ['open sobre', [`open: 'sobre': essa seção não abre com o open. Use: find sobre`]],
     ['open skills', [`open: 'skills': essa seção não abre com o open. Use: find skills`]],
     ['open projetos', [`open: 'projetos': essa seção não abre com o open. Use: find projetos`]],
-    ['open educacao', [`open: 'educacao': essa seção não abre com o open. Use: find educacao`]],
     ['open Contato', [`open: 'Contato': essa seção não abre com o open. Use: find contato`]],
   ]
   for (const [line, output] of cases) {
@@ -304,7 +322,7 @@ test('help e Tab do open (V6, FR-007, FR-008)', async ({ page }) => {
   await enter(page)
   await run(page, 'help')
   await expect(log(page)).toContainText('open <OPTIONS>   abre uma janela e leva a página até ela')
-  await expect(log(page)).toContainText('projetos abrem; experiencia, challenges e comunitario abrem maximizados')
+  await expect(log(page)).toContainText('projetos abrem; experiencia, challenges, comunitario e educacao abrem maximizados')
   await expect(log(page)).toContainText(OPEN_OPTIONS)
   await expect(log(page)).toContainText('exemplo: open srg')
   await input(page).fill('o')
@@ -316,6 +334,10 @@ test('help e Tab do open (V6, FR-007, FR-008)', async ({ page }) => {
   await input(page).fill('open c')
   await input(page).press('Tab')
   await expect(log(page)).toContainText('challenges  comunitario')
+  // feature 008
+  await input(page).fill('open ed')
+  await input(page).press('Tab')
+  await expect(input(page)).toHaveValue('open educacao')
 })
 
 test('sugestões tocáveis do open no celular (V6, FR-008)', async ({ browser }) => {

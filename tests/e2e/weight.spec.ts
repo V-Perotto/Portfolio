@@ -44,16 +44,17 @@ test('nenhuma requisição a terceiros durante a visita', async ({ page }) => {
 })
 
 // HTML + CSS + JS iniciais comprimidos (gzip 9), sem os workers das cenas. Histórico: 005 = 91.642 B
-// (commit 8f54bbb); a 006 subiu para 107.695 B (+16 KB, research R17 da 006). Feature 007 (SC-009,
-// research R12): linha de base 107.695 B (commit 37900be), teto +3 KB (estimado +1,5 KB: o `open`, o
-// registro de janelas, minimizar o terminal da dock e o CSS do halo).
-test('HTML + CSS + JS iniciais ≤ linha de base + 3 KB, comprimidos', async () => {
+// (commit 8f54bbb); a 006 subiu para 107.695 B (+16 KB, research R17 da 006); a 007 para 109.532 B
+// (+1,8 KB: o `open`, o registro de janelas, minimizar o terminal da dock e o CSS do halo). Feature 008
+// (SC-007, research R9): linha de base 109.532 B (commit 894c8be), teto +2 KB (estimado +0,6–0,9 KB: a
+// janela de editor da Educação pré-renderizada, `educationFolder` e o alvo `educacao` do `open`).
+test('HTML + CSS + JS iniciais ≤ linha de base + 2 KB, comprimidos', async () => {
   const { readFileSync } = await import('node:fs')
   const { gzipSync } = await import('node:zlib')
   const html = readFileSync('dist/index.html')
   const refs = [...new Set([...html.toString().matchAll(/(?:src|href)="\/Portfolio\/([^"]+\.(?:js|css))"/g)].map((m) => m[1]!))]
   const sizes = refs.filter((r) => !r.includes('worker')).map((r) => gzipSync(readFileSync(`dist/${r}`), { level: 9 }).length)
   const total = gzipSync(html, { level: 9 }).length + sizes.reduce((a, b) => a + b, 0)
-  console.log(`HTML + CSS + JS iniciais: ${total} B gzip (+${total - 107695} B sobre a 006)`)
-  expect(total).toBeLessThanOrEqual(107695 + 3 * 1024)
+  console.log(`HTML + CSS + JS iniciais: ${total} B gzip (+${total - 109532} B sobre a 007)`)
+  expect(total).toBeLessThanOrEqual(109532 + 2 * 1024)
 })

@@ -189,6 +189,11 @@ export interface CommunityProject {
 }
 
 export interface Education {
+  /**
+   * Slug curto, `^[a-z0-9]+(-[a-z0-9]+)*$`, único na coleção: é o slug do nome do arquivo `AAAA_<id>.yml`
+   * na janela de editor `~/formacao` e a chave do cartão (feature 008, research R3).
+   */
+  id: string
   course: string
   institution: string
   location: string

@@ -25,7 +25,9 @@
  * - `command` do projeto é a linha de comando temática da janela, sem `./run`.
  * - Challenges aparecem pela data de criação (`created`, mais recente primeiro), não pela ordem
  *   deste arquivo. Projetos comunitários não têm stack.
- * - Formação: `note` (observação) e `sources` (links de fonte) são opcionais.
+ * - Formação: `note` (observação) e `sources` (links de fonte) são opcionais. `id` é um slug curto
+ *   e único (minúsculas, sem acento, com hífen), que vira o nome do arquivo `AAAA_<id>.yml` na janela
+ *   `~/formacao` (ex.: `2025_ciberseguranca.yml`); o nome inteiro tem no máximo 31 caracteres.
  * - Campo obrigatório faltando ou com tipo errado quebra o `npm run build` apontando a linha do
  *   item (cada item tem `satisfies <Tipo>`) e o nome do campo.
  */
@@ -375,6 +377,7 @@ const data = {
 
   education: [
     {
+      id: 'ciberseguranca',
       course: 'Pós-Graduação em Cibersegurança',
       institution: 'PUC-PR',
       location: 'Curitiba - PR',
@@ -383,6 +386,7 @@ const data = {
       status: 'em-curso',
     } satisfies Education,
     {
+      id: 'sistemas-de-informacao',
       course: 'Bacharelado em Sistemas de Informação',
       institution: 'PUC-PR',
       location: 'Curitiba - PR',
@@ -391,6 +395,7 @@ const data = {
       status: 'concluido',
     } satisfies Education,
     {
+      id: 'empregotech',
       course: '1º Empregotech',
       institution: 'Prefeitura de Curitiba',
       location: 'Curitiba - PR',
@@ -407,6 +412,7 @@ const data = {
       ],
     } satisfies Education,
     {
+      id: 'tecnico-ads',
       course: 'Técnico em Análise e Desenvolvimento de Sistemas',
       institution: 'SENAI-PR',
       location: 'Curitiba - PR',

@@ -4,8 +4,8 @@ import DesktopWindow from './DesktopWindow.vue'
 import EditorFrame from './EditorFrame.vue'
 
 /**
- * Janela de editor de Experiência, Challenges e Comunitário (feature 006, FR-001 a FR-019, research
- * R1): uma janela de área de trabalho (minimiza e fecha até o ícone de pasta de código, 004) com o
+ * Janela de editor de Experiência, Challenges, Comunitário e Educação (feature 006, FR-001 a FR-019,
+ * research R1; a Educação entrou na 008): uma janela de área de trabalho (minimiza e fecha até o ícone de pasta de código, 004) com o
  * editor dentro. O editor fica num componente à parte (`EditorFrame`) porque ele recebe os controles
  * do `DesktopWindow` e os repassa ao terminal com o maximizar (um `provide` daqui não chegaria ao slot).
  * O `windowId` (feature 007) registra a janela para o comando `open` do terminal da dock.

@@ -5,6 +5,7 @@ import type { Education } from '@/types/resume'
 
 // observação e fontes opcionais na formação (FR-021 a FR-023)
 const base: Education = {
+  id: 'curso',
   course: 'Curso',
   institution: 'Instituição',
   location: 'Curitiba - PR',

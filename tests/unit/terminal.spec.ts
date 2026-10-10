@@ -10,7 +10,7 @@ const ctx: TerminalContext = { sections, targets: openTargets(resume) }
 const OPTIONS = 'OPTIONS: sobre | experiencia | skills | projetos | educacao | contato'
 const HINT = 'Digite help para ver os comandos.'
 const OPEN_OPTIONS =
-  'OPTIONS: experiencia | srg | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario'
+  'OPTIONS: experiencia | srg | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao'
 
 describe('run', () => {
   it('linha vazia: nada', () => {
@@ -33,12 +33,28 @@ describe('run', () => {
       '  exemplo: find projetos',
       '',
       'open <OPTIONS>',
-      '  projetos abrem; experiencia, challenges e comunitario abrem maximizados',
+      '  projetos abrem; experiencia, challenges, comunitario e educacao abrem maximizados',
       `  ${OPEN_OPTIONS}`,
       '  exemplo: open srg',
       '',
       'Tab completa comandos e opções; ↑ e ↓ percorrem os comandos já digitados.',
     ])
+  })
+
+  // Feature 008 (FR-017, research R8): a linha do open sobre os modos sai dos alvos
+  it('help: a linha dos modos do open é gerada dos alvos', () => {
+    const all = openTargets(resume)
+    const projects = all.filter((t) => t.mode === 'open')
+    const editor = (name: string) => all.find((t) => t.name === name)!
+    // a linha logo abaixo do título do bloco do open
+    const modes = (targets: typeof all) => {
+      const { output } = run('help', { sections, targets })
+      return output[output.indexOf('open <OPTIONS>') + 1]
+    }
+    expect(modes(projects)).toBe('  projetos abrem')
+    expect(modes([...projects, editor('experiencia')])).toBe('  projetos abrem; experiencia abre maximizado')
+    expect(modes([...projects, editor('experiencia'), editor('challenges')])).toBe('  projetos abrem; experiencia e challenges abrem maximizados')
+    expect(modes([editor('educacao')])).toBe('  educacao abre maximizado')
   })
 
   it('find <seção> leva à seção', () => {
@@ -124,6 +140,9 @@ describe('open', () => {
     ['~/carreira', 'experiencia', '→ ~/carreira'],
     ['~/projetos/challenges/', 'challenges', '→ ~/projetos/challenges'],
     ['COMUNITARIO', 'comunitario', '→ ~/projetos/comunitario'],
+    ['Educação', 'educacao', '→ ~/formacao'],
+    ['formacao', 'educacao', '→ ~/formacao'],
+    ['~/formacao/', 'educacao', '→ ~/formacao'],
     ['projetos/OCR-de-Prontuarios', 'ocr-de-prontuarios', '→ ~/projetos/ocr-de-prontuarios'],
   ])('open %s é normalizado (nome ou apelido)', (arg, name, out) => {
     expect(run(`open ${arg}`, ctx)).toEqual({ output: [out], action: { type: 'open', target: target(name) } })
@@ -137,7 +156,6 @@ describe('open', () => {
     ['sobre', 'sobre'],
     ['skills', 'skills'],
     ['projetos', 'projetos'],
-    ['Educação', 'educacao'],
     ['Contato', 'contato'],
   ])('open %s: seção que o open não abre sugere o find', (arg, id) => {
     expect(run(`open ${arg}`, ctx)).toEqual({
@@ -162,7 +180,9 @@ describe('open', () => {
     expect(complete('open it', ctx)).toEqual({ line: 'open italiami', candidates: ['italiami'] })
     expect(complete('open c', ctx)).toEqual({ line: 'open c', candidates: ['challenges', 'comunitario'] })
     expect(complete('open qc', ctx)).toEqual({ line: 'open qclass-bot', candidates: ['qclass-bot'] })
-    expect(complete('open ', ctx).candidates).toHaveLength(9)
+    expect(complete('open ', ctx).candidates).toHaveLength(10)
+    expect(complete('open ed', ctx)).toEqual({ line: 'open educacao', candidates: ['educacao'] })
+    expect(complete('open e', ctx)).toEqual({ line: 'open e', candidates: ['experiencia', 'educacao'] })
     // os apelidos são aceitos, mas não são candidatos
     expect(complete('open carr', ctx)).toEqual({ line: 'open carr', candidates: [] })
     expect(completeWith('open c', 'comunitario')).toBe('open comunitario')

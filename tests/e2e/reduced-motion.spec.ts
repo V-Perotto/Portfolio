@@ -133,4 +133,23 @@ test.describe('movimento reduzido', () => {
     await expect(page.locator('body > .editor-frame')).toHaveCount(0)
     expect(await win.locator('.editor-frame').evaluate((el) => el.getAnimations().length)).toBe(0)
   })
+
+  // Feature 008 (quickstart V11, FR-011): a janela de Educação já completa, e maximizar sem animação
+  test('feature 008: Educação completa ao chegar, sem digitação; maximizar e restaurar sem animação', async ({ page }) => {
+    await page.goto('./')
+    await enterPortfolio(page)
+    const win = page.locator('.editor-window[data-editor="formacao"]')
+    await win.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+    await expect(win.locator('[data-t-anim]')).toHaveCount(0)
+    await expect(win.locator('.editor')).not.toHaveAttribute('data-t-state', /pending|typing/)
+    await expect(win.locator('.bm-child')).toHaveCount(4)
+
+    await win.locator('button.t-max').click()
+    const frame = page.locator('body > .editor-frame')
+    await expect(frame).toHaveAttribute('role', 'dialog')
+    expect(await frame.evaluate((el) => el.getAnimations().length)).toBe(0)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('body > .editor-frame')).toHaveCount(0)
+    expect(await win.locator('.editor-frame').evaluate((el) => el.getAnimations().length)).toBe(0)
+  })
 })

@@ -11,8 +11,8 @@ import TerminalWindow from './TerminalWindow.vue'
 import { WINDOW_CONTROLS } from './window-controls'
 
 /**
- * O editor das janelas de Experiência, Challenges e Comunitário (feature 006, research R1–R5;
- * contracts/editor-window.md). Dentro do `DesktopWindow` (via `EditorWindow`):
+ * O editor das janelas de Experiência, Challenges, Comunitário e Educação (feature 006, research R1–R5;
+ * contracts/editor-window.md; a Educação entrou na feature 008). Dentro do `DesktopWindow` (via `EditorWindow`):
  *
  * - O terminal digita `code <pasta>` e o editor é a saída do comando (clarify): abas, a árvore de
  *   arquivos (Branched Menu, radius 0), o arquivo YAML aberto, com números de linha, e o rodapé.
@@ -301,6 +301,15 @@ onBeforeUnmount(() => {
   padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3) calc(var(--spacing) * 3) calc(var(--spacing) * 4);
   border-right: 1px solid var(--border);
   overflow-x: auto;
+}
+
+/* no celular, o nome que não cabe termina em reticências, como no explorer do VS Code, em vez de ser cortado
+   no meio da letra pelo `overflow: hidden` da dobra do Branched Menu; o nome inteiro continua no texto do
+   botão (nome acessível) e no rodapé (feature 008, FR-020, research R13) */
+.editor-tree :deep(.bm-label) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .editor-pane {

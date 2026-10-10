@@ -59,6 +59,22 @@ export function normalizeOption(raw: string): string {
 const commands = (ctx: TerminalContext) => COMMANDS.filter((c) => c !== 'open' || ctx.targets.length > 0)
 
 const optionsLine = (names: readonly string[]) => `OPTIONS: ${names.join(' | ')}`
+/** `a`, `a e b`, `a, b e c` */
+const joinPt = (names: readonly string[]) =>
+  names.length < 2 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`
+
+/**
+ * O que o `open` faz com cada tipo de alvo, gerado dos alvos (feature 008, research R8): com os dados de
+ * hoje, "projetos abrem; experiencia, challenges, comunitario e educacao abrem maximizados".
+ */
+function openModesLine(targets: readonly OpenTarget[]): string {
+  const editors = targets.filter((t) => t.mode === 'maximize').map((t) => t.name)
+  const parts = [
+    ...(targets.some((t) => t.mode === 'open') ? ['projetos abrem'] : []),
+    ...(editors.length ? [`${joinPt(editors)} ${editors.length > 1 ? 'abrem maximizados' : 'abre maximizado'}`] : []),
+  ]
+  return `  ${parts.join('; ')}`
+}
 const findNames = (ctx: TerminalContext) => ctx.sections.map((s) => s.id)
 const openNames = (ctx: TerminalContext) => ctx.targets.map((t) => t.name)
 
@@ -81,7 +97,7 @@ export function helpText(ctx: TerminalContext): string[] {
     ...(hasOpen
       ? [
           'open <OPTIONS>',
-          '  projetos abrem; experiencia, challenges e comunitario abrem maximizados',
+          openModesLine(targets),
           `  ${optionsLine(openNames(ctx))}`,
           `  exemplo: open ${firstProject!.name}`,
           '',

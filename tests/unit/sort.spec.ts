@@ -30,6 +30,7 @@ describe('byCreatedDesc (FR-015, SC-004)', () => {
 
 describe('byStartYearDesc (FR-024)', () => {
   const edu = (course: string, startYear: number, endYear: number): Education => ({
+    id: course.toLowerCase(),
     course,
     institution: 'x',
     location: 'x',

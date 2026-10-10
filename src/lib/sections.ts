@@ -25,9 +25,9 @@ export function visibleSections(resume: Resume): NavSection[] {
 
 /**
  * Alvos do comando `open` do terminal da dock (feature 007, FR-001 a FR-005, research R1, data-model §1):
- * os projetos abrem a janela deles; Experiência, Challenges e Comunitário abrem a janela de editor
- * maximizada (Q1). Na ordem da página, gerados dos dados: um projeto novo vira opção sozinho, e uma
- * coleção vazia não tem alvo.
+ * os projetos abrem a janela deles; Experiência, Challenges, Comunitário e Educação (feature 008, Q1) abrem
+ * a janela de editor maximizada. Na ordem da página, gerados dos dados: um projeto novo vira opção sozinho,
+ * e uma coleção vazia não tem alvo.
  */
 export type OpenMode = 'open' | 'maximize'
 
@@ -64,5 +64,6 @@ export function openTargets(resume: Resume): OpenTarget[] {
     ...projects,
     ...(resume.challenges.length ? [editorTarget('challenges', '~/projetos/challenges')] : []),
     ...(resume.community.length ? [editorTarget('comunitario', '~/projetos/comunitario')] : []),
+    ...(resume.education.length ? [editorTarget('educacao', '~/formacao')] : []),
   ]
 }
