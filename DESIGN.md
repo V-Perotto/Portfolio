@@ -164,8 +164,11 @@ components:
     colors: ["{colors.green}", "{colors.green-bright}", "{colors.purple-glow}"]
     alpha: "0.55"
     glitchSpeed: "10"
-    centerVignette: "radial-gradient(circle, rgba(0, 0, 0, 0.96) 0%, rgba(0, 0, 0, 0.9) 40%, transparent 80%)"
+    centerVignette: "radial-gradient(circle, rgba(0, 0, 0, 0.8) 0%, transparent 60%)"
     outerVignette: "radial-gradient(circle, transparent 60%, #000 100%)"
+  hero-halo:
+    textShadow: "2px solid #000 outline (offsets -2..2px, no blur), 0 0 4px #000, 0 0 8px rgba(0, 0, 0, 0.8)"
+    targets: ["hero tagline", "Lattice Loader label"]
   editor-window:
     backgroundColor: "{colors.bg-alt}"
     treeWidth: "300px"
@@ -354,8 +357,8 @@ A profundidade é feita de luz, não de papel. As superfícies sobem por degraus
 (Void → Console → Title Bar) e se separam por fios Grape Wire de 1px. A luz é ambiente e
 permanente: o hero tem duas nebulosas radiais (Grape Deep em 30%/20% e Phosphor Deep em 75%/80%) e,
 com movimento, ganha por cima o Letter Glitch: uma grade de letras e símbolos em Phosphor Deep,
-Phosphor Bright e Grape Glow que trocam sem parar, sob duas vinhetas pretas (a central, que acalma o
-miolo onde fica o texto, e a das bordas); scanlines de 4px cobrem a página inteira. Não há mais a grade de quadrados. Atrás das seções não há imagem: o fundo é só Void Plum. Os glows de
+Phosphor Bright e Grape Glow que trocam sem parar, sob as duas vinhetas pretas do componente (a
+central, pequena, no miolo, e a das bordas), com um halo preto justo nos textos que precisam dele; scanlines de 4px cobrem a página inteira. Não há mais a grade de quadrados. Atrás das seções não há imagem: o fundo é só Void Plum. Os glows de
 repouso (halo do nome, tubo da timeline, marcadores, botão principal, pulso do `HEAD`) fazem parte
 dessa atmosfera. Na interação, um glow da cor do token cresce e uma sombra preta funda segura as
 janelas.
@@ -465,7 +468,8 @@ O maximizar é desenho com aparência de desativado (opacidade 0.35, sem reaçã
 Editor Windows, onde maximiza. O corpo é mono a 0.9rem. Dentro dele:
 - `$ comando` aparece em Dim Lilac, como os comentários: é contexto, e o destaque é a saída. O `$`
   fica em Grape Glow. Os comandos são os da "aplicação" (`srg --status`), sem `./run`;
-- a saída aparece em Dim Lilac, com `white-space: pre-line`;
+- a saída aparece em Dim Lilac, com `white-space: pre-line`; o texto de apresentação (o `cat sobre.txt`)
+  e as descrições dos projetos são o conteúdo da janela e ficam em Lavender Ash;
 - metadados vêm como pares `chave = valor`;
 - comentários vêm como `# texto` em itálico;
 - o rodapé é `[tag] exit 0`.
@@ -519,10 +523,15 @@ um `git log` com o commit mais recente no topo.
 - **BlurText:** revela a tagline palavra a palavra em até 1.5s.
 - **Ao fundo:** Letter Glitch do Vue Bits (canvas 2D num worker): letras de 16px em células de
   10×20px, nas três cores do tema a 55% de opacidade, trocando a cada quadro (Glitch Speed 10) com
-  transição suave de cor; a vinheta central (preto 96% → 90% aos 40% → transparente aos 80%) deixa o
-  texto em ≥ 5,4:1, e a das bordas escurece os cantos. O `▼ scroll` usa Ghost Lilac (não Dim Lilac)
+  transição suave de cor, sob as duas vinhetas do componente: a central (preto 80% → transparente aos
+  60% do raio) e a das bordas, que escurece os cantos. O `▼ scroll` usa Ghost Lilac (não Dim Lilac)
   porque fica onde a vinheta central não chega. Fora da tela ou com a aba oculta, para. Sem
   movimento ou sem JS, ficam as nebulosas estáticas.
+- **Hero Halo** (`--hero-halo`): com o fundo animado, os textos que não chegam a 4,5:1 sobre as letras
+  ganham um contorno preto sólido de 2px e um esfumado curto (4px e 8px) por fora, justo nas letras,
+  sem faixa nem caixa atrás do bloco: hoje a tagline e o texto do Lattice Loader (≥ 4,6:1 medidos na
+  vizinhança dos traços). O nome, o prompt e os botões passam sem halo; o `ping vittorio` ganha fundo
+  opaco (o mesmo véu Phosphor Deep sobre Void Plum). Sem fundo animado e na impressão, sem halo.
 
 ### Private Link
 Link para repositório privado, que pode abrir um 404 para o visitante. Cadeado Lucide em Dim Lilac
@@ -568,9 +577,10 @@ controles de navegação e não levam o sublinhado.
 
 ### Dock
 Barra fixa no centro de baixo da tela, só com JS e depois da porta de acesso: caixa Console Plum a 85% com
-blur, fio Grape Wire e raio de cartão, com um botão de 2.75rem (ícone `SquareTerminal`, Phosphor
-Bright sobre véu Phosphor Deep; sólido no hover e no foco). Com o terminal aberto, um ponto
-Phosphor Bright embaixo do ícone. O botão (e Ctrl+Alt+T) abre e fecha o terminal. A dica é do site,
+blur, fio Grape Wire e raio de cartão, com um botão de 2.75rem (ícone `SquareTerminal`, Phosphor Bright sobre véu Phosphor Deep; sólido no hover e no foco). Embaixo do ícone, um ponto
+Phosphor Bright: cheio com o terminal aberto, vazado (só o contorno de 1px, 0.35rem) com ele
+minimizado, e nenhum com ele fechado. O botão (e Ctrl+Alt+T) abre o terminal, minimiza e restaura,
+como numa barra de tarefas. A dica é do site,
 acima do botão: caixa Console Plum com fio Grape Wire, raio de botão e brilho Grape leve, com
 `Ctrl + Alt + T` em teclas `kbd` Phosphor Bright sobre Title Bar Plum; aparece com o mouse parado
 (150ms) ou com o foco do teclado, e some com Esc. O favicon é o mesmo ícone, em Phosphor Bright sobre
@@ -578,10 +588,16 @@ Void Plum, com um brilho Grape atrás (gerado dos tokens por `tools/build-favico
 
 ### Dock Terminal (signature)
 Uma Terminal Window de verdade que sobe da dock (0.2s; nenhum movimento com movimento reduzido), até
-720px de largura e `min(60svh, 28rem)` de altura, com a barra `viper@portfolio: ~` e só o `✕`
-funcional. O prompt `viper@portfolio:~$` usa as cores de sempre e o cursor `▊` Phosphor Bright na
+720px de largura e `min(50svh, 28rem)` de altura, com a barra `viper@portfolio: ~`, o `−` e o `✕`
+funcionais. O `−` (e o botão da dock, e o Ctrl+Alt+T) minimiza: o terminal encolhe até o botão da dock
+em 0.32s, como as janelas encolhem até o Desktop Icon, e fica guardado com a sessão inteira (saída,
+histórico, prompt); restaurado, cresce de volta a partir do botão. Fechar (`✕`, `exit`, Esc) desce e
+apaga a sessão. O prompt `viper@portfolio:~$` usa as cores de sempre e o cursor `▊` Phosphor Bright na
 posição do cursor de texto; a conclusão única aparece em Dim Lilac depois do texto, e os candidatos
-viram chips tocáveis. Comandos: `help`, `find <seção>`, `clear` e `exit`. A saída é um `role="log"`.
+viram chips tocáveis. Comandos: `help`, `find <seção>`, `open <janela>`, `clear` e `exit`. O `open`
+abre a janela de um projeto (pelo nome em slug: `srg`, `temas-vs-code`…) ou, maximizada, a de
+`experiencia`, `challenges` ou `comunitario`, leva a página até ela e minimiza o terminal. A saída é um
+`role="log"`.
 Com foco, a borda acende em Grape.
 
 ### Desktop Icon
