@@ -66,11 +66,12 @@ a mais nada. É o único pedido a terceiros do site além dos badges do shields.
 Depois da porta, a dock no centro de baixo abre um terminal (também por Ctrl+Alt+T; no Ubuntu e em
 outros Linux esse atalho é do sistema, então lá use a dock). `help` lista os comandos, `find <seção>`
 leva até a seção, e `open <janela>` abre a janela de um projeto (`open italiami`) ou, maximizada, a da
-experiência, dos challenges ou do comunitário (`open experiencia`). O `−` do terminal, o botão da dock
+experiência, dos challenges, do comunitário ou da educação (`open experiencia`, `open educacao`). O `−` do terminal, o botão da dock
 e o atalho minimizam o terminal sem perder a sessão; `exit`, `✕` e Esc fecham. O fundo do hero é o Letter Glitch do Vue Bits (canvas 2D), nas cores
-do tema, e a primeira linha do hero é o Lattice Loader. Experiência, Challenges e Comunitário são
-janelas de editor no estilo VS Code, com o Branched Menu como árvore de arquivos e um arquivo YAML por
-item, geradas dos mesmos dados dos cartões; maximizadas, mostram os cartões. Os componentes do Vue
+do tema, e a primeira linha do hero é o Lattice Loader. Experiência, Challenges, Comunitário e
+Educação (`~/formacao`) são janelas de editor no estilo VS Code, com o Branched Menu como árvore de
+arquivos e um arquivo YAML por item, geradas dos mesmos dados dos cartões; maximizadas, mostram os
+cartões. Na árvore, o nome que não cabe (no celular) termina em reticências. Os componentes do Vue
 Bits (Faulty Terminal, TextType, Letter Glitch, Lattice Loader, Branched Menu) foram adaptados no
 próprio repositório, sem dependência nova: o Faulty Terminal e o Letter Glitch rodam em Web Workers
 (`OffscreenCanvas`, WebGL e 2D). Sem WebGL, o Faulty Terminal fica liso; com "reduzir movimento" ou
@@ -85,9 +86,9 @@ com mais navegadores ao mesmo tempo, os testes de tempo da porta de acesso ficam
 ## Versão
 
 O campo `version` do `package.json` é a versão do portfólio. O build a injeta na sessão SSH da porta
-de acesso (`Bem-vindo ao Portfolio v2.6`, só maior e menor). Cada feature sobe a versão menor: v1 é o
+de acesso (`Bem-vindo ao Portfolio v2.7`, só maior e menor). Cada feature sobe a versão menor: v1 é o
 site original em HTML/CSS/JS, 2.0 a refatoração para Vue (001), 2.1 a 2.3 as features 002 a 004, 2.4
-a 005, 2.5 a 006 e 2.6 a 007. Para subir: `npm version <x.y.z> --no-git-tag-version` (atualiza também o `package-lock.json`).
+a 005, 2.5 a 006, 2.6 a 007 e 2.7 a 008. Para subir: `npm version <x.y.z> --no-git-tag-version` (atualiza também o `package-lock.json`).
 
 ## Publicação
 

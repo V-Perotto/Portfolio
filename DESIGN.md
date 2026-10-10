@@ -340,7 +340,8 @@ espaço dela (`--dock-space`).
   ocupa a largura inteira. Depois da lista vêm as sub-partes (`### challenges/`, `### comunitario/`),
   pilhas de cartões de log; em desktop, cada challenge vira uma linha compacta com a data numa
   coluna de 6.5rem à esquerda.
-- **Formação:** pilha com 1.2rem entre os cartões.
+- **Formação:** a janela de editor `~/formacao`; a pilha de cartões, com 1.2rem entre eles, é a visão
+  maximizada, sem JS e impressa.
 - **Sobre e Contato:** uma janela de terminal só. A do contato fica centralizada em 720px.
 
 O único breakpoint é **760px**: o menu vira hambúrguer (só com JS), as janelas reduzem o padding e
@@ -485,20 +486,23 @@ hora; a animação não se repete. Sem JS, com movimento reduzido ou impresso, a
 completa. Janela visível quando a página fica interativa sem a capa da porta também fica completa.
 
 ### Editor Window (signature)
-Experiência, Challenges e Comunitário são janelas de editor no estilo VS Code, uma por seção
-(`~/carreira`, `~/projetos/challenges`, `~/projetos/comunitario`), dentro de uma Terminal Window que
-digita `code <pasta>`; o editor é a saída do comando. O editor é um painel em Void Plum Alt com fio
-Grape Wire e raio de cartão: faixa de abas em Title Bar Plum (a aba do arquivo aberto em Console,
-sublinhada em Phosphor Bright); à esquerda (acima, abaixo de 760px) a árvore de arquivos, o Branched
-Menu do Vue Bits com ramos em ângulo reto (radius 0), linhas Grape Deep, arquivos em Dim Lilac e o
-aberto em Phosphor Bright com o ramo desenhado até ele; à direita, o arquivo YAML do item (`AAAA-MM_
-slug.yml`) com números de linha em Dim Lilac e sintaxe Grape Glow (chaves), Ghost Lilac (textos),
-Phosphor Bright (datas), Dim Lilac (pontuação e `# comentários` em itálico); embaixo, o rodapé em
-maiúsculas pequenas com o caminho e a posição (`2 / 5`). Trocar de arquivo não muda a altura (os
-arquivos ficam empilhados na mesma célula). Maximizada, a janela vai para o `<body>`, cobre 95% da
-tela sobre a página desfocada (6px) e escurecida (Void Plum a 55%), e mostra a árvore com os cartões
-de hoje no lugar do arquivo; escolher um arquivo rola até o cartão. Esc, o `□` ou um clique fora
-restauram. Sem JS e na impressão, só os cartões.
+Experiência, Challenges, Comunitário e Educação são janelas de editor no estilo VS Code, uma por
+seção (`~/carreira`, `~/projetos/challenges`, `~/projetos/comunitario`, `~/formacao`), dentro de uma
+Terminal Window que digita `code <pasta>`; o editor é a saída do comando. O editor é um painel em
+Void Plum Alt com fio Grape Wire e raio de cartão: faixa de abas em Title Bar Plum (a aba do arquivo
+aberto em Console, sublinhada em Phosphor Bright); à esquerda (acima, abaixo de 760px) a árvore de
+arquivos, o Branched Menu do Vue Bits com ramos em ângulo reto (radius 0), linhas Grape Deep,
+arquivos em Dim Lilac e o aberto em Phosphor Bright com o ramo desenhado até ele; o nome que não
+cabe na largura da árvore (no celular) termina em reticências, como no explorer do VS Code, nunca
+cortado no meio da letra. À direita, o arquivo YAML do item (`AAAA-MM_slug.yml`; na formação, que só
+tem anos, `AAAA_id.yml`, com `em_curso: true  # EM CURSO` só na formação em andamento e as fontes
+numa lista `fontes:` de links) com números de linha em Dim Lilac e sintaxe Grape Glow (chaves),
+Ghost Lilac (textos), Phosphor Bright (datas), Dim Lilac (pontuação e `# comentários` em itálico);
+embaixo, o rodapé em maiúsculas pequenas com o caminho e a posição (`2 / 5`). Trocar de arquivo não
+muda a altura (os arquivos ficam empilhados na mesma célula). Maximizada, a janela vai para o
+`<body>`, cobre 95% da tela sobre a página desfocada (6px) e escurecida (Void Plum a 55%), e mostra
+a árvore com os cartões de hoje no lugar do arquivo; escolher um arquivo rola até o cartão. Esc, o
+`□` ou um clique fora restauram. Sem JS e na impressão, só os cartões.
 
 ### Section Title (signature)
 `## nome/` em mono 700, seguido opcionalmente de `$ comando` como lead. É a assinatura de
@@ -596,7 +600,7 @@ apaga a sessão. O prompt `viper@portfolio:~$` usa as cores de sempre e o cursor
 posição do cursor de texto; a conclusão única aparece em Dim Lilac depois do texto, e os candidatos
 viram chips tocáveis. Comandos: `help`, `find <seção>`, `open <janela>`, `clear` e `exit`. O `open`
 abre a janela de um projeto (pelo nome em slug: `srg`, `temas-vs-code`…) ou, maximizada, a de
-`experiencia`, `challenges` ou `comunitario`, leva a página até ela e minimiza o terminal. A saída é um
+`experiencia`, `challenges`, `comunitario` ou `educacao`, leva a página até ela e minimiza o terminal. A saída é um
 `role="log"`.
 Com foco, a borda acende em Grape.
 
