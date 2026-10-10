@@ -6,6 +6,7 @@ import DesktopWindow from '@/components/terminal/DesktopWindow.vue'
 import TerminalLine from '@/components/terminal/TerminalLine.vue'
 import TerminalWindow from '@/components/terminal/TerminalWindow.vue'
 import { WINDOW_CONTROLS } from '@/components/terminal/window-controls'
+import { getWindow } from '@/lib/windows'
 
 // Feature 004, US4 (FR-001 a FR-011): janelas que minimizam e fecham como ícones de área de trabalho.
 const terminal = (title: string) => () => h(TerminalWindow, { title }, () => [h(TerminalLine, null, () => 'cat sobre.txt')])
@@ -129,6 +130,55 @@ describe('DesktopWindow', () => {
     } finally {
       document.documentElement.classList.remove('motion')
     }
+  })
+
+  // Feature 007 (research R3): registro de janelas para o comando `open` do terminal da dock.
+  it('com windowId, entra no registro ao montar e sai ao desmontar', async () => {
+    const wrapper = mount(DesktopWindow, { props: { title: 'SRG', kind: 'project', windowId: 'projetos/srg' }, slots: { default: terminal('SRG') } })
+    await nextTick()
+    const handle = getWindow('projetos/srg')!
+    expect(handle.state()).toBe('open')
+    expect(handle.element()).toBe(wrapper.get('.desktop-window').element)
+    wrapper.unmount()
+    expect(getWindow('projetos/srg')).toBeUndefined()
+  })
+
+  it('open({ complete }) reabre uma janela fechada já completa, sem preparar nem repetir a digitação', async () => {
+    const typing = { complete: vi.fn(), replay: vi.fn(), prepare: vi.fn() }
+    const Child = defineComponent({
+      setup() {
+        const controls = inject(WINDOW_CONTROLS)!
+        controls.register(typing)
+        return () => h('button', { class: 'close', onClick: () => controls.close() })
+      },
+    })
+    const wrapper = mount(DesktopWindow, { props: { title: 'X', kind: 'project', windowId: 'x' }, slots: { default: () => h(Child) } })
+    await nextTick()
+    await wrapper.get('button.close').trigger('click')
+    await nextTick()
+    expect(getWindow('x')!.state()).toBe('closed')
+    await getWindow('x')!.open({ complete: true })
+    expect(wrapper.get('.desktop-window').attributes('data-window-state')).toBe('open')
+    expect(typing.prepare).not.toHaveBeenCalled()
+    expect(typing.replay).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+
+  it('open({ onLayout }) chama o onLayout uma vez, com a janela já aberta; aberta, open() não muda nada', async () => {
+    const wrapper = mount(DesktopWindow, { props: { title: 'SRG', kind: 'project', windowId: 'projetos/srg' }, slots: { default: terminal('SRG') } })
+    await nextTick()
+    await wrapper.get('button.t-min').trigger('click')
+    await nextTick()
+    const seen: string[] = []
+    const onLayout = vi.fn(() => seen.push(wrapper.get('.desktop-window').attributes('data-window-state')!))
+    await getWindow('projetos/srg')!.open({ onLayout })
+    expect(onLayout).toHaveBeenCalledTimes(1)
+    expect(seen).toEqual(['open'])
+    const again = vi.fn()
+    await getWindow('projetos/srg')!.open({ onLayout: again })
+    expect(again).not.toHaveBeenCalled()
+    expect(wrapper.get('.desktop-window').attributes('data-window-state')).toBe('open')
+    wrapper.unmount()
   })
 
   it('sem movimento, nenhuma animação (FR-008)', async () => {

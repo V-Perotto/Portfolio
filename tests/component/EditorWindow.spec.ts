@@ -14,7 +14,7 @@ function mountEditor() {
   app.id = 'app'
   document.body.append(app)
   return mount(EditorWindow, {
-    props: { folder },
+    props: { folder, windowId: 'experiencia' },
     slots: {
       cards: () =>
         h(

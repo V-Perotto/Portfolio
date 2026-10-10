@@ -179,6 +179,45 @@ for (const width of [390, 1440]) {
   })
 }
 
+// Feature 007 (T033, SC-010): axe e console sem erros com o terminal da dock minimizado (com sessão) e
+// com a janela de editor maximizada pelo `open`.
+for (const width of [390, 1366]) {
+  test(`a11y: axe com o terminal minimizado e o editor maximizado pelo open em ${width}px (feature 007)`, async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(String(e)))
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text())
+    })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.setViewportSize({ width, height: 900 })
+    await page.goto('./')
+    await enterPortfolio(page)
+    const audit = async (label: string) => {
+      const { violations } = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()
+      const serious = violations
+        .filter((v) => v.impact === 'critical' || v.impact === 'serious')
+        .map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`)
+      expect(serious, label).toEqual([])
+    }
+    const input = page.locator('#dock-terminal-input')
+    await page.locator('.app-dock .dock-btn').click()
+    await input.fill('help')
+    await input.press('Enter')
+    await input.fill('fi')
+    await page.locator('#dock-terminal button.t-min').click()
+    await expect(page.locator('.app-dock .dock-btn')).toHaveAttribute('data-terminal', 'minimized')
+    await audit('terminal minimizado')
+
+    await page.locator('.app-dock .dock-btn').click()
+    await input.fill('open experiencia')
+    await input.press('Enter')
+    await expect(page.locator('.editor-frame.is-maximized')).toHaveCount(1)
+    await audit('editor maximizado pelo open')
+    await page.keyboard.press('Escape')
+    expect(errors).toEqual([])
+  })
+}
+
 // Feature 005 (T038, SC-010): axe e console sem erros na porta de acesso, com a janela aberta e
 // minimizada, depois do acesso e na porta sem movimento.
 for (const reducedMotion of ['no-preference', 'reduce'] as const) {

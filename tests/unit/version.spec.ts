@@ -10,9 +10,9 @@ describe('versão do portfólio', () => {
     expect(__PORTFOLIO_VERSION__).toBe(version)
   })
 
-  it('a sessão exibe maior e menor (nesta feature, v2.5)', () => {
+  it('a sessão exibe maior e menor (nesta feature, v2.6)', () => {
     const [major, minor] = version.split('.')
     expect(displayVersion(__PORTFOLIO_VERSION__)).toBe(`v${major}.${minor}`)
-    expect(displayVersion(__PORTFOLIO_VERSION__)).toBe('v2.5')
+    expect(displayVersion(__PORTFOLIO_VERSION__)).toBe('v2.6')
   })
 })

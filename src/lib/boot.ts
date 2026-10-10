@@ -65,7 +65,7 @@ export const FALLBACK_IP = '127.0.0.1'
 const SESSION_AT = { ssh: 0, connecting: 697, password: 1047, authenticated: 1628, lastLogin: 1838, run: 2118 } as const
 const SPEED = { ssh: 29, password: 38, run: 17 } as const
 
-/** As seis linhas da sessão (FR-013), com o IP, a versão (`v2.5`) e a data de "Last login". */
+/** As seis linhas da sessão (FR-013), com o IP, a versão (`v2.6`) e a data de "Last login". */
 export function sessionLines(ip: string, version: string, lastLogin: string): SessionLine[] {
   return [
     { at: SESSION_AT.ssh, parts: prompt('anon', ip), typed: { text: 'ssh viper@portfolio', speed: SPEED.ssh } },

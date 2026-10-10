@@ -71,12 +71,19 @@ test('help, find com Tab, erros, histórico, clear e exit (V7, SC-002)', async (
   await expect(dock(page)).toBeFocused()
 })
 
-test('Ctrl+Alt+T abre e fecha; ✕ e Esc fecham, com o foco de volta na dock (V7, FR-019)', async ({ page }) => {
+test('Ctrl+Alt+T abre, minimiza e restaura; ✕ e Esc fecham, com o foco de volta na dock (V7, FR-019; 007 FR-016)', async ({ page }) => {
   await page.goto('./')
   await enterPortfolio(page)
   await page.keyboard.press('Control+Alt+KeyT')
   await expect(input(page)).toBeFocused()
+  // feature 007 (Q2): com o terminal aberto, o atalho minimiza (não fecha mais)
   await page.keyboard.press('Control+Alt+KeyT')
+  await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+  await expect(page.locator('#dock-terminal')).toHaveCSS('opacity', '0')
+  await expect(dock(page)).toBeFocused()
+  await page.keyboard.press('Control+Alt+KeyT')
+  await expect(input(page)).toBeFocused()
+  await page.locator('#dock-terminal button.t-close').click()
   await expect(page.locator('#dock-terminal')).toHaveCount(0)
   await expect(dock(page)).toBeFocused()
 
@@ -213,4 +220,163 @@ test.describe('dica do botão da dock (006)', () => {
     await expect(tip(page)).toBeHidden()
     await context.close()
   })
+})
+
+// Feature 007, US2 (quickstart V8–V12; FR-010 a FR-017): o − minimiza o terminal até o botão da dock,
+// guardando a sessão; o botão e o Ctrl+Alt+T minimizam e restauram; ✕, exit e Esc fecham e apagam.
+test.describe('minimizar o terminal da dock (007)', () => {
+  const terminal = (page: Page) => page.locator('#dock-terminal')
+  const body = (page: Page) => page.locator('#dock-terminal .dt-body')
+
+  /**
+   * Comandos rodados, um comando pela metade e a saída rolada até o meio; devolve o scrollTop. O foco no
+   * prompt rola a saída o mínimo para mostrá-lo (o navegador revela o elemento focado), e restaurar põe o
+   * foco no prompt: a posição guardada é a de depois desse foco.
+   */
+  async function session(page: Page): Promise<number> {
+    await open(page)
+    await run(page, 'help')
+    await run(page, 'find sobre')
+    await input(page).fill('fi')
+    return body(page).evaluate((el) => {
+      el.scrollTop = Math.floor((el.scrollHeight - el.clientHeight) / 2)
+      const prompt = document.getElementById('dock-terminal-input')!
+      prompt.blur()
+      prompt.focus()
+      return el.scrollTop
+    })
+  }
+
+  /** Clica no elemento e devolve as durações das animações do terminal no quadro seguinte. */
+  const clickAndTime = (page: Page, selector: string) =>
+    page.evaluate(async (sel) => {
+      document.querySelector<HTMLElement>(sel)!.click()
+      await new Promise((r) => requestAnimationFrame(() => r(null)))
+      const el = document.getElementById('dock-terminal')
+      return el ? el.getAnimations().map((a) => Number(a.effect?.getTiming().duration ?? 0)) : []
+    }, selector)
+
+  test('o − minimiza até a dock: inerte, invisível, ponto vazado e "Restaurar" (V8, FR-010, FR-011, FR-013)', async ({ page }) => {
+    await session(page)
+    const durations = await clickAndTime(page, '#dock-terminal button.t-min')
+    expect(durations.length).toBeGreaterThan(0)
+    for (const d of durations) expect(d).toBeLessThanOrEqual(400)
+    // invisível (opacidade 0, research R5) e inerte: fora do Tab e do leitor de tela
+    await expect(terminal(page)).toHaveCSS('opacity', '0')
+    await expect(terminal(page)).toHaveAttribute('inert', '')
+    await expect(terminal(page)).toHaveClass(/is-minimized/)
+    await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+    await expect(dock(page)).toHaveAttribute('aria-label', 'Restaurar terminal (Ctrl+Alt+T)')
+    await expect(dock(page)).toHaveAttribute('aria-expanded', 'false')
+    await expect(dock(page)).toBeFocused()
+    const dot = await dock(page).evaluate((el) => {
+      const after = getComputedStyle(el, '::after')
+      return { bg: after.backgroundColor, border: after.borderTopColor, width: after.borderTopWidth }
+    })
+    expect(dot).toEqual({ bg: 'rgba(0, 0, 0, 0)', border: 'rgb(74, 222, 155)', width: '1px' })
+  })
+
+  test('restaurar pela dock e pelo atalho devolve a sessão inteira (V9, FR-012, FR-013, SC-004)', async ({ page }) => {
+    const scrollTop = await session(page)
+    const lines = await page.locator('#dock-terminal .dt-line').count()
+    for (const via of ['dock', 'atalho'] as const) {
+      await page.locator('#dock-terminal button.t-min').click()
+      await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+      if (via === 'dock') {
+        const durations = await clickAndTime(page, '.app-dock .dock-btn')
+        for (const d of durations) expect(d).toBeLessThanOrEqual(400)
+      } else {
+        await page.keyboard.press('Control+Alt+KeyT')
+      }
+      await expect(terminal(page)).toHaveCSS('opacity', '1')
+      await expect(terminal(page)).not.toHaveAttribute('inert', /.*/)
+      await expect(dock(page)).toHaveAttribute('data-terminal', 'open')
+      await expect(dock(page)).toHaveAttribute('aria-label', 'Minimizar terminal (Ctrl+Alt+T)')
+      await expect(input(page)).toBeFocused()
+      await expect(page.locator('#dock-terminal .dt-line')).toHaveCount(lines)
+      expect(await body(page).evaluate((el) => el.scrollTop)).toBe(scrollTop)
+      await expect(input(page)).toHaveValue('fi')
+      expect(await input(page).evaluate((el: HTMLInputElement) => el.selectionStart)).toBe(2)
+    }
+    await input(page).press('ArrowUp')
+    await expect(input(page)).toHaveValue('find sobre')
+  })
+
+  test('com o terminal aberto, o clique na dock minimiza (V10, FR-016)', async ({ page }) => {
+    await open(page)
+    await expect(dock(page)).toHaveAttribute('aria-label', 'Minimizar terminal (Ctrl+Alt+T)')
+    await expect(dock(page)).toHaveAttribute('aria-expanded', 'true')
+    await dock(page).click()
+    await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+    await dock(page).click()
+    await expect(dock(page)).toHaveAttribute('data-terminal', 'open')
+  })
+
+  test('exit, ✕ e Esc apagam a sessão; recarregar minimizado começa fechado (V11, FR-014, FR-015)', async ({ page }) => {
+    await open(page)
+    for (const how of ['exit', 'x', 'esc'] as const) {
+      await run(page, 'help')
+      if (how === 'exit') await run(page, 'exit')
+      else if (how === 'x') await page.locator('#dock-terminal button.t-close').click()
+      else await page.keyboard.press('Escape')
+      await expect(terminal(page)).toHaveCount(0)
+      await expect(dock(page)).toHaveAttribute('data-terminal', 'closed')
+      await expect(dock(page)).toHaveAttribute('aria-label', 'Abrir terminal (Ctrl+Alt+T)')
+      await dock(page).click()
+      await expect(input(page)).toBeFocused()
+      await expect(page.locator('#dock-terminal .dt-line')).toHaveCount(0)
+      await input(page).press('ArrowUp')
+      await expect(input(page)).toHaveValue('')
+    }
+    await page.locator('#dock-terminal button.t-min').click()
+    await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+    await page.reload()
+    await enterPortfolio(page)
+    await expect(dock(page)).toHaveAttribute('data-terminal', 'closed')
+    await expect(terminal(page)).toHaveCount(0)
+  })
+
+  test('minimizado: a dica volta; com uma janela maximizada, o atalho não restaura (V12, FR-017)', async ({ page }) => {
+    await open(page)
+    await page.locator('#dock-terminal button.t-min').click()
+    await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+    await page.mouse.move(0, 0)
+    await dock(page).hover()
+    await expect(page.locator('.app-dock .dock-tip')).toBeVisible()
+
+    await page.locator('#experiencia').scrollIntoViewIfNeeded()
+    await page.locator('#experiencia button.t-max').click()
+    await expect(page.locator('.editor-frame.is-maximized')).toBeVisible()
+    await page.keyboard.press('Control+Alt+KeyT')
+    await page.waitForTimeout(300)
+    await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+    await page.keyboard.press('Escape')
+    await expect(page.locator('.editor-frame.is-maximized')).toHaveCount(0)
+  })
+})
+
+test('movimento reduzido: minimizar e restaurar sem animação (V12, FR-011)', async ({ browser }) => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' })
+  await mockIpService(context)
+  const page = await context.newPage()
+  await page.goto('http://localhost:4173/Portfolio/')
+  await enterPortfolio(page)
+  await dock(page).click()
+  await expect(input(page)).toBeFocused()
+  // as animações de movimento do próprio terminal (o FLIP); as transições de cor da borda ao perder o
+  // foco (CSS) não são movimento, e a página tem outras, como os loops das skills
+  const animations = () =>
+    page.evaluate(
+      () =>
+        (document.getElementById('dock-terminal')?.getAnimations() ?? []).filter(
+          (a) => !(a instanceof CSSTransition) && !(a instanceof CSSAnimation),
+        ).length,
+    )
+  await page.locator('#dock-terminal button.t-min').click()
+  expect(await animations()).toBe(0)
+  await expect(dock(page)).toHaveAttribute('data-terminal', 'minimized')
+  await dock(page).click()
+  expect(await animations()).toBe(0)
+  await expect(input(page)).toBeFocused()
+  await context.close()
 })

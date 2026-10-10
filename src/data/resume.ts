@@ -43,7 +43,7 @@ const data = {
       'echo "TypeScript · Vue · PostgreSQL"',
     ],
     staticPhraseIndex: 1,
-    tagline: 'Transformando processos em sistemas escaláveis — de APIs a agentes de IA.',
+    tagline: 'Transformando processos em sistemas escaláveis',
     about: [
       'Analista de Sistemas e Desenvolvedor Fullstack. Experiência sólida no desenvolvimento de sistemas utilizando ',
       { text: 'TypeScript', highlight: 'green' },

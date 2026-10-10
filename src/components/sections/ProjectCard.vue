@@ -7,6 +7,7 @@ import DesktopWindow from '@/components/terminal/DesktopWindow.vue'
 import TerminalLine from '@/components/terminal/TerminalLine.vue'
 import TerminalWindow from '@/components/terminal/TerminalWindow.vue'
 import type { Project, ProjectKind } from '@/types/resume'
+import { projectWindowId } from '@/lib/sections'
 import EvidenceLink from './EvidenceLink.vue'
 
 const props = defineProps<{ project: Project }>()
@@ -23,7 +24,7 @@ const privateCount = computed(() => props.project.evidence.filter((e) => e.priva
 </script>
 
 <template>
-  <DesktopWindow :title="project.name" kind="project">
+  <DesktopWindow :title="project.name" kind="project" :window-id="projectWindowId(project.name)">
     <BaseCard variant="window">
       <TerminalWindow :title="project.name">
         <TerminalLine>{{ project.command }}</TerminalLine>

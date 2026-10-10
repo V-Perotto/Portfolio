@@ -1,6 +1,6 @@
 import { expect, test, type Page } from './support/test'
 import { enterPortfolio } from './support/boot'
-import { contrastRatio, luminanceOf, maxLuminance } from './support/contrast'
+import { haloContrast } from './support/contrast'
 
 // Feature 006, US5: o Lattice Loader na primeira linha do hero (quickstart V19; FR-036 a FR-044,
 // SC-007; contracts/hero-and-gate.md §2).
@@ -103,21 +103,37 @@ test.describe('com movimento', () => {
     })
   }
 
-  for (const phase of ['working', 'done']) {
-    test(`texto do loader com contraste ≥ 4,5:1, ${phase} (FR-037)`, async ({ page }) => {
-      await page.setViewportSize({ width: 1366, height: 800 })
-      await page.goto('./')
-      await enterPortfolio(page)
-      await expect(line(page)).toHaveAttribute('data-loader', phase, { timeout: 6000 })
-      const box = (await page.locator('#home .ll-text[data-active]').boundingBox())!
-      const color = await page.locator('#home .lattice-loader').evaluate((el) => getComputedStyle(el).color)
-      // só o texto fica transparente (a fase segue o relógio, e a linha não pode sumir antes)
-      await page.addStyleTag({ content: '#home .hero-boot .ll-text { color: transparent !important; transition: none !important; }' })
-      for (let frame = 0; frame < 2; frame++) {
-        const [lum] = await maxLuminance(page, [box])
-        expect(contrastRatio(luminanceOf(color), lum!), `${phase}, quadro ${frame}`).toBeGreaterThanOrEqual(4.5)
-      }
-    })
+  // Feature 007 (FR-021, research R7, R8): com a vinheta central original, o texto do loader reprovava
+  // (2,9 e 1,9:1 trabalhando; 3,8:1 em "done" no celular) e ganhou o halo; é medido pela vizinhança dos
+  // traços, 5 quadros por fase (cada fase dura ~3 s), em desktop e celular
+  for (const viewport of [
+    { width: 1366, height: 800 },
+    { width: 390, height: 844 },
+  ]) {
+    for (const phase of ['working', 'done']) {
+      test(`texto do loader com contraste ≥ 4,5:1, ${phase}, ${viewport.width}px (FR-037; 007 FR-021)`, async ({ page }) => {
+        await page.setViewportSize(viewport)
+        await page.goto('./')
+        await enterPortfolio(page)
+        await expect(line(page)).toHaveAttribute('data-loader', phase, { timeout: 6000 })
+        await expect(page.locator('#home .hero-glitch canvas')).toHaveCount(1)
+        // o rótulo da fase pelo próprio elemento (1º: trabalhando; 2º: done): a fase segue o relógio e pode
+        // trocar no meio da medição (a de "trabalhando" dura 3 s, e a linha some 3 s depois do "done");
+        // durante a medição, o rótulo medido fica fixo como na fase dele, e os outros saem
+        const text = `#home .hero-boot .ll-label > .ll-text:nth-child(${phase === 'working' ? 1 : 2})`
+        expect(await page.locator(text).evaluate((el) => el.hasAttribute('data-active'))).toBe(true)
+        expect(await page.locator(text).evaluate((el) => getComputedStyle(el).textShadow)).not.toBe('none')
+        const color = await page.locator('#home .lattice-loader').evaluate((el) => getComputedStyle(el).color)
+        await page.addStyleTag({
+          content:
+            '#home .hero-boot { opacity: 1 !important; visibility: visible !important; transition: none !important; } ' +
+            `${text} { position: static !important; opacity: 1 !important; filter: blur(0) !important; transition: none !important; } ` +
+            `#home .hero-boot .ll-label > .ll-text:not(${text.split(' ').pop()}) { display: none !important; }`,
+        })
+        const ratio = await haloContrast(page, text, color, 5, '#home .hero-boot .ll-grid')
+        expect(ratio, `${phase}, ${viewport.width}px`).toBeGreaterThanOrEqual(4.5)
+      })
+    }
   }
 
   test('fora da tela, a onda pausa e o tempo continua (FR-044)', async ({ page }) => {

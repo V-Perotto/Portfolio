@@ -18,7 +18,7 @@ const expected = (ip: string) => [
   `anon@${ip}:~$ ssh viper@portfolio`,
   'Conectando ao portfolio...',
   'viper@portfolio password: ••••••••',
-  'Autenticado. Bem-vindo ao Portfolio v2.5',
+  'Autenticado. Bem-vindo ao Portfolio v2.6',
   LAST_LOGIN,
   'viper@portfolio:~$ ./iniciar_portfolio.sh',
 ]
@@ -32,7 +32,7 @@ function expectSession(lines: string[], ip: string) {
   expect(lines[4]!.endsWith(`from ${ip}`)).toBe(true)
 }
 
-test('com o serviço respondendo: o IP do visitante nas linhas 1 e 5 e a versão v2.5 (V9, V10, FR-013, FR-014, FR-016)', async ({ page }) => {
+test('com o serviço respondendo: o IP do visitante nas linhas 1 e 5 e a versão v2.6 (V9, V10, FR-013, FR-014, FR-016)', async ({ page }) => {
   await gotoGate(page)
   expectSession(await finalLines(page), TEST_IP)
 })

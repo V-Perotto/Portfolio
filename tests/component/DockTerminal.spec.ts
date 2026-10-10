@@ -3,12 +3,13 @@ import { describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 import DockTerminal from '@/components/dock/DockTerminal.vue'
 import { resume } from '@/data/resume'
-import { visibleSections } from '@/lib/sections'
+import { openTargets, visibleSections } from '@/lib/sections'
 
 // Feature 004, US2 (FR-019 a FR-025): o terminal da dock com o motor de src/lib/terminal.ts.
 const sections = visibleSections(resume)
 
-const setup = () => mount(DockTerminal, { props: { sections }, attachTo: document.body })
+const targets = openTargets(resume)
+const setup = () => mount(DockTerminal, { props: { sections, targets }, attachTo: document.body })
 
 async function typeLine(wrapper: VueWrapper, text: string) {
   const input = wrapper.get('input')
@@ -27,8 +28,19 @@ describe('DockTerminal', () => {
     expect(wrapper.get('[role="log"]').attributes('aria-live')).toBe('polite')
     expect(wrapper.get('label[for="dock-terminal-input"]').text()).toBe('Comando')
     expect(wrapper.get('button.t-close').attributes('aria-label')).toBe('Fechar terminal')
-    // o − do terminal não minimiza (só o ✕ funciona)
-    expect(wrapper.find('button.t-min').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  // Feature 007 (FR-010): o − minimiza; o □ continua desativado e o ✕ continua fechando.
+  it('o − é um botão "Minimizar terminal" que emite minimize', async () => {
+    const wrapper = setup()
+    const min = wrapper.get('button.t-min')
+    expect(min.attributes('aria-label')).toBe('Minimizar terminal')
+    await min.trigger('click')
+    expect(wrapper.emitted('minimize')).toHaveLength(1)
+    expect(wrapper.emitted('close')).toBeUndefined()
+    expect(wrapper.get('.t-max').classes()).toContain('t-btn--disabled')
+    expect(wrapper.find('button.t-max').exists()).toBe(false)
     wrapper.unmount()
   })
 
@@ -84,6 +96,33 @@ describe('DockTerminal', () => {
     expect(wrapper.emitted('close')).toBeUndefined()
     expect(document.activeElement).toBe(input)
     expect(wrapper.get('[role="log"]').text()).toContain('→ ~/sobre')
+    wrapper.unmount()
+  })
+
+  // Feature 007 (FR-001, FR-006, FR-008): o comando open.
+  it('open <projeto> escreve o caminho e emite open com o alvo', async () => {
+    const wrapper = setup()
+    await typeLine(wrapper, 'open italiami')
+    await press(wrapper, 'Enter')
+    expect(wrapper.get('[role="log"]').text()).toContain('→ ~/projetos/italiami')
+    expect(wrapper.emitted('open')).toEqual([[targets.find((t) => t.name === 'italiami')]])
+    wrapper.unmount()
+  })
+
+  it('open de uma seção que ele não abre sugere o find e não emite', async () => {
+    const wrapper = setup()
+    await typeLine(wrapper, 'open sobre')
+    await press(wrapper, 'Enter')
+    expect(wrapper.get('[role="log"]').text()).toContain(`open: 'sobre': essa seção não abre com o open. Use: find sobre`)
+    expect(wrapper.emitted('open')).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('Tab completa a opção do open', async () => {
+    const wrapper = setup()
+    await typeLine(wrapper, 'open it')
+    await press(wrapper, 'Tab')
+    expect((wrapper.get('input').element as HTMLInputElement).value).toBe('open italiami')
     wrapper.unmount()
   })
 

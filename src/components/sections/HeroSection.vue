@@ -17,6 +17,10 @@ defineProps<{ profile: Profile }>()
  * quando dá): não depende de WebGL. As vinhetas do próprio Letter Glitch são as únicas (a penumbra sob o
  * texto saiu, FR-032). Sem JS ou com "reduzir movimento" (inclusive ligado no meio da visita), o fundo
  * são os degradês estáticos do .hero.
+ *
+ * Feature 007 (FR-018 a FR-021, research R7): a vinheta central voltou à do componente; com o fundo
+ * animado (`data-glitch`), a tagline e o texto do loader, que reprovam sem ajuda, ganham o halo
+ * (`--hero-halo`), e o `ping vittorio` ganha fundo opaco (o translúcido deixava o glitch atrás do rótulo).
  */
 const HeroGlitch = defineAsyncComponent(() => import('@/components/terminal/HeroGlitch.vue'))
 const motion = useMotion()
@@ -27,7 +31,7 @@ const heroBackgroundReady = computed(() => !motion.value || glitchReady.value)
 </script>
 
 <template>
-  <header id="home" class="hero">
+  <header id="home" class="hero" :data-glitch="motion && bootDone ? '' : undefined">
     <HeroGlitch v-if="motion && bootDone" @ready="glitchReady = true" />
     <div class="hero-content">
       <!-- Lattice Loader no lugar do "[ OK ] Inicializando portfolio.service ..." (feature 006, FR-036) -->
@@ -137,6 +141,17 @@ const heroBackgroundReady = computed(() => !motion.value || glitchReady.value)
   color: var(--on-accent);
   box-shadow: 0 0 22px color-mix(in srgb, var(--green-light) 50%, transparent);
   transform: translateY(-2px);
+}
+
+/* sobre o Letter Glitch (feature 007, FR-021, research R7): halo nos textos que reprovam sem ele e fundo
+   opaco no `ping vittorio`, a mesma cor que ele tem sobre o fundo liso (rótulo em 11:1) */
+.hero[data-glitch] .hero-sub,
+.hero[data-glitch] :deep(.ll-text) {
+  text-shadow: var(--hero-halo);
+}
+
+.hero[data-glitch] .btn-ghost:not(:hover) {
+  background: color-mix(in srgb, var(--green) 12%, var(--bg));
 }
 
 /* --text, e não --text-dim: perto da borda de baixo, a vinheta central do Letter Glitch não chega, e o

@@ -19,7 +19,7 @@ const folder = computed(() => experienceFolder(props.experiences))
 
 <template>
   <SectionShell id="experiencia" title="experiencia" lead="git log --carreira --reverse=false">
-    <EditorWindow v-reveal :folder="folder">
+    <EditorWindow v-reveal :folder="folder" window-id="experiencia">
       <template #cards>
         <ol class="timeline">
           <li v-for="exp in ordered" :key="exp.id" class="timeline-item" :data-card-id="exp.id">

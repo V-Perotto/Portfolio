@@ -9,7 +9,8 @@ import { Maximize2, Minimize2, Minus, X } from '@lucide/vue'
  * - `decorative` (padrão): os três controles são desenho, num contêiner `aria-hidden` — é o HTML
  *   pré-renderizado, e o que fica sem JavaScript (FR-009).
  * - `functional`: `−` e `✕` viram botões com nome acessível que inclui o título (FR-001). Com
- *   `minimizable: false` (terminal da dock), só o `✕` funciona.
+ *   `minimizable: false`, só o `✕` funciona. O terminal da dock minimiza desde a feature 007, com nomes
+ *   próprios (`minimizeLabel`, `closeLabel`), porque o título dele é o prompt.
  *
  * O `□` (feature 006, FR-013, FR-025, research R9) tem três modos: `none` não existe (a porta de
  * acesso); `disabled` é desenho com aparência de desativado, sem hover (as janelas que não maximizam);
@@ -26,10 +27,12 @@ const props = withDefaults(
     maximize?: MaximizeMode
     /** Janela maximizada: o `□` vira "Restaurar". */
     maximized?: boolean
+    /** Nome acessível do −; padrão "Minimizar <título>". */
+    minimizeLabel?: string
     /** Nome acessível do ✕; padrão "Fechar <título>". */
     closeLabel?: string
   }>(),
-  { controls: 'decorative', minimizable: true, maximize: 'disabled', maximized: false, closeLabel: undefined },
+  { controls: 'decorative', minimizable: true, maximize: 'disabled', maximized: false, minimizeLabel: undefined, closeLabel: undefined },
 )
 
 const emit = defineEmits<{ minimize: []; maximize: []; close: [] }>()
@@ -48,7 +51,7 @@ const emit = defineEmits<{ minimize: []; maximize: []; close: [] }>()
         v-if="props.minimizable"
         type="button"
         class="t-btn t-min"
-        :aria-label="`Minimizar ${props.title}`"
+        :aria-label="props.minimizeLabel ?? `Minimizar ${props.title}`"
         @click="emit('minimize')"
       >
         <Minus class="t-icon" :size="12" :stroke-width="2.5" aria-hidden="true" />

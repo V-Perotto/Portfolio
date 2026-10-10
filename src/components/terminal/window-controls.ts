@@ -14,6 +14,11 @@ export interface WindowControls {
   register(typing: TerminalTyping): void
   /** Só nas janelas de editor (feature 006, FR-013): o `□` maximiza e restaura. */
   maximize?: { active: Readonly<Ref<boolean>>; toggle(): void }
+  /**
+   * Feature 007 (research R3): o `EditorFrame` entrega o seu maximizar ao `DesktopWindow`, que o põe no
+   * registro de janelas (`src/lib/windows.ts`) para o comando `open` do terminal da dock.
+   */
+  exposeMaximize?(fn: () => Promise<void>): void
 }
 
 export const WINDOW_CONTROLS: InjectionKey<WindowControls> = Symbol('window-controls')

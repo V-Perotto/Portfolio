@@ -156,7 +156,7 @@ describe('AccessGate', () => {
     await flush(OPEN_MS + SESSION_MS - 100)
     expect(document.querySelector('.gate-session .boot-line')?.textContent).toContain('anon@203.0.113.7')
     expect(document.querySelectorAll('.gate-session .boot-line')[4]?.textContent).toMatch(/from 203\.0\.113\.7$/)
-    expect(document.querySelectorAll('.gate-session .boot-line')[3]?.textContent).toContain('Bem-vindo ao Portfolio v2.5')
+    expect(document.querySelectorAll('.gate-session .boot-line')[3]?.textContent).toContain('Bem-vindo ao Portfolio v2.6')
   })
 
   it('sem resposta do serviço, a sessão usa 127.0.0.1', async () => {

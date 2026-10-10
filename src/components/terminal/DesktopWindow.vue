@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { nextTick, onMounted, provide, readonly, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, provide, readonly, ref } from 'vue'
 import type { TerminalTyping } from '@/composables/useTerminalTyping'
 import DesktopIcon, { type DesktopIconKind } from '@/components/base/DesktopIcon.vue'
 import { canAnimate, finishAll, FLIP_EASING, FLIP_MS, toward } from '@/lib/flip'
+import { registerWindow, type OpenOptions } from '@/lib/windows'
 import { WINDOW_CONTROLS } from './window-controls'
 
 /**
@@ -19,10 +20,13 @@ import { WINDOW_CONTROLS } from './window-controls'
  *   caixa (feature 005); sem movimento, a troca é direta (FR-008). O ícone é o `DesktopIcon`.
  * - Sem JavaScript, nada disto existe: a janela fica aberta e os controles são desenho (FR-009). Toda
  *   visita começa com as janelas abertas (FR-010); na impressão, saem abertas (FR-011).
+ * - Com `windowId` (feature 007, research R3), a janela entra no registro de `src/lib/windows.ts`, e o
+ *   comando `open` do terminal da dock a reabre (`open({ complete, onLayout })`) e, nas janelas de
+ *   editor, a maximiza (o `EditorFrame` entrega o maximizar por `exposeMaximize`).
  */
 type WindowState = 'open' | 'minimized' | 'closed'
 
-const props = defineProps<{ title: string; kind: DesktopIconKind }>()
+const props = defineProps<{ title: string; kind: DesktopIconKind; windowId?: string }>()
 
 const state = ref<WindowState>('open')
 const mounted = ref(false)
@@ -35,6 +39,8 @@ const icon = ref<InstanceType<typeof DesktopIcon> | null>(null)
 let typing: TerminalTyping | null = null
 let replayOnOpen = false
 let running: Animation[] = []
+let maximizer: (() => Promise<void>) | null = null
+let unregister: (() => void) | null = null
 
 function finishRunning() {
   const current = running
@@ -92,10 +98,16 @@ async function hide(next: 'minimized' | 'closed') {
   win.style.width = ''
 }
 
-async function open() {
+/**
+ * Reabre a partir do ícone. `complete`: uma janela fechada volta já completa, sem digitar de novo (o
+ * `hide()` completou a digitação). `instant`: sem crescer (o `open` do terminal maximiza em seguida).
+ * `onLayout`: chamado com a janela de volta no layout, antes da animação (o `open` do terminal rola a
+ * página até ela ali, já com a posição final).
+ */
+async function open(options: OpenOptions = {}) {
   finishRunning()
   if (state.value === 'open') return
-  const replay = replayOnOpen
+  const replay = replayOnOpen && !options.complete
   replayOnOpen = false
   // fechada: esconde comandos e saídas antes de a janela aparecer (ela cresce vazia, FR-023 da 006)
   if (replay) typing?.prepare()
@@ -103,13 +115,15 @@ async function open() {
   const box = root.value
   const square = icon.value?.square
   const after = () => {
-    frame.value?.querySelector<HTMLButtonElement>('button.t-min')?.focus()
+    // sem rolar: a janela já está na tela, e o `open` do terminal pode estar rolando a página até ela
+    frame.value?.querySelector<HTMLButtonElement>('button.t-min')?.focus({ preventScroll: true })
     // depois do foco: o foco dentro da janela completaria a digitação (feature 002)
     if (replay) typing?.replay()
   }
-  if (!canAnimate() || !box || !square || !frame.value) {
+  if (options.instant || !canAnimate() || !box || !square || !frame.value) {
     state.value = 'open'
     await nextTick()
+    options.onLayout?.()
     return after()
   }
 
@@ -117,6 +131,7 @@ async function open() {
   const startHeight = box.offsetHeight
   state.value = 'open'
   await nextTick()
+  options.onLayout?.()
   const win = frame.value
   const last = win.getBoundingClientRect()
   const endHeight = box.offsetHeight
@@ -141,11 +156,24 @@ provide(WINDOW_CONTROLS, {
   register: (t) => {
     typing = t
   },
+  exposeMaximize: (fn) => {
+    maximizer = fn
+  },
 })
 
 onMounted(() => {
   mounted.value = true
+  if (!props.windowId) return
+  unregister = registerWindow(props.windowId, {
+    state: () => state.value,
+    element: () => root.value,
+    open: (options) => open(options),
+    // lido na hora da chamada: o EditorFrame entrega o maximizar na montagem dele
+    maximize: () => maximizer?.() ?? Promise.resolve(),
+  })
 })
+
+onBeforeUnmount(() => unregister?.())
 </script>
 
 <template>
@@ -159,7 +187,7 @@ onMounted(() => {
       ref="icon"
       :title="props.title"
       :kind="props.kind"
-      @click="open"
+      @click="open()"
     />
   </div>
 </template>

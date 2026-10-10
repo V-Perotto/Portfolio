@@ -14,12 +14,14 @@ import Scanlines from '@/components/terminal/Scanlines.vue'
 import { useHashAnchor } from '@/composables/useHashAnchor'
 import { useHeadFromResume } from '@/composables/useHeadFromResume'
 import { resume } from '@/data/resume'
-import { visibleSections } from '@/lib/sections'
+import { openTargets, visibleSections } from '@/lib/sections'
 
 useHeadFromResume()
 useHashAnchor()
 
 const sections = visibleSections(resume)
+// alvos do comando `open` do terminal da dock (feature 007)
+const targets = openTargets(resume)
 const shows = (id: string) => sections.some((s) => s.id === id)
 </script>
 
@@ -37,5 +39,5 @@ const shows = (id: string) => sections.some((s) => s.id === id)
     <ContactSection v-if="shows('contato')" :contacts="resume.contacts" />
   </main>
   <AppFooter />
-  <AppDock :sections="sections" />
+  <AppDock :sections="sections" :targets="targets" />
 </template>

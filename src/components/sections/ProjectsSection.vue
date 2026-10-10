@@ -31,7 +31,7 @@ const communityFiles = computed(() => communityFolder(props.community))
       </li>
     </ul>
     <SectionSubpart v-if="challenges.length" title="challenges" lead="ls -lt ~/projetos/challenges">
-      <EditorWindow v-reveal :folder="challengeFiles">
+      <EditorWindow v-reveal :folder="challengeFiles" window-id="challenges">
         <template #cards>
           <ol class="subpart-list">
             <li v-for="challenge in orderedChallenges" :key="challenge.id" :data-card-id="challenge.id">
@@ -42,7 +42,7 @@ const communityFiles = computed(() => communityFolder(props.community))
       </EditorWindow>
     </SectionSubpart>
     <SectionSubpart v-if="community.length" title="comunitario" lead="cat ~/projetos/comunitario/*.md">
-      <EditorWindow v-reveal :folder="communityFiles">
+      <EditorWindow v-reveal :folder="communityFiles" window-id="comunitario">
         <template #cards>
           <ul class="subpart-list">
             <li v-for="item in community" :key="item.id" :data-card-id="item.id">

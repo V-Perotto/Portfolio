@@ -2,8 +2,8 @@
 import { computed, nextTick, ref } from 'vue'
 import PromptLogo from '@/components/terminal/PromptLogo.vue'
 import TerminalBar from '@/components/terminal/TerminalBar.vue'
-import type { NavSection, SectionId } from '@/lib/sections'
-import { complete, completeWith, run } from '@/lib/terminal'
+import type { NavSection, OpenTarget, SectionId } from '@/lib/sections'
+import { complete, completeWith, run, type TerminalContext } from '@/lib/terminal'
 
 /**
  * Janela do terminal da dock (feature 004, FR-019 a FR-025, research R7; contrato em
@@ -13,9 +13,16 @@ import { complete, completeWith, run } from '@/lib/terminal'
  * O prompt é um <input> de verdade (edição, colar, seleção e teclado virtual nativos), com o cursor
  * nativo escondido; o bloco `▊` e o texto fantasma da conclusão são desenhados por cima, na posição
  * do cursor (fonte monoespaçada: 1 caractere = 1ch).
+ *
+ * Feature 007 (FR-010 a FR-012, research R5): o `−` minimiza. Minimizado, o componente continua montado
+ * (o `AppDock` só o esconde), então a sessão (saída, histórico, prompt, rolagem) fica onde está; fechar
+ * desmonta e apaga tudo.
  */
-const props = defineProps<{ sections: readonly NavSection[] }>()
-const emit = defineEmits<{ close: []; goto: [id: SectionId] }>()
+const props = withDefaults(defineProps<{ sections: readonly NavSection[]; targets?: readonly OpenTarget[] }>(), { targets: () => [] })
+const emit = defineEmits<{ close: []; minimize: []; goto: [id: SectionId]; open: [target: OpenTarget] }>()
+
+/** As seções do `find` e os alvos do `open` (feature 007). */
+const ctx = computed<TerminalContext>(() => ({ sections: props.sections, targets: props.targets }))
 
 interface Line {
   kind: 'cmd' | 'out'
@@ -35,7 +42,7 @@ let historyIndex = 0
 /** O que estava sendo digitado antes de percorrer o histórico. */
 let draft = ''
 
-const completion = computed(() => complete(value.value, props.sections))
+const completion = computed(() => complete(value.value, ctx.value))
 /** O que falta da conclusão única, mostrado em cinza depois do texto (Tab ou → aceitam). */
 const ghost = computed(() => {
   const { line, candidates } = completion.value
@@ -78,13 +85,14 @@ function execute() {
   if (line.trim()) history.push(line)
   historyIndex = history.length
   draft = ''
-  const { output, action } = run(line, props.sections)
+  const { output, action } = run(line, ctx.value)
   if (action.type === 'clear') lines.value = []
   lines.value.push(...output.map((text) => ({ kind: 'out' as const, text })))
   setValue('')
   scrollLogToEnd()
   if (action.type === 'exit') emit('close')
   else if (action.type === 'goto') emit('goto', action.id)
+  else if (action.type === 'open') emit('open', action.target)
 }
 
 function onTab() {
@@ -143,8 +151,9 @@ defineExpose({
     <TerminalBar
       title="viper@portfolio: ~"
       controls="functional"
-      :minimizable="false"
+      minimize-label="Minimizar terminal"
       close-label="Fechar terminal"
+      @minimize="emit('minimize')"
       @close="emit('close')"
     />
     <div ref="log" class="dt-body mono">
@@ -196,7 +205,9 @@ defineExpose({
 .dock-terminal {
   display: flex;
   flex-direction: column;
-  max-height: min(60svh, 28rem);
+  /* 50svh (e não 60svh, da 004): com o bloco do `open` no `help` (feature 007), o terminal chega à altura
+     máxima e, numa tela de 720px, cobria o título da seção que o `find` acabou de mostrar (004 FR-022) */
+  max-height: min(50svh, 28rem);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-window);

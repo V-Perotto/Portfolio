@@ -106,18 +106,28 @@
   --maximize-scrim: color-mix(in srgb, var(--bg) 55%, transparent);
   --maximize-blur: 6px;
 
-  /* Letter Glitch do hero (FR-030 a FR-032, research R12): as três "glitch colors" do componente
-     trocadas pelas do tema (uma escura e duas de destaque), a intensidade das letras e as duas
-     vinhetas. A vinheta das bordas é a do componente; a central é mais escura e maior que a do padrão
-     (0,8 → 0 aos 60%), calibrada junto com --glitch-alpha pela medição por pixel (clarify): o pior
-     texto do hero fica em 5,4:1 (a tagline), em 1366 e 390px, e as letras continuam visíveis no anel
-     fora do bloco de texto */
+  /* Letter Glitch do hero (006 FR-030 a FR-032, research R12 da 006): as três "glitch colors" do
+     componente trocadas pelas do tema (uma escura e duas de destaque), a intensidade das letras e as duas
+     vinhetas, ambas as do componente. A central voltou à original na feature 007 (FR-018: preto 80% →
+     transparente aos 60%; a calibrada da 006, mais escura e maior, foi recusada pelo autor), e o
+     contraste do texto passou a vir do --hero-halo e do fundo opaco do `ping vittorio` (research R7) */
   --glitch-dark: var(--green);
   --glitch-green: var(--green-bright);
   --glitch-purple: var(--purple-glow);
   --glitch-alpha: 0.55;
-  --glitch-vignette-center: radial-gradient(circle, rgb(0 0 0 / 0.96) 0%, rgb(0 0 0 / 0.9) 40%, transparent 80%);
+  --glitch-vignette-center: radial-gradient(circle, rgb(0 0 0 / 0.8) 0%, transparent 60%);
   --glitch-vignette-outer: radial-gradient(circle, transparent 60%, #000 100%);
+  /* halo dos textos do hero que reprovam sem ele sobre o Letter Glitch (feature 007, FR-021, research
+     R7; Q3 e Q5): a tagline e o texto do loader. Um contorno preto sólido de 2 px (as sombras sem
+     desfoque em todos os deslocamentos inteiros de até 2 px) e um esfumado curto por fora. Medido na
+     tagline, na vizinhança de 2 px dos traços: 2,3–2,8:1 sem halo → 4,9 (1366px) e 5,2 (390px). Um halo
+     só esfumado não passa (os traços da Iosevka têm ~1,5 px) */
+  --hero-halo:
+    0 0 0 #000, -1px -1px 0 #000, 0px -1px 0 #000, 1px -1px 0 #000, -1px 0px 0 #000, 1px 0px 0 #000,
+    -1px 1px 0 #000, 0px 1px 0 #000, 1px 1px 0 #000, -2px -2px 0 #000, -1px -2px 0 #000,
+    0px -2px 0 #000, 1px -2px 0 #000, 2px -2px 0 #000, -2px -1px 0 #000, 2px -1px 0 #000,
+    -2px 0px 0 #000, 2px 0px 0 #000, -2px 1px 0 #000, 2px 1px 0 #000, -2px 2px 0 #000, -1px 2px 0 #000,
+    0px 2px 0 #000, 1px 2px 0 #000, 2px 2px 0 #000, 0 0 4px #000, 0 0 8px rgb(0 0 0 / 0.8);
 
   /* vinheta sob o nome do ícone e a dica da porta de acesso, no desenho da vinheta central do Letter
      Glitch (FR-035, research R14; no lugar da penumbra --boot-panel da 005, sólida a 92% até 70%):
@@ -155,6 +165,7 @@
     --gate-vignette: none;
     --glitch-vignette-center: none;
     --glitch-vignette-outer: none;
+    --hero-halo: none;
   }
 }
 

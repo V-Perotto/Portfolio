@@ -8,12 +8,13 @@ import EditorFrame from './EditorFrame.vue'
  * R1): uma janela de área de trabalho (minimiza e fecha até o ícone de pasta de código, 004) com o
  * editor dentro. O editor fica num componente à parte (`EditorFrame`) porque ele recebe os controles
  * do `DesktopWindow` e os repassa ao terminal com o maximizar (um `provide` daqui não chegaria ao slot).
+ * O `windowId` (feature 007) registra a janela para o comando `open` do terminal da dock.
  */
-defineProps<{ folder: EditorFolder }>()
+defineProps<{ folder: EditorFolder; windowId: string }>()
 </script>
 
 <template>
-  <DesktopWindow class="editor-window" :title="folder.path" kind="project" :data-editor="folder.label">
+  <DesktopWindow class="editor-window" :title="folder.path" kind="project" :window-id="windowId" :data-editor="folder.label">
     <EditorFrame :folder="folder">
       <template #cards><slot name="cards" /></template>
     </EditorFrame>

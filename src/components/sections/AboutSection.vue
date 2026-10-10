@@ -15,7 +15,7 @@ defineProps<{ profile: Profile }>()
       <div class="about-window">
         <TerminalWindow title="sobre.txt">
           <TerminalLine>cat sobre.txt</TerminalLine>
-          <TerminalLine output><RichText :value="profile.about" /></TerminalLine>
+          <TerminalLine output class="about-text"><RichText :value="profile.about" /></TerminalLine>
           <TerminalLine>whois vittorio --info</TerminalLine>
           <ul class="badges">
             <li v-for="attr in profile.attributes" :key="attr.label" class="badge">
@@ -43,6 +43,10 @@ defineProps<{ profile: Profile }>()
   border-color: var(--purple-light);
   box-shadow: 0 8px 40px color-mix(in srgb, var(--shadow) 50%, transparent), 0 0 24px color-mix(in srgb, var(--purple-light) 25%, transparent);
 }
+
+/* o texto do `cat sobre.txt` na cor padrão de escrita, como a descrição das janelas de projeto (feature
+   007, FR-022); as linhas de comando continuam em Dim Lilac (003 FR-004) e os destaques, em verde */
+.about-window .about-text { color: var(--text); }
 
 .badges {
   display: flex;

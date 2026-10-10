@@ -146,7 +146,11 @@ provide(WINDOW_CONTROLS, {
   minimize: () => void restore(false).then(() => parent?.minimize()),
   close: () => void restore(false).then(() => parent?.close()),
   maximize: { active: readonly(maximized), toggle: () => void toggle() },
+  exposeMaximize: parent?.exposeMaximize,
 })
+
+// o comando `open` do terminal da dock maximiza esta janela pelo registro do DesktopWindow (feature 007)
+parent?.exposeMaximize?.(() => maximize())
 
 /** Maximizada, rola a lista até o cartão do item, se o título dele não estiver à vista (FR-016). */
 function revealCard(id: string, glide = true) {
@@ -226,7 +230,15 @@ onBeforeUnmount(() => {
                     </ol>
                   </article>
                 </div>
-                <div ref="cards" class="editor-cards">
+                <!-- maximizada, a lista rola por dentro: vira uma região focável, para rolar pelo teclado mesmo
+                     quando os cartões não têm links (Experiência; axe scrollable-region-focusable, feature 007) -->
+                <div
+                  ref="cards"
+                  class="editor-cards"
+                  :tabindex="maximized ? 0 : undefined"
+                  :role="maximized ? 'region' : undefined"
+                  :aria-label="maximized ? `Cartões de ${folder.path}` : undefined"
+                >
                   <slot name="cards" />
                 </div>
               </div>
