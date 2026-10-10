@@ -244,8 +244,14 @@ for (const reducedMotion of ['no-preference', 'reduce'] as const) {
     if (reducedMotion === 'no-preference') {
       await page.locator('.gate-icon').click()
       await expect(page.locator('.gate-window')).toBeVisible()
+      // depois da animação de crescer (320 ms, a opacidade sai de 0): no meio dela, a janela semitransparente
+      // reprova o contraste, e no CI, mais lento, o axe chegou a pegá-la assim (run 38025559948)
+      await page.locator('.gate-window').evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished.catch(() => undefined))))
       await audit('janela aberta', '.access-gate')
-      await page.locator('.gate-window button.t-min').click()
+      // sob carga, a sessão (~2,7 s do clique) pode terminar durante a auditoria: aí a porta já se abriu
+      // sozinha e não há o que minimizar (a mesma tolerância da auditoria da minimizada, abaixo)
+      const minimize = page.locator('.access-gate[data-gate-state="open"] .gate-window button.t-min')
+      if (await minimize.count()) await minimize.click({ timeout: 2000 }).catch(() => undefined)
       // depois da animação de encolher (a janela semitransparente reprovaria o contraste no meio dela);
       // minimizada, a sessão segue e termina sozinha (~2,7 s do clique): sob carga, pode acabar antes
       await expect(page.locator('.gate-window')).toBeHidden()
