@@ -51,7 +51,7 @@ describe('DockTerminal', () => {
     const log = wrapper.get('[role="log"]').text()
     expect(log).toContain('help')
     expect(log).toContain('find <OPTIONS>')
-    expect(log).toContain('OPTIONS: sobre | experiencia | skills | projetos | educacao | contato')
+    expect(log).toContain('OPTIONS: sobre | experiencia | skills | projetos | educacao | certificados | contato')
     expect((wrapper.get('input').element as HTMLInputElement).value).toBe('')
     wrapper.unmount()
   })

@@ -7,10 +7,10 @@ import { complete, completeWith, normalizeOption, run, type TerminalContext } fr
 // motor recebe um contexto com as seções e os alvos do `open`.
 const sections = visibleSections(resume)
 const ctx: TerminalContext = { sections, targets: openTargets(resume) }
-const OPTIONS = 'OPTIONS: sobre | experiencia | skills | projetos | educacao | contato'
+const OPTIONS = 'OPTIONS: sobre | experiencia | skills | projetos | educacao | certificados | contato'
 const HINT = 'Digite help para ver os comandos.'
 const OPEN_OPTIONS =
-  'OPTIONS: experiencia | srg | debianserver | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao'
+  'OPTIONS: experiencia | srg | debianserver | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao | certificados'
 
 describe('run', () => {
   it('linha vazia: nada', () => {
@@ -33,7 +33,7 @@ describe('run', () => {
       '  exemplo: find projetos',
       '',
       'open <OPTIONS>',
-      '  projetos abrem; experiencia, challenges, comunitario e educacao abrem maximizados',
+      '  projetos abrem; experiencia, challenges, comunitario, educacao e certificados abrem maximizados',
       `  ${OPEN_OPTIONS}`,
       '  exemplo: open srg',
       '',
@@ -60,6 +60,8 @@ describe('run', () => {
   it('find <seção> leva à seção', () => {
     expect(run('find projetos', ctx)).toEqual({ output: ['→ ~/projetos'], action: { type: 'goto', id: 'projetos' } })
     expect(run('find contato', ctx).action).toEqual({ type: 'goto', id: 'contato' })
+    // feature 010 (FR-023): a seção Certificados
+    expect(run('find certificados', ctx)).toEqual({ output: ['→ ~/certificados'], action: { type: 'goto', id: 'certificados' } })
   })
 
   it.each(['Experiência', '~/experiencia', '/experiencia', 'EXPERIENCIA/'])('find %s é normalizado', (arg) => {
@@ -147,6 +149,9 @@ describe('open', () => {
     // feature 009 (FR-023): o DebianServer, pelo nome exibido ou pelo apelido
     ['DebianServer', 'debianserver', '→ ~/projetos/debianserver'],
     ['projetos/debianserver', 'debianserver', '→ ~/projetos/debianserver'],
+    // feature 010 (FR-022): os Certificados
+    ['Certificados', 'certificados', '→ ~/certificados'],
+    ['~/certificados/', 'certificados', '→ ~/certificados'],
   ])('open %s é normalizado (nome ou apelido)', (arg, name, out) => {
     expect(run(`open ${arg}`, ctx)).toEqual({ output: [out], action: { type: 'open', target: target(name) } })
   })
@@ -181,9 +186,11 @@ describe('open', () => {
   it('Tab completa o comando e as opções do open', () => {
     expect(complete('o', ctx)).toEqual({ line: 'open ', candidates: ['open'] })
     expect(complete('open it', ctx)).toEqual({ line: 'open italiami', candidates: ['italiami'] })
-    expect(complete('open c', ctx)).toEqual({ line: 'open c', candidates: ['challenges', 'comunitario'] })
+    expect(complete('open c', ctx)).toEqual({ line: 'open c', candidates: ['challenges', 'comunitario', 'certificados'] })
     expect(complete('open qc', ctx)).toEqual({ line: 'open qclass-bot', candidates: ['qclass-bot'] })
-    expect(complete('open ', ctx).candidates).toHaveLength(11)
+    expect(complete('open ', ctx).candidates).toHaveLength(12)
+    // feature 010: só os Certificados começam com "cert"
+    expect(complete('open cert', ctx)).toEqual({ line: 'open certificados', candidates: ['certificados'] })
     // feature 009: só o DebianServer começa com "deb"
     expect(complete('open deb', ctx)).toEqual({ line: 'open debianserver', candidates: ['debianserver'] })
     expect(complete('open ed', ctx)).toEqual({ line: 'open educacao', candidates: ['educacao'] })

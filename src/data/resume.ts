@@ -37,10 +37,34 @@
  * - Formação: `note` (observação) e `sources` (links de fonte) são opcionais. `id` é um slug curto
  *   e único (minúsculas, sem acento, com hífen), que vira o nome do arquivo `AAAA_<id>.yml` na janela
  *   `~/formacao` (ex.: `2025_ciberseguranca.yml`); o nome inteiro tem no máximo 31 caracteres.
+ * - Foto de experiência (feature 010): `photo` com a legenda sem a data (`caption`) e o dia (`taken`,
+ *   'AAAA-MM-DD'); a legenda exibida é `# 1º dia na Prime Control · 15 OUT 2020`. As versões publicadas
+ *   (`public/carreira/…`) saem de `node tools/build-certificates.mjs`, que desfoca os rostos de terceiros.
+ * - Certificados (feature 010): `certificatePlatforms` na ordem das pastas da janela `~/certificados`.
+ *   Certificado novo: `id` (slug curto, minúsculas, sem acento, com hífen, até 20 caracteres, único na
+ *   plataforma: vira `AAAA-MM-DD_<id>.yml`), `title` exatamente como impresso, `issued` 'AAAA-MM-DD',
+ *   `hours`, e `kind`/`syllabus` só quando o certificado os traz. `verification`: `{ url }` quando o
+ *   endereço impresso ainda abre o certificado (com `code`, o código vira o texto do link), `{ code }`
+ *   quando não abre. Plataforma nova: `id` (a pasta), `name` e `image` (tamanho real das imagens).
+ *   Depois, acrescente a origem no manifesto de tools/build-certificates.mjs e rode o script: ele gera a
+ *   miniatura (640 px) e o tamanho real em `public/certificados/<plataforma>/`.
+ * - Privacidade (feature 010): nenhum dado de documento (RG, CPF, data de nascimento, naturalidade) em
+ *   texto nem em imagem; as tarjas pretas são aplicadas pelo script, na imagem. O código de um
+ *   certificado que leva aos documentos no site do emissor não é publicado (sem `verification`).
  * - Campo obrigatório faltando ou com tipo errado quebra o `npm run build` apontando a linha do
  *   item (cada item tem `satisfies <Tipo>`) e o nome do campo.
  */
-import type { Challenge, CommunityProject, Education, Experience, Project, Resume, SkillGroup } from '@/types/resume'
+import type {
+  Certificate,
+  CertificatePlatform,
+  Challenge,
+  CommunityProject,
+  Education,
+  Experience,
+  Project,
+  Resume,
+  SkillGroup,
+} from '@/types/resume'
 
 const data = {
   profile: {
@@ -131,6 +155,16 @@ const data = {
       summary:
         'Desenhou e implantou melhorias de processos para clientes utilizando Python e ferramentas de OCR. Documentação técnica garantindo escalabilidade, orquestração via Jenkins e monitoramento de performance com Elasticsearch (Kibana).',
       tech: ['Python', 'OCR', 'Jenkins', 'Elasticsearch', 'Kibana'],
+      photo: {
+        src: 'carreira/prime-control/integracao-2020-10-15-512.webp',
+        srcWidth: 512,
+        full: 'carreira/prime-control/integracao-2020-10-15-1024.webp',
+        width: 1024,
+        height: 768,
+        alt: 'Integração dos novos funcionários na Prime Control em 15/10/2020: seis pessoas de máscara ao redor de uma mesa com notebooks, com Vittorio Perotto na ponta direita, de frente, e a projeção "Bem-vindo Prime Hero!". Os rostos das outras pessoas estão desfocados.',
+        caption: '1º dia na Prime Control',
+        taken: '2020-10-15',
+      },
     } satisfies Experience,
   ],
 
@@ -487,6 +521,124 @@ const data = {
       status: 'concluido',
     } satisfies Education,
   ],
+
+  // pastas na ordem do pedido do autor; dentro de cada uma, do mais recente para o mais antigo (feature 010)
+  certificatePlatforms: [
+    {
+      id: 'dio',
+      name: 'DIO',
+      image: { width: 1200, height: 849 },
+      certificates: [
+        { id: 'empregotech-basico', title: 'Programa EmpregoTech Curitiba - Básico', issued: '2020-07-29', hours: 39, kind: 'bootcamp', verification: { url: 'https://hermes.dio.me/certificates/207D7222.pdf' } } satisfies Certificate,
+        { id: 'empregotech-inter', title: 'Programa Empregotech Curitiba - Intermediário', issued: '2020-07-29', hours: 79, kind: 'bootcamp', verification: { url: 'https://hermes.dio.me/certificates/E1741B9C.pdf' } } satisfies Certificate,
+        { id: 'node-filas', title: 'Desafio prático: Arquitetura interna no Node e filas', issued: '2020-07-07', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/A35EA586.pdf' } } satisfies Certificate,
+        { id: 'node-backend', title: 'Desenvolvimento back-end com Node.js', issued: '2020-07-06', hours: 5, verification: { url: 'https://hermes.dio.me/certificates/04197A25.pdf' } } satisfies Certificate,
+        { id: 'node-api-crushes', title: 'Desafio prático: Criando uma API em Node.js para gerenciar seus crushes', issued: '2020-07-06', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/2A52F6C3.pdf' } } satisfies Certificate,
+        { id: 'postgresql', title: 'Conceitos e melhores práticas com bancos de dados PostgreSQL', issued: '2020-07-03', hours: 9, verification: { url: 'https://hermes.dio.me/certificates/1D1848C9.pdf' } } satisfies Certificate,
+        { id: 'node-express', title: 'Introdução ao Node.js com Express', issued: '2020-07-03', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/20FDACA9.pdf' } } satisfies Certificate,
+        { id: 'redux', title: 'Desafio prático: Como gerenciar o estado das aplicações com Redux', issued: '2020-07-01', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/09DC6357.pdf' } } satisfies Certificate,
+        { id: 'js-com-react', title: 'Desafio prático: Praticando JavaScript com React', issued: '2020-07-01', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/37389BE3.pdf' } } satisfies Certificate,
+        { id: 'reactjs-web', title: 'Desenvolvimento de aplicações para internet com ReactJS', issued: '2020-07-01', hours: 4, verification: { url: 'https://hermes.dio.me/certificates/63AD8F56.pdf' } } satisfies Certificate,
+        { id: 'react-typescript', title: 'Desafio prático: React.js com TypeScript', issued: '2020-07-01', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/A37A0FDD.pdf' } } satisfies Certificate,
+        { id: 'intro-reactjs', title: 'Introdução ao ReactJS', issued: '2020-07-01', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/F95A98CB.pdf' } } satisfies Certificate,
+        { id: 'performance-web', title: 'Desafio prático: Performance Web Utilizando JavaScript', issued: '2020-06-30', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/6302A4C9.pdf' } } satisfies Certificate,
+        { id: 'tdd-javascript', title: 'Desafio prático: TDD com JavaScript', issued: '2020-06-30', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/83658A4D.pdf' } } satisfies Certificate,
+        { id: 'js-es6-avancado', title: 'Desenvolvimento avançado com JavaScript ES6', issued: '2020-06-29', hours: 5, verification: { url: 'https://hermes.dio.me/certificates/A505E509.pdf' } } satisfies Certificate,
+        { id: 'styled-components', title: 'Desafio prático: Utilizando Styled Components (CSS-in-JS)', issued: '2020-06-29', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/FB4F39F0.pdf' } } satisfies Certificate,
+        { id: 'js-es6-essencial', title: 'JavaScript ES6 essencial', issued: '2020-06-24', hours: 4, verification: { url: 'https://hermes.dio.me/certificates/AA7D3B45.pdf' } } satisfies Certificate,
+        { id: 'promises', title: 'Desafio prático: Entendendo Promises de uma vez por todas', issued: '2020-06-22', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/C162ED32.pdf' } } satisfies Certificate,
+        { id: 'modelagem-negocios', title: 'Modelagem de Negócios', issued: '2020-06-20', hours: 4, verification: { url: 'https://hermes.dio.me/certificates/6C7F9089.pdf' } } satisfies Certificate,
+        { id: 'javascript-web', title: 'Programação para internet com JavaScript', issued: '2020-06-20', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/EE630C61.pdf' } } satisfies Certificate,
+        { id: 'negocios-digitais', title: 'Fundamentos de Negócios Digitais Escaláveis', issued: '2020-06-12', hours: 6, verification: { url: 'https://hermes.dio.me/certificates/B00E13E2.pdf' } } satisfies Certificate,
+        { id: 'hexagonal', title: 'Expert Lesson: Arquitetura Hexagonal: mantendo aplicações saudáveis', issued: '2020-05-19', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/79B5C5C4.pdf' } } satisfies Certificate,
+        { id: 'arquitetura-avancado', title: 'Arquitetura de Sistemas Avançado', issued: '2020-05-18', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/61817017.pdf' } } satisfies Certificate,
+        { id: 'ddd-arquitetura', title: 'Expert Lesson: DDD e arquitetura de software', issued: '2020-05-18', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/DA144088.pdf' } } satisfies Certificate,
+        { id: 'bootstrap', title: 'Construindo páginas para internet com Bootstrap', issued: '2020-05-16', hours: 4, verification: { url: 'https://hermes.dio.me/certificates/79F59175.pdf' } } satisfies Certificate,
+        { id: 'html5-css3', title: 'Programação para internet com HTML5 e CSS3', issued: '2020-05-13', hours: 6, verification: { url: 'https://hermes.dio.me/certificates/3085EBFF.pdf' } } satisfies Certificate,
+        { id: 'mentalidade', title: 'Mentalidade Empreendedora', issued: '2020-04-21', hours: 3, verification: { url: 'https://hermes.dio.me/certificates/265A8CDF.pdf' } } satisfies Certificate,
+        { id: 'intraempreendedor', title: 'Fundamentos do Intraempreendedorismo', issued: '2020-04-21', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/4DD49C6E.pdf' } } satisfies Certificate,
+        { id: 'scrum', title: 'Projetos ágeis com SCRUM', issued: '2020-04-21', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/F861E33A.pdf' } } satisfies Certificate,
+        { id: 'github', title: 'Introdução ao GitHub e comandos essenciais para trabalhar em equipe', issued: '2020-04-20', hours: 4, verification: { url: 'https://hermes.dio.me/certificates/4091DB01.pdf' } } satisfies Certificate,
+        { id: 'git', title: 'Introdução ao Git e Controle de Versões', issued: '2020-04-17', hours: 2, verification: { url: 'https://hermes.dio.me/certificates/1D2A9D24.pdf' } } satisfies Certificate,
+        { id: 'arquitetura-sistemas', title: 'Fundamentos de Arquitetura de Sistemas', issued: '2020-04-17', hours: 7, verification: { url: 'https://hermes.dio.me/certificates/B10F8D56.pdf' } } satisfies Certificate,
+        { id: 'logica-programacao', title: 'Lógica de programação essencial', issued: '2020-04-13', hours: 4, verification: { url: 'https://hermes.dio.me/certificates/F4F49CF0.pdf' } } satisfies Certificate,
+      ],
+    } satisfies CertificatePlatform,
+    {
+      id: 'prime-academy',
+      name: 'Prime Academy',
+      image: { width: 1039, height: 717 },
+      certificates: [
+        { id: 'scrum', title: 'Metodologia Agile SCRUM', issued: '2020-10-29', hours: 8, verification: { code: '168f93bcd15b398af83a157e33202ad8' } } satisfies Certificate,
+        { id: 'apis', title: 'APIs', issued: '2020-10-27', hours: 3, verification: { code: '666923b8ee6805a1a5040c2ddcb47d02' } } satisfies Certificate,
+        { id: 'bdd', title: 'BDD – Behaviour Driven Development', issued: '2020-10-27', hours: 2, verification: { code: '5bf3c2add2d82159cec7ac218a11230d' } } satisfies Certificate,
+        { id: 'csharp-convencoes', title: 'Convenções de codificação em C#', issued: '2020-10-27', hours: 2, verification: { code: 'e5785b86ff4d61433754503c05ccb18d' } } satisfies Certificate,
+        { id: 'hp-alm-qc', title: 'Elaboração de Cenários de Testes HP ALM QC', issued: '2020-10-27', hours: 2, verification: { code: 'd20273ae5ee5a86c82cbabdb01780bb6' } } satisfies Certificate,
+        { id: 'rabbiit', title: 'Rabbiit – Para que serve e como usar', issued: '2020-10-27', hours: 2, verification: { code: 'a5f54e2556ca25bea1fac3c2f80e8683' } } satisfies Certificate,
+        { id: 'sql-basico', title: 'SQL Básico', issued: '2020-10-27', hours: 2, verification: { code: '48bf6fbc0f69c700e8ec0d17659578cc' } } satisfies Certificate,
+        { id: 'chatbots', title: 'Chatbots – Como garantir a qualidade', issued: '2020-10-22', hours: 2, verification: { code: '2ee613c0e8e285565a7e880cb5060649' } } satisfies Certificate,
+        { id: 'hp-alm-uft', title: 'Automação de Testes com HP ALM e HP UFT', issued: '2020-10-22', hours: 2, verification: { code: '4b4cee33d2026da828dfd05894890a92' } } satisfies Certificate,
+        { id: 'varejo', title: 'Noções Básicas de Varejo', issued: '2020-10-22', hours: 8, verification: { code: '8092f935cfd11640ec458190b391dbd0' } } satisfies Certificate,
+        { id: 'abertura-bugs', title: 'Abertura de Bugs', issued: '2020-10-21', hours: 2, verification: { code: '4724401e92e002d48f8c50f37f8a9505' } } satisfies Certificate,
+        { id: 'web-ruby', title: 'Automação Web com Ruby', issued: '2020-10-21', hours: 2, verification: { code: '6f86d57c6a499535e099e5ef4c427074' } } satisfies Certificate,
+        { id: 'gtd', title: 'Produtividade pessoal com GTD', issued: '2020-10-21', hours: 2, verification: { code: '3243d5b2b9c88cfe9a5537e757589162' } } satisfies Certificate,
+        { id: 'teste-software', title: 'Teste de Software', issued: '2020-10-21', hours: 2, verification: { code: '081e713f457f669896bc2b0b21332a36' } } satisfies Certificate,
+        { id: 'testador-agil', title: 'Webinar – O papel de um testador em uma equipe ágil', issued: '2020-10-19', hours: 2, verification: { code: '6e95244e8d13a7803111187d00dab2e7' } } satisfies Certificate,
+        { id: 'casos-de-teste', title: 'Especificação de Caso de Teste', issued: '2020-10-16', hours: 2, verification: { code: '1bc03e7949ee25c72bcc1e95fcde174a' } } satisfies Certificate,
+        { id: 'continuous-testing', title: 'Webinar – Acelerando entregas com Continuous Testing', issued: '2020-10-15', hours: 1, verification: { code: 'e63ee59d496e845ace929922e769290b' } } satisfies Certificate,
+        { id: 'bdd-caso-de-teste', title: 'Webinar – BDD não é Caso de Teste!', issued: '2020-10-15', hours: 2, verification: { code: '469d097f2798061c2c8a485859ef7544' } } satisfies Certificate,
+        { id: 'ct-academy', title: 'Continous Testing Academy – Iniciante', issued: '2020-10-15', hours: 3, verification: { code: 'd9983eba12ca8d6bda0a706e770963d5' } } satisfies Certificate,
+        { id: 'conhecendo-prime', title: 'Webinar – Conhecendo a Prime Control', issued: '2020-10-15', hours: 1, verification: { code: '2ee8f214754d929af93616eb9336e781' } } satisfies Certificate,
+      ],
+    } satisfies CertificatePlatform,
+    {
+      id: 'udemy',
+      name: 'Udemy',
+      image: { width: 1200, height: 893 },
+      certificates: [
+        { id: 'robot-avancado', title: 'Automação de Testes com Robot Framework - Avançado', issued: '2020-11-13', hours: 7, verification: { url: 'https://ude.my/UC-fa70c848-4678-4ccd-a50e-b92905d589f5' } } satisfies Certificate,
+        { id: 'robot-basico', title: 'Automação de Testes com Robot Framework - Básico', issued: '2020-11-11', hours: 4, verification: { url: 'https://ude.my/UC-6d75d1fc-c72a-4df4-8cf1-9b572b69e489' } } satisfies Certificate,
+      ],
+    } satisfies CertificatePlatform,
+    {
+      id: 'senai',
+      name: 'SENAI',
+      image: { width: 1200, height: 849 },
+      certificates: [
+        {
+          id: 'ia',
+          title: 'Inteligência Artificial',
+          issued: '2020-12-30',
+          hours: 40,
+          syllabus: [
+            'Inteligência Artificial',
+            'Aprendizagem de máquina',
+            'Agentes inteligentes',
+            'Mecanismos de busca em IA',
+            'Resolução de problemas por busca',
+            'Inferência - lógica de primeira ordem',
+            'Representação de conhecimento',
+            'Raciocínio em incerteza',
+            'Tomada de decisão e planejamento',
+            'Interação com o ambiente e robótica',
+          ],
+        } satisfies Certificate,
+      ],
+    } satisfies CertificatePlatform,
+    {
+      id: 'promenady',
+      name: 'Promenady',
+      image: { width: 1200, height: 849 },
+      certificates: [
+        { id: 'abap-funcionais', title: 'Visão de Abap para Funcionais', issued: '2023-02-18', hours: 8, verification: { url: 'https://e-certificado.com/login/autenticar?c=1641746ADFBD682A10825550', code: '1641746ADFBD682A10825550' } } satisfies Certificate,
+        { id: 'taxbra-avancado', title: 'TAXBRA - Nível Avançado', issued: '2023-02-11', hours: 8, verification: { url: 'https://e-certificado.com/login/autenticar?c=1638164AC6232AEC10825550', code: '1638164AC6232AEC10825550' } } satisfies Certificate,
+        { id: 'taxbra-basico', title: 'TAXBRA - Nível Básico', issued: '2023-01-28', hours: 8, verification: { url: 'https://e-certificado.com/login/autenticar?c=1638154ABCB3441910825550', code: '1638154ABCB3441910825550' } } satisfies Certificate,
+        { id: 'localizacao-br', title: 'Localização Brasileira', issued: '2023-01-21', hours: 8, verification: { url: 'https://e-certificado.com/login/autenticar?c=1629842A7AF02A6B10825550', code: '1629842A7AF02A6B10825550' } } satisfies Certificate,
+        { id: 'formacao-consultores', title: 'Formação de Consultores', issued: '2023-01-16', hours: 80, verification: { url: 'https://e-certificado.com/login/autenticar?c=1641756A81BF361B10825550', code: '1641756A81BF361B10825550' } } satisfies Certificate,
+      ],
+    } satisfies CertificatePlatform,
+  ],
+
 
   contacts: [
     { key: 'github', url: 'https://github.com/V-Perotto' },

@@ -73,7 +73,7 @@ test('a11y: títulos e prompt lidos sem os enfeites de terminal (FR-036)', async
     }))
   }
   expect(names.length).toBeGreaterThan(0)
-  expect(accessible).toEqual(['sobre', 'experiencia', 'skills', 'projetos', 'educacao', 'contato'])
+  expect(accessible).toEqual(['sobre', 'experiencia', 'skills', 'projetos', 'educacao', 'certificados', 'contato'])
   await expect(page.locator('#home')).toMatchAriaSnapshot(`- paragraph: /viper@portfolio:~ Desenvolvedor Full-Stack/`)
 })
 
@@ -301,6 +301,19 @@ test.describe('a11y da 006', () => {
       expect(await audit(page, `.editor-window[data-editor="${label}"]`), label).toEqual([])
     }
 
+    // feature 010 (SC-008): o arquivo da Prime Control com a foto e o visualizador aberto nela
+    const carreira = page.locator('.editor-window[data-editor="carreira"]')
+    await carreira.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+    await carreira.locator('.bm-child', { hasText: '2020-10_prime-control.yml' }).click()
+    expect(await audit(page, '.editor-window[data-editor="carreira"]'), 'Prime Control com a foto').toEqual([])
+    await carreira.locator('.editor-file[data-active] .shot-link').click()
+    const viewer = page.locator('body > dialog.shot-viewer')
+    await expect.poll(() => viewer.evaluate((d: HTMLDialogElement) => d.open)).toBe(true)
+    await page.waitForTimeout(300)
+    expect(await audit(page), 'visualizador da foto').toEqual([])
+    await page.keyboard.press('Escape')
+    await expect.poll(() => viewer.evaluate((d: HTMLDialogElement) => d.open)).toBe(false)
+
     await page.locator('.editor-window[data-editor="challenges"] button.t-max').click()
     await page.waitForTimeout(500)
     expect(await audit(page), 'maximizada').toEqual([])
@@ -325,6 +338,49 @@ test.describe('a11y da 006', () => {
     await expect(edu).toHaveAttribute('data-window-state', 'minimized')
     await expect(edu.locator('.desktop-window-frame')).toBeHidden()
     expect(await audit(page, '#educacao'), 'Educação minimizada').toEqual([])
+    expect(errors).toEqual([])
+  })
+
+  // feature 010 (SC-008): a janela de Certificados com cada pasta aberta, maximizada, com o visualizador
+  // aberto e minimizada, com o console sem erros
+  test('Certificados: cada pasta, maximizada, visualizador aberto e minimizada', async ({ page }) => {
+    test.setTimeout(90_000)
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(String(e)))
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text())
+    })
+    await page.goto('./')
+    await enterPortfolio(page)
+    const win = page.locator('.editor-window[data-editor="certificados"]')
+    await win.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+    await expect(win.locator('.editor')).not.toHaveAttribute('data-t-state', /pending|typing/, { timeout: 5000 })
+    for (let i = 0; i < 5; i++) {
+      await win.locator('.bm-head').nth(i).click()
+      await page.waitForTimeout(350)
+      expect(await audit(page, '#certificados'), `pasta ${i + 1}`).toEqual([])
+    }
+
+    await win.locator('.bm-head').nth(1).click()
+    await win.locator('button.t-max').click()
+    await page.waitForTimeout(500)
+    expect(await audit(page), 'maximizada').toEqual([])
+
+    const frame = page.locator('.editor-frame.is-maximized')
+    await frame.locator('.cert-group:not([hidden]) a.cert-view').first().click()
+    const viewer = page.locator('body > dialog.shot-viewer')
+    await expect.poll(() => viewer.evaluate((d: HTMLDialogElement) => d.open)).toBe(true)
+    await page.waitForTimeout(300)
+    expect(await audit(page), 'visualizador').toEqual([])
+    await page.keyboard.press('Escape')
+    await expect.poll(() => viewer.evaluate((d: HTMLDialogElement) => d.open)).toBe(false)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('html')).not.toHaveClass(/window-maximized/)
+
+    await win.locator('button.t-min').click()
+    await expect(win).toHaveAttribute('data-window-state', 'minimized')
+    await expect(win.locator('.desktop-window-frame')).toBeHidden()
+    expect(await audit(page, '#certificados'), 'minimizada').toEqual([])
     expect(errors).toEqual([])
   })
 

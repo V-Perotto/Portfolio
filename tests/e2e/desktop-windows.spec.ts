@@ -94,13 +94,13 @@ test.describe('com movimento', () => {
 test.describe('reabrir sem piscar (006)', () => {
   test.use({ reducedMotion: 'no-preference' })
 
-  test('as 13 janelas crescem vazias e só então digitam (V12, FR-023, SC-005)', async ({ page }) => {
+  test('as 14 janelas crescem vazias e só então digitam (V12, FR-023, SC-005)', async ({ page }) => {
     test.setTimeout(120_000)
     await page.goto('./')
     await enterPortfolio(page)
     const count = await page.locator('.desktop-window').count()
-    // 12 com a janela de Educação da 008; 13 com o DebianServer da 009
-    expect(count).toBe(13)
+    // 12 com a janela de Educação da 008; 13 com o DebianServer da 009; 14 com a de Certificados da 010
+    expect(count).toBe(14)
     for (let i = 0; i < count; i++) {
       const window = page.locator('.desktop-window').nth(i)
       await window.scrollIntoViewIfNeeded()

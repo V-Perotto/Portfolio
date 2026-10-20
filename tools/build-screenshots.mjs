@@ -21,6 +21,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from '@playwright/test'
+import { stripMetadata } from './lib/webp.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -36,32 +37,6 @@ const SCREENSHOTS = [
     ],
   },
 ]
-
-/**
- * Tira do WebP os blocos de metadados (`ICCP`, `EXIF`, `XMP `) e as marcas deles no `VP8X`. O canvas do
- * Chromium grava um perfil sRGB genérico (`ICCP`); sem ele, o navegador já assume sRGB, então a cor não
- * muda (FR-019: publicada sem metadados).
- */
-function stripMetadata(webp) {
-  if (webp.toString('ascii', 0, 4) !== 'RIFF' || webp.toString('ascii', 8, 12) !== 'WEBP') throw new Error('não é um WebP')
-  const chunks = []
-  for (let at = 12; at < webp.length; ) {
-    const id = webp.toString('ascii', at, at + 4)
-    const size = webp.readUInt32LE(at + 4)
-    const end = at + 8 + size + (size % 2)
-    if (!['ICCP', 'EXIF', 'XMP '].includes(id)) chunks.push(Buffer.from(webp.subarray(at, end)))
-    at = end
-  }
-  const vp8x = chunks.find((c) => c.toString('ascii', 0, 4) === 'VP8X')
-  // marcas do VP8X: 0x20 ICC, 0x08 EXIF, 0x04 XMP
-  if (vp8x) vp8x[8] &= ~(0x20 | 0x08 | 0x04)
-  const body = Buffer.concat(chunks)
-  const header = Buffer.alloc(12)
-  header.write('RIFF', 0, 'ascii')
-  header.writeUInt32LE(4 + body.length, 4)
-  header.write('WEBP', 8, 'ascii')
-  return Buffer.concat([header, body])
-}
 
 const browser = await chromium.launch()
 const page = await browser.newPage()

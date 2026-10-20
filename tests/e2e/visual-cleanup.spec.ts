@@ -196,6 +196,8 @@ test('títulos das janelas só com o assunto, sem "bash —" (V3, FR-011)', asyn
     '~/projetos/comunitario',
     // feature 008: a Educação
     '~/formacao',
+    // feature 010: os Certificados
+    '~/certificados',
     'contato.sh',
   ])
 })

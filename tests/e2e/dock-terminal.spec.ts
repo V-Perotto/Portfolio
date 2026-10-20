@@ -36,7 +36,7 @@ test('help, find com Tab, erros, histórico, clear e exit (V7, SC-002)', async (
 
   await run(page, 'help')
   await expect(log(page)).toContainText('find <OPTIONS>')
-  await expect(log(page)).toContainText('OPTIONS: sobre | experiencia | skills | projetos | educacao | contato')
+  await expect(log(page)).toContainText('OPTIONS: sobre | experiencia | skills | projetos | educacao | certificados | contato')
 
   // 3 ações depois de abrir: o começo da seção, Tab, Enter (SC-002)
   await input(page).fill('find pro')

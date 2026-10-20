@@ -22,9 +22,11 @@ const EDITORS = [
   ['challenges', 'challenges', '~/projetos/challenges'],
   ['comunitario', 'comunitario', '~/projetos/comunitario'],
   ['educacao', 'formacao', '~/formacao'],
+  // feature 010 (FR-022): os Certificados, depois da Educação
+  ['certificados', 'certificados', '~/certificados'],
 ] as const
 const OPEN_OPTIONS =
-  'OPTIONS: experiencia | srg | debianserver | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao'
+  'OPTIONS: experiencia | srg | debianserver | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao | certificados'
 
 const dock = (page: Page) => page.locator('.app-dock .dock-btn')
 const input = (page: Page) => page.locator('#dock-terminal-input')
@@ -249,7 +251,7 @@ for (const viewport of [
   // rodando 4 navegadores, picos isolados passam de 1 s (a página com o Letter Glitch e as janelas de
   // editor é pesada); como no teste da dica da dock (006), cada tentativa tem folga (≤ 1,5 s) e a
   // mediana das 30 (27 até a 007) tem de ficar ≤ 1 s. O teto de 1 s sem folga fica no V1.
-  test(`as 11 opções, com a janela aberta, minimizada e fechada, em ≤ 1 s, ${viewport.width}px (V4, SC-001; 008 SC-006; 009 SC-007)`, async ({ page }) => {
+  test(`as 12 opções, com a janela aberta, minimizada e fechada, em ≤ 1 s, ${viewport.width}px (V4, SC-001; 008 SC-006; 009 SC-007; 010 SC-009)`, async ({ page }) => {
     test.setTimeout(240_000)
     await enter(page, viewport)
     const share = viewport.width < 760 ? 0.95 : 0.9
@@ -324,7 +326,7 @@ test('help e Tab do open (V6, FR-007, FR-008)', async ({ page }) => {
   await enter(page)
   await run(page, 'help')
   await expect(log(page)).toContainText('open <OPTIONS>   abre uma janela e leva a página até ela')
-  await expect(log(page)).toContainText('projetos abrem; experiencia, challenges, comunitario e educacao abrem maximizados')
+  await expect(log(page)).toContainText('projetos abrem; experiencia, challenges, comunitario, educacao e certificados abrem maximizados')
   await expect(log(page)).toContainText(OPEN_OPTIONS)
   await expect(log(page)).toContainText('exemplo: open srg')
   await input(page).fill('o')
@@ -335,7 +337,7 @@ test('help e Tab do open (V6, FR-007, FR-008)', async ({ page }) => {
   await expect(input(page)).toHaveValue('open italiami')
   await input(page).fill('open c')
   await input(page).press('Tab')
-  await expect(log(page)).toContainText('challenges  comunitario')
+  await expect(log(page)).toContainText('challenges  comunitario  certificados')
   // feature 008
   await input(page).fill('open ed')
   await input(page).press('Tab')
@@ -344,6 +346,18 @@ test('help e Tab do open (V6, FR-007, FR-008)', async ({ page }) => {
   await input(page).fill('open deb')
   await input(page).press('Tab')
   await expect(input(page)).toHaveValue('open debianserver')
+  // feature 010: só os Certificados começam com "cert"
+  await input(page).fill('open cert')
+  await input(page).press('Tab')
+  await expect(input(page)).toHaveValue('open certificados')
+})
+
+// Feature 010 (FR-023): `find certificados` leva a página até a seção
+test('find certificados leva a página até a seção Certificados (analyze C5)', async ({ page }) => {
+  await enter(page)
+  await run(page, 'find certificados')
+  await expect(log(page)).toContainText('→ ~/certificados')
+  await expect(page.locator('#certificados h2')).toBeInViewport()
 })
 
 test('sugestões tocáveis do open no celular (V6, FR-008)', async ({ browser }) => {
@@ -354,7 +368,8 @@ test('sugestões tocáveis do open no celular (V6, FR-008)', async ({ browser })
   await enterPortfolio(page)
   await page.locator('.app-dock .dock-btn').tap()
   await page.locator('#dock-terminal-input').fill('open c')
-  await expect(page.locator('#dock-terminal .dt-chip')).toHaveText(['challenges', 'comunitario'])
+  // feature 010: os Certificados também começam com "c"
+  await expect(page.locator('#dock-terminal .dt-chip')).toHaveText(['challenges', 'comunitario', 'certificados'])
   await page.locator('#dock-terminal .dt-chip', { hasText: 'comunitario' }).tap()
   await expect(page.locator('#dock-terminal-input')).toHaveValue('open comunitario')
   await context.close()

@@ -11,6 +11,7 @@ describe('visibleSections', () => {
       'skills',
       'projetos',
       'educacao',
+      'certificados',
       'contato',
     ])
   })
@@ -22,7 +23,14 @@ describe('visibleSections', () => {
   it('coleção vazia remove a seção', () => {
     const ids = visibleSections({ ...resume, education: [] }).map((s) => s.id)
     expect(ids).not.toContain('educacao')
-    expect(ids).toHaveLength(5)
+    expect(ids).toHaveLength(6)
+  })
+
+  // feature 010 (FR-001): sem certificados, a seção some da página e do menu
+  it('sem plataformas de certificados, não há a seção certificados', () => {
+    const ids = visibleSections({ ...resume, certificatePlatforms: [] }).map((s) => s.id)
+    expect(ids).not.toContain('certificados')
+    expect(ids).toHaveLength(6)
   })
 })
 
@@ -30,7 +38,8 @@ describe('visibleSections', () => {
 // research R7): a Educação é a 10ª opção.
 describe('openTargets', () => {
   // feature 009 (FR-023): o DebianServer é a 3ª opção, depois do srg
-  it('as 11 opções na ordem da página', () => {
+  // feature 010 (FR-022): os Certificados são a 12ª, depois da Educação
+  it('as 12 opções na ordem da página', () => {
     expect(openTargets(resume).map((t) => t.name)).toEqual([
       'experiencia',
       'srg',
@@ -43,6 +52,7 @@ describe('openTargets', () => {
       'challenges',
       'comunitario',
       'educacao',
+      'certificados',
     ])
   })
 
@@ -51,7 +61,8 @@ describe('openTargets', () => {
     expect(new Set(names).size).toBe(names.length)
     for (const name of names) expect(name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/)
     const projects = openTargets(resume).filter((t) => t.mode === 'open')
-    for (const reserved of ['experiencia', 'challenges', 'comunitario', 'educacao']) expect(projects.map((t) => t.name)).not.toContain(reserved)
+    for (const reserved of ['experiencia', 'challenges', 'comunitario', 'educacao', 'certificados'])
+      expect(projects.map((t) => t.name)).not.toContain(reserved)
   })
 
   it('projeto abre; experiência, challenges, comunitário e educação maximizam (Q1; 008 Q1)', () => {
@@ -67,13 +78,21 @@ describe('openTargets', () => {
     expect(byName['challenges']).toMatchObject({ windowId: 'challenges', path: '~/projetos/challenges', alias: 'projetos/challenges', mode: 'maximize' })
     expect(byName['comunitario']).toMatchObject({ windowId: 'comunitario', path: '~/projetos/comunitario', alias: 'projetos/comunitario', mode: 'maximize' })
     expect(byName['educacao']).toEqual({ name: 'educacao', windowId: 'educacao', path: '~/formacao', alias: 'formacao', mode: 'maximize' })
+    expect(byName['certificados']).toEqual({
+      name: 'certificados',
+      windowId: 'certificados',
+      path: '~/certificados',
+      alias: 'certificados',
+      mode: 'maximize',
+    })
   })
 
   it('coleção vazia não tem alvo', () => {
     // o tipo exige ao menos um vínculo; o caso vazio só existe para provar a regra
-    const empty = { ...resume, experiences: [], challenges: [], community: [], education: [] } as unknown as Resume
+    const empty = { ...resume, experiences: [], challenges: [], community: [], education: [], certificatePlatforms: [] } as unknown as Resume
     const names = openTargets(empty).map((t) => t.name)
     expect(names).toEqual(['srg', 'debianserver', 'temas-vs-code', 'italiami', 'ocr-de-prontuarios', 'qclass-bot', 'monitor-de-curso'])
     expect(openTargets({ ...resume, education: [] }).map((t) => t.name)).not.toContain('educacao')
+    expect(openTargets({ ...resume, certificatePlatforms: [] }).map((t) => t.name)).not.toContain('certificados')
   })
 })

@@ -71,4 +71,58 @@ describe('BranchedMenu', () => {
     expect(offsets[0]).not.toBe('0')
     expect(offsets[2]).not.toBe('0')
   })
+
+  // Feature 010 (research R1; contracts/certificates-window.md §2): o acordeão da janela de Certificados
+  describe('modo exclusivo (feature 010)', () => {
+    const folders = [
+      { label: 'dio/', value: 'dio', children: [1, 2, 3, 4, 5].map((n) => ({ value: `dio/${n}`, label: `dio-${n}.yml` })) },
+      { label: 'udemy/', value: 'udemy', children: [1, 2].map((n) => ({ value: `udemy/${n}`, label: `udemy-${n}.yml` })) },
+      { label: 'senai/', value: 'senai', children: [{ value: 'senai/1', label: 'senai-1.yml' }] },
+    ]
+    const mountFolders = (extra: Record<string, unknown> = {}) =>
+      mount(BranchedMenu, { props: { items: folders, active: 'dio/1', exclusive: true, maxRows: 4, ...extra } })
+    const openHeads = (wrapper: ReturnType<typeof mountFolders>) =>
+      wrapper.findAll('.bm-head').map((h) => h.attributes('aria-expanded'))
+
+    it('abre só a 1ª pasta; abrir outra fecha a anterior e emite toggle', async () => {
+      const wrapper = mountFolders()
+      expect(openHeads(wrapper)).toEqual(['true', 'false', 'false'])
+      await wrapper.findAll('.bm-head')[1]!.trigger('click')
+      expect(openHeads(wrapper)).toEqual(['false', 'true', 'false'])
+      expect(wrapper.emitted('toggle')?.[0]).toEqual([1, true])
+    })
+
+    it('clicar na pasta aberta não a fecha nem emite toggle (FR-004)', async () => {
+      const wrapper = mountFolders()
+      await wrapper.findAll('.bm-head')[0]!.trigger('click')
+      expect(openHeads(wrapper)).toEqual(['true', 'false', 'false'])
+      expect(wrapper.emitted('toggle')).toBeUndefined()
+    })
+
+    it('a dobra fechada é inert; a aberta não (fora do Tab e do leitor de tela)', async () => {
+      const wrapper = mountFolders()
+      const folds = () => wrapper.findAll('.bm-fold').map((f) => f.attributes('inert'))
+      expect(folds()).toEqual([undefined, '', ''])
+      await wrapper.findAll('.bm-head')[2]!.trigger('click')
+      expect(folds()).toEqual(['', '', undefined])
+    })
+
+    it('maxRows: as variáveis da rolagem e da altura reservada no nav (FR-005, SC-003)', () => {
+      const nav = mountFolders().get('nav')
+      expect(nav.classes()).toContain('bm-exclusive')
+      const style = nav.attributes('style') ?? ''
+      expect(style).toContain('--bm-max-rows: 4')
+      expect(style).toContain('--bm-sections: 3')
+      expect(style).toContain('--bm-largest: 5')
+    })
+  })
+
+  it('sem exclusive: a pasta aberta fecha de novo, sem as variáveis do acordeão (como na 006)', async () => {
+    const wrapper = mountMenu()
+    expect(wrapper.get('nav').classes()).not.toContain('bm-exclusive')
+    expect(wrapper.get('nav').attributes('style')).not.toContain('--bm-max-rows')
+    await wrapper.get('.bm-head').trigger('click')
+    expect(wrapper.get('.bm-head').attributes('aria-expanded')).toBe('false')
+    expect(wrapper.get('.bm-fold').attributes('inert')).toBe('')
+  })
 })

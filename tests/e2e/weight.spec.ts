@@ -19,6 +19,17 @@ test('peso do carregamento inicial', async ({ page }) => {
   expect(total).toBeLessThanOrEqual(500 * 1024)
 })
 
+// Feature 010 (SC-007, SC-011): nenhuma imagem de certificado nem a foto entram no carregamento inicial
+test('nenhum WebP de certificado nem a foto no carregamento inicial', async ({ page }) => {
+  const images: string[] = []
+  page.on('request', (r) => {
+    if (/\/(certificados|carreira)\/.+\.webp$/.test(r.url())) images.push(r.url())
+  })
+  await page.goto('./', { waitUntil: 'load' })
+  await page.waitForLoadState('networkidle')
+  expect(images).toEqual([])
+})
+
 // Feature 004 (FR-050, SC-006) e 005 (SC-009): uma visita completa (porta de acesso, rolagem até o fim,
 // terminal aberto) só pede arquivos do próprio site; as exceções são os badges do shields.io e a consulta
 // do IP no ipify (Princípio III; nos testes, respondida dentro da página, support/test.ts).
@@ -49,14 +60,18 @@ test('nenhuma requisição a terceiros durante a visita', async ({ page }) => {
 // 110.149 B (+0,6 KB: a janela de editor da Educação). Feature 009 (SC-004, research R10): linha de base
 // 110.149 B (commit 965f4ee), teto +6 KB, revisado na implementação de +4 KB (medido +5,1 KB: HTML +2,5,
 // JS +2,1, CSS +0,5; o texto do DebianServer e do challenge vai no HTML e de novo nos dados do JS que
-// hidrata a página; as imagens e o sprite ficam de fora).
-test('HTML + CSS + JS iniciais ≤ linha de base + 6 KB, comprimidos', async () => {
+// hidrata a página; as imagens e o sprite ficam de fora); a 009 fechou em 115.332 B (commit 9dd2d52).
+// Feature 010 (SC-007, research R11): linha de base 115.332 B (HTML 26.186, JS 74.963, CSS 14.183), teto
+// +13 KB, revisado na implementação de +10 KB (medido +12,7 KB: HTML +6,7, JS +5,7, CSS +0,6; os 61
+// certificados vão nos cartões do HTML e de novo nos dados do JS, ~3 KB só os dados; já sem o brilho dos
+// cartões e sem os 61 arquivos da árvore no HTML pré-renderizado). As imagens ficam de fora.
+test('HTML + CSS + JS iniciais ≤ linha de base + 13 KB, comprimidos', async () => {
   const { readFileSync } = await import('node:fs')
   const { gzipSync } = await import('node:zlib')
   const html = readFileSync('dist/index.html')
   const refs = [...new Set([...html.toString().matchAll(/(?:src|href)="\/Portfolio\/([^"]+\.(?:js|css))"/g)].map((m) => m[1]!))]
   const sizes = refs.filter((r) => !r.includes('worker')).map((r) => gzipSync(readFileSync(`dist/${r}`), { level: 9 }).length)
   const total = gzipSync(html, { level: 9 }).length + sizes.reduce((a, b) => a + b, 0)
-  console.log(`HTML + CSS + JS iniciais: ${total} B gzip (+${total - 110149} B sobre a 008)`)
-  expect(total).toBeLessThanOrEqual(110149 + 6 * 1024)
+  console.log(`HTML + CSS + JS iniciais: ${total} B gzip (+${total - 115332} B sobre a 009)`)
+  expect(total).toBeLessThanOrEqual(115332 + 13 * 1024)
 })

@@ -1,12 +1,14 @@
-import { mount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createSSRApp, h, nextTick } from 'vue'
+import { createSSRApp, defineComponent, h } from 'vue'
 import { renderToString } from 'vue/server-renderer'
+import ImageViewer from '@/components/base/ImageViewer.vue'
 import ProjectScreenshot from '@/components/sections/ProjectScreenshot.vue'
 import type { Screenshot } from '@/types/resume'
 
 // Feature 009 (FR-015 a FR-019, research R5 e R7; contracts/debianserver-window.md §1 e §2): a captura
-// como evidência e o visualizador na página.
+// como evidência e o visualizador na página. Feature 010 (research R7): o visualizador é o `ImageViewer`
+// único, levado ao <body>; os testes do diálogo montam os dois juntos.
 const shot: Screenshot = {
   src: 'projetos/demo/painel-2026-10-20-800.webp',
   srcWidth: 800,
@@ -19,6 +21,18 @@ const shot: Screenshot = {
 }
 
 const base = import.meta.env.BASE_URL
+
+enableAutoUnmount(afterEach)
+
+/** A captura e o visualizador da página, como no App.vue. */
+const Host = defineComponent({ render: () => [h(ProjectScreenshot, { shot, id: 'demo' }), h(ImageViewer)] })
+async function mountWithViewer() {
+  const wrapper = mount(Host, { attachTo: document.body })
+  await flushPromises()
+  return wrapper
+}
+const dialogEl = () => document.querySelector<HTMLDialogElement>('body > dialog.shot-viewer')!
+const linkEl = () => document.querySelector<HTMLAnchorElement>('a.shot-link')!
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -50,24 +64,23 @@ describe('ProjectScreenshot', () => {
     expect(html.match(/<img/g)).toHaveLength(1)
   })
 
-  it('o clique sem modificador abre o visualizador, prende a página e não segue o link', async () => {
-    const wrapper = mount(ProjectScreenshot, { props: { shot, id: 'demo' }, attachTo: document.body })
-    await nextTick()
-    const dialog = wrapper.get('dialog.shot-viewer').element as HTMLDialogElement
-    expect(dialog.getAttribute('aria-labelledby')).toBe('shot-viewer-caption-demo')
-    expect(wrapper.get('#shot-viewer-caption-demo').text()).toBe('# painel do CasaOS do DebianServer · OUT 2026')
+  it('o clique sem modificador abre o visualizador do <body>, prende a página e não segue o link', async () => {
+    await mountWithViewer()
+    const dialog = dialogEl()
+    expect(dialog.getAttribute('aria-labelledby')).toBe('image-viewer-caption')
     const event = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 })
-    wrapper.get('a.shot-link').element.dispatchEvent(event)
-    await nextTick()
+    linkEl().dispatchEvent(event)
+    await flushPromises()
     expect(event.defaultPrevented).toBe(true)
     expect(dialog.open).toBe(true)
+    expect(document.getElementById('image-viewer-caption')?.textContent).toBe('# painel do CasaOS do DebianServer · OUT 2026')
+    expect(dialog.querySelector('img.shot-full')?.getAttribute('src')).toBe(`${base}projetos/demo/painel-2026-10-20-1396.webp`)
     expect(document.documentElement.classList.contains('window-maximized')).toBe(true)
-    expect(document.activeElement).toBe(wrapper.get('button.shot-close').element)
+    expect(document.activeElement).toBe(dialog.querySelector('button.shot-close'))
   })
 
   it('clique com Ctrl não abre o visualizador (o navegador abre a nova aba)', async () => {
-    const wrapper = mount(ProjectScreenshot, { props: { shot, id: 'demo' }, attachTo: document.body })
-    await nextTick()
+    await mountWithViewer()
     const event = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, ctrlKey: true })
     // depois do componente decidir, o teste impede a navegação (o happy-dom abriria a aba nova)
     let preventedByComponent: boolean | null = null
@@ -76,38 +89,50 @@ describe('ProjectScreenshot', () => {
       e.preventDefault()
     }
     window.addEventListener('click', stop)
-    wrapper.get('a.shot-link').element.dispatchEvent(event)
+    linkEl().dispatchEvent(event)
     window.removeEventListener('click', stop)
-    await nextTick()
+    await flushPromises()
     expect(preventedByComponent).toBe(false)
-    expect((wrapper.get('dialog').element as HTMLDialogElement).open).toBe(false)
+    expect(dialogEl().open).toBe(false)
   })
 
   it('o ✕ e o Esc fecham, soltam a página e devolvem o foco ao link', async () => {
-    const wrapper = mount(ProjectScreenshot, { props: { shot, id: 'demo' }, attachTo: document.body })
-    await nextTick()
-    const dialog = wrapper.get('dialog').element as HTMLDialogElement
-    const link = wrapper.get('a.shot-link')
+    await mountWithViewer()
+    const dialog = dialogEl()
     for (const closeWith of ['button', 'escape'] as const) {
-      await link.trigger('click', { button: 0 })
+      linkEl().dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+      await flushPromises()
       expect(dialog.open).toBe(true)
-      if (closeWith === 'button') await wrapper.get('button.shot-close').trigger('click')
+      if (closeWith === 'button') dialog.querySelector<HTMLButtonElement>('button.shot-close')!.click()
       else dialog.dispatchEvent(new Event('cancel', { cancelable: true }))
-      await nextTick()
+      await flushPromises()
       expect(dialog.open, closeWith).toBe(false)
       expect(document.documentElement.classList.contains('window-maximized'), closeWith).toBe(false)
-      expect(document.activeElement, closeWith).toBe(link.element)
+      expect(document.activeElement, closeWith).toBe(linkEl())
     }
   })
 
+  it('com a janela maximizada por baixo, fechar não solta a página (feature 010, research R7)', async () => {
+    await mountWithViewer()
+    document.documentElement.classList.add('window-maximized')
+    linkEl().dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+    await flushPromises()
+    dialogEl().querySelector<HTMLButtonElement>('button.shot-close')!.click()
+    await flushPromises()
+    expect(dialogEl().open).toBe(false)
+    expect(document.documentElement.classList.contains('window-maximized')).toBe(true)
+  })
+
   it('clique no fundo (o próprio diálogo) fecha; clique na imagem não', async () => {
-    const wrapper = mount(ProjectScreenshot, { props: { shot, id: 'demo' }, attachTo: document.body })
-    await nextTick()
-    const dialog = wrapper.get('dialog').element as HTMLDialogElement
-    await wrapper.get('a.shot-link').trigger('click', { button: 0 })
-    await wrapper.get('img.shot-full').trigger('click')
+    await mountWithViewer()
+    const dialog = dialogEl()
+    linkEl().dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 }))
+    await flushPromises()
+    dialog.querySelector<HTMLImageElement>('img.shot-full')!.click()
+    await flushPromises()
     expect(dialog.open).toBe(true)
-    await wrapper.get('dialog').trigger('click')
+    dialog.click()
+    await flushPromises()
     expect(dialog.open).toBe(false)
   })
 })

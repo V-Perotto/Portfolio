@@ -1,16 +1,17 @@
 import { slugify } from '@/lib/editor-files'
 import type { Resume } from '@/types/resume'
 
-export type SectionId = 'sobre' | 'experiencia' | 'skills' | 'projetos' | 'educacao' | 'contato'
+export type SectionId = 'sobre' | 'experiencia' | 'skills' | 'projetos' | 'educacao' | 'certificados' | 'contato'
 
 export interface NavSection {
   id: SectionId
   label: string
 }
 
-const ORDER: readonly SectionId[] = ['sobre', 'experiencia', 'skills', 'projetos', 'educacao', 'contato']
+const ORDER: readonly SectionId[] = ['sobre', 'experiencia', 'skills', 'projetos', 'educacao', 'certificados', 'contato']
 
-/** Seções na ordem do FR-008; uma coleção vazia tira a seção da página e do menu. */
+/** Seções na ordem do FR-008 (com Certificados entre Educação e Contato, feature 010); uma coleção vazia tira a
+ *  seção da página e do menu. */
 export function visibleSections(resume: Resume): NavSection[] {
   const hasContent: Record<SectionId, boolean> = {
     sobre: true,
@@ -18,6 +19,7 @@ export function visibleSections(resume: Resume): NavSection[] {
     skills: resume.skillGroups.length > 0,
     projetos: resume.projects.length > 0,
     educacao: resume.education.length > 0,
+    certificados: resume.certificatePlatforms.length > 0,
     contato: resume.contacts.length > 0,
   }
   return ORDER.filter((id) => hasContent[id]).map((id) => ({ id, label: `~/${id}` }))
@@ -25,8 +27,8 @@ export function visibleSections(resume: Resume): NavSection[] {
 
 /**
  * Alvos do comando `open` do terminal da dock (feature 007, FR-001 a FR-005, research R1, data-model §1):
- * os projetos abrem a janela deles; Experiência, Challenges, Comunitário e Educação (feature 008, Q1) abrem
- * a janela de editor maximizada. Na ordem da página, gerados dos dados: um projeto novo vira opção sozinho,
+ * os projetos abrem a janela deles; Experiência, Challenges, Comunitário, Educação (feature 008, Q1) e
+ * Certificados (feature 010, FR-022) abrem a janela de editor maximizada. Na ordem da página, gerados dos dados: um projeto novo vira opção sozinho,
  * e uma coleção vazia não tem alvo.
  */
 export type OpenMode = 'open' | 'maximize'
@@ -65,5 +67,6 @@ export function openTargets(resume: Resume): OpenTarget[] {
     ...(resume.challenges.length ? [editorTarget('challenges', '~/projetos/challenges')] : []),
     ...(resume.community.length ? [editorTarget('comunitario', '~/projetos/comunitario')] : []),
     ...(resume.education.length ? [editorTarget('educacao', '~/formacao')] : []),
+    ...(resume.certificatePlatforms.length ? [editorTarget('certificados', '~/certificados')] : []),
   ]
 }

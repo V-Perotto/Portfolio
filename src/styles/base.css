@@ -181,7 +181,7 @@ html:not(.motion) *::after {
   :focus-visible { outline: 2px solid Highlight; }
 
   /* !important: vence os seletores com escopo dos componentes */
-  .base-card, .terminal-window, .tag-now, .chip, .skill-loop {
+  .base-card, .cert-card, .terminal-window, .tag-now, .chip, .skill-loop {
     border: 1px solid CanvasText !important;
   }
 

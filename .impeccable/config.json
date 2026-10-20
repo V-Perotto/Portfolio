@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "src/components/base/ZoomFigure.vue"
+        ],
+        "createdAt": "2026-10-20T19:20:23.919Z",
+        "reason": "Claude (feature 010): the matches are code comments that mention <img>; the real <img> binds :src to a generated WebP in public/"
+      },
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "tests/component/ZoomFigure.spec.ts"
+        ],
+        "createdAt": "2026-10-20T19:21:36.119Z",
+        "reason": "Claude (feature 010): the match is a test title that mentions <img>; the file has no markup"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/components/sections/CertificateCard.vue"
+        ],
+        "createdAt": "2026-10-20T20:01:30.539Z",
+        "reason": "Claude (feature 010): mirrors the existing base-card--card log-card border documented in DESIGN.md (Cards: 'nos cartões de log, borda esquerda de 3px em Grape'); constitution Principle V reuse"
+      }
+    ]
+  }
+}

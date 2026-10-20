@@ -153,6 +153,35 @@ test.describe('movimento reduzido', () => {
     expect(await win.locator('.editor-frame').evaluate((el) => el.getAnimations().length)).toBe(0)
   })
 
+  // Feature 010 (quickstart V13): a dobra das pastas troca na hora, e o visualizador do certificado abre sem animação
+  test('feature 010: pastas de certificados sem transição; visualizador do certificado sem animação', async ({ page }) => {
+    await page.goto('./')
+    await enterPortfolio(page)
+    const win = page.locator('.editor-window[data-editor="certificados"]')
+    await win.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }))
+    await expect(win.locator('.editor')).not.toHaveAttribute('data-t-state', /pending|typing/)
+    // o CSS global de movimento reduzido deixa as transições em 0,01 ms
+    expect(await win.locator('.bm-fold').first().evaluate((el) => parseFloat(getComputedStyle(el).transitionDuration))).toBeLessThan(0.001)
+    await win.locator('.bm-head').nth(1).click()
+    // abre e fecha na hora: na árvore, só transições instantâneas (o CSS global as deixa em 0,01 ms), fora o
+    // marcador da pasta, que só acende (006)
+    const slow = await win.locator('.branched-menu').evaluate((el) =>
+      el
+        .getAnimations({ subtree: true })
+        .filter((a) => !((a.effect as KeyframeEffect).target as Element)?.classList.contains('bm-marker'))
+        .map((a) => Number((a.effect as KeyframeEffect).getComputedTiming().duration))
+        .filter((d) => d >= 1),
+    )
+    expect(slow).toEqual([])
+    await expect(win.locator('.editor-pos')).toHaveText('1 / 20')
+    await win.locator('.editor-file[data-active] .shot-link').click()
+    const viewer = page.locator('body > dialog.shot-viewer')
+    await expect.poll(() => viewer.evaluate((d: HTMLDialogElement) => d.open)).toBe(true)
+    expect(await viewer.evaluate((d) => d.getAnimations().length)).toBe(0)
+    await page.keyboard.press('Escape')
+    expect(await viewer.evaluate((d: HTMLDialogElement) => d.open)).toBe(false)
+  })
+
   // Feature 009 (quickstart V9): o visualizador da captura abre e fecha sem animação nenhuma
   test('feature 009: visualizador da captura sem animação ao abrir e ao fechar', async ({ page }) => {
     await page.goto('./')

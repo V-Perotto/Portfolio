@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import ImageViewer from '@/components/base/ImageViewer.vue'
 import AppDock from '@/components/dock/AppDock.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import AppNav from '@/components/layout/AppNav.vue'
 import AboutSection from '@/components/sections/AboutSection.vue'
+import CertificatesSection from '@/components/sections/CertificatesSection.vue'
 import ContactSection from '@/components/sections/ContactSection.vue'
 import EducationSection from '@/components/sections/EducationSection.vue'
 import ExperienceSection from '@/components/sections/ExperienceSection.vue'
@@ -36,8 +38,11 @@ const shows = (id: string) => sections.some((s) => s.id === id)
     <SkillsSection v-if="shows('skills')" :groups="resume.skillGroups" />
     <ProjectsSection v-if="shows('projetos')" :projects="resume.projects" :challenges="resume.challenges" :community="resume.community" />
     <EducationSection v-if="shows('educacao')" :education="resume.education" />
+    <CertificatesSection v-if="shows('certificados')" :platforms="resume.certificatePlatforms" />
     <ContactSection v-if="shows('contato')" :contacts="resume.contacts" />
   </main>
   <AppFooter />
   <AppDock :sections="sections" :targets="targets" />
+  <!-- o visualizador de imagem único (feature 010): vai para o <body>, fora do #app -->
+  <ImageViewer />
 </template>

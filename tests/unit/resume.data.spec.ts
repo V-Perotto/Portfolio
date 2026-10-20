@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { resume } from '@/data/resume'
+import { certificateFileName, certificateImage, CERT_THUMB_WIDTH } from '@/lib/certificates'
 import { TECH_ICONS } from '@/lib/tech-icons'
 import type { Project, YearMonth } from '@/types/resume'
+import { fromDataUrl, webpSize } from '../../tools/lib/webp.mjs'
 
 // Regras de specs/002-projects-animated-terminals/data-model.md e specs/003-devicons-skill-loops/
 // data-model.md, seções "Validação" (que estendem a da 001) — o que o tipo não cobre.
@@ -46,6 +48,8 @@ describe('resume.ts — validação', () => {
       challenges: resume.challenges.map((c) => c.id),
       community: resume.community.map((c) => c.id),
       education: resume.education.map((e) => e.id),
+      certificatePlatforms: resume.certificatePlatforms.map((p) => p.id),
+      ...Object.fromEntries(resume.certificatePlatforms.map((p) => [`certificados/${p.id}`, p.certificates.map((c) => c.id)])),
     }
     for (const [name, ids] of Object.entries(collections)) {
       expect(new Set(ids).size, name).toBe(ids.length)
@@ -215,5 +219,93 @@ describe('resume.ts — validação', () => {
         expect(text, project.id).not.toMatch(/:\d{2,5}\b/)
       }
     }
+  })
+
+  // Feature 010 (data-model §6): os certificados e a foto do 1º dia na Prime Control
+  const platforms = resume.certificatePlatforms
+  const certificates = platforms.flatMap((platform) => platform.certificates.map((cert) => ({ platform, cert })))
+  const KEBAB = /^[a-z0-9]+(-[a-z0-9]+)*$/
+  const DAY = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/
+  const today = new Date().toISOString().slice(0, 10)
+  // os bytes das imagens, como data URL (o tsconfig dos testes não tem os tipos do Node)
+  const IMAGE_DATA = import.meta.glob<string>('../../public/**/*.webp', { query: '?inline', import: 'default', eager: true })
+  const publicFile = (path: string) => fromDataUrl(IMAGE_DATA[`../../public/${path}`]!)
+
+  it('(17) 5 plataformas na ordem do pedido do autor, com 33 / 20 / 2 / 1 / 5 certificados (FR-003)', () => {
+    expect(platforms.map((p) => p.id)).toEqual(['dio', 'prime-academy', 'udemy', 'senai', 'promenady'])
+    expect(platforms.map((p) => p.name)).toEqual(['DIO', 'Prime Academy', 'Udemy', 'SENAI', 'Promenady'])
+    expect(platforms.map((p) => p.certificates.length)).toEqual([33, 20, 2, 1, 5])
+    for (const p of platforms) expect(p.id).toMatch(KEBAB)
+  })
+
+  it('(18) datas AAAA-MM-DD válidas e não futuras, horas inteiras > 0, título não vazio', () => {
+    for (const { cert } of certificates) {
+      expect(cert.issued, cert.id).toMatch(DAY)
+      expect(Number.isNaN(Date.parse(cert.issued)), cert.id).toBe(false)
+      expect(cert.issued <= today, `${cert.id}: emitido no futuro`).toBe(true)
+      expect(Number.isInteger(cert.hours) && cert.hours > 0, cert.id).toBe(true)
+      expect(cert.title.trim(), cert.id).not.toBe('')
+    }
+  })
+
+  it('(19) slug em kebab-case com até 20 caracteres e nome do arquivo com até 35 (FR-006)', () => {
+    for (const { cert } of certificates) {
+      expect(cert.id).toMatch(KEBAB)
+      expect(cert.id.length, cert.id).toBeLessThanOrEqual(20)
+      expect(certificateFileName(cert).length, cert.id).toBeLessThanOrEqual(35)
+    }
+  })
+
+  it('(20) dados já do mais recente para o mais antigo em cada plataforma (a ordem da pasta)', () => {
+    for (const p of platforms) {
+      const dates = p.certificates.map((c) => c.issued)
+      expect(dates, p.id).toEqual([...dates].sort().reverse())
+    }
+  })
+
+  it('(21) verificação com https://; só o SENAI sem verificação, por privacidade (FR-008, C2)', () => {
+    for (const { platform, cert } of certificates) {
+      if (platform.id === 'senai') expect(cert.verification, cert.id).toBeUndefined()
+      else expect(cert.verification, cert.id).toBeDefined()
+      if (cert.verification?.url) expect(cert.verification.url, cert.id).toMatch(/^https:\/\//)
+    }
+  })
+
+  it('(22) as imagens derivadas existem em public/ e têm as dimensões dos dados (FR-009)', () => {
+    for (const { platform, cert } of certificates) {
+      const image = certificateImage(platform, cert)
+      expect(PUBLIC_IMAGES.has(image.src), image.src).toBe(true)
+      expect(PUBLIC_IMAGES.has(image.full), image.full).toBe(true)
+      expect(webpSize(publicFile(image.full)), image.full).toEqual({ width: platform.image.width, height: platform.image.height })
+      const thumb = webpSize(publicFile(image.src))
+      expect(thumb.width, image.src).toBe(CERT_THUMB_WIDTH)
+      expect(Math.abs(thumb.height - (platform.image.height * CERT_THUMB_WIDTH) / platform.image.width), image.src).toBeLessThanOrEqual(1)
+    }
+    // e nada sobra em public/certificados
+    const expected = new Set(certificates.flatMap(({ platform, cert }) => [certificateImage(platform, cert).src, certificateImage(platform, cert).full]))
+    for (const path of PUBLIC_IMAGES) if (path.startsWith('certificados/')) expect(expected.has(path), path).toBe(true)
+  })
+
+  it('(23) privacidade: nenhum dado de documento nos textos dos certificados e da foto (FR-010, SC-005)', () => {
+    const texts = [
+      ...certificates.flatMap(({ cert }) => [cert.title, ...(cert.syllabus ?? []), cert.verification?.code ?? '', cert.verification?.url ?? '']),
+      ...experiences.flatMap((exp) => (exp.photo ? [exp.photo.alt, exp.photo.caption] : [])),
+    ]
+    for (const text of texts) {
+      expect(text).not.toMatch(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/)
+      expect(text).not.toMatch(/\bRG\b/)
+      expect(text.toLowerCase()).not.toMatch(/natural de|nascid/)
+    }
+  })
+
+  it('(24) só a Prime Control tem foto, com data válida, texto alternativo, legenda e arquivos em public/', () => {
+    const withPhoto = experiences.filter((exp) => exp.photo)
+    expect(withPhoto.map((exp) => exp.id)).toEqual(['prime-control'])
+    const photo = withPhoto[0]!.photo!
+    expect(photo.taken).toBe('2020-10-15')
+    expect(photo.alt.trim()).not.toBe('')
+    expect(photo.caption.trim()).not.toBe('')
+    expect(webpSize(publicFile(photo.src))).toEqual({ width: photo.srcWidth, height: (photo.height * photo.srcWidth) / photo.width })
+    expect(webpSize(publicFile(photo.full))).toEqual({ width: photo.width, height: photo.height })
   })
 })

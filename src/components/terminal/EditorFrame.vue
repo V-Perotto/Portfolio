@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { FileCode } from '@lucide/vue'
-import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, readonly, ref } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, readonly, ref } from 'vue'
 import BaseCard from '@/components/base/BaseCard.vue'
 import ExternalLink from '@/components/base/ExternalLink.vue'
+import ZoomFigure from '@/components/base/ZoomFigure.vue'
 import BranchedMenu from '@/components/vendor/vue-bits/BranchedMenu.vue'
-import type { EditorFolder } from '@/lib/editor-files'
+import type { EditorFile, EditorFolder } from '@/lib/editor-files'
 import { canAnimate, finishAll, FLIP_EASING, FLIP_MS, toward } from '@/lib/flip'
 import TerminalLine from './TerminalLine.vue'
 import TerminalWindow from './TerminalWindow.vue'
@@ -37,6 +38,12 @@ const maximized = ref(false)
  */
 const hydrated = ref(false)
 const files = computed(() => (hydrated.value ? props.folder.files : props.folder.files.slice(0, 1)))
+/**
+ * Arquivos já abertos (feature 010, research R6): os fechados ficam empilhados e só invisíveis, então um
+ * `loading="lazy"` baixaria todas as imagens quando a janela chegasse perto da tela. Só o aberto e os já
+ * vistos têm o `<img>`; os outros, a caixa com a proporção.
+ */
+const visited = reactive(new Set<string>())
 const placeholderHeight = ref<number | null>(null)
 
 const slot = ref<HTMLElement | null>(null)
@@ -44,12 +51,24 @@ const frame = ref<HTMLElement | null>(null)
 const cards = ref<HTMLElement | null>(null)
 
 const active = computed(() => props.folder.files.find((f) => f.id === activeId.value) ?? props.folder.files[0])
-const tree = computed(() => [
-  {
-    label: `${props.folder.label}/`,
-    children: props.folder.files.map((file) => ({ value: file.id, label: file.name, icon: FileCode })),
-  },
-])
+const asChild = (file: EditorFile) => ({ value: file.id, label: file.name, icon: FileCode })
+/**
+ * A árvore: a pasta raiz com os arquivos (006) ou, na janela de Certificados (feature 010, research R1),
+ * uma pasta por plataforma, em acordeão (uma aberta por vez, a lista rolando por dentro).
+ */
+const tree = computed(() =>
+  props.folder.groups
+    ? props.folder.groups.map((group) => ({
+        label: `${group.label}/`,
+        value: group.label,
+        // no HTML pré-renderizado, só as pastas: sem JS a árvore não aparece, e os 61 arquivos com os ramos
+        // pesavam ~2,5 KB comprimidos (research R11); os arquivos entram na montagem, como os YAML
+        children: hydrated.value ? group.files.map(asChild) : [],
+      }))
+    : [{ label: `${props.folder.label}/`, children: props.folder.files.map(asChild) }],
+)
+/** A pasta aberta (a do arquivo aberto), quando a janela tem várias. */
+const openGroup = computed(() => active.value?.group ?? null)
 
 let running: Animation[] = []
 let token = 0
@@ -68,6 +87,8 @@ const focusMax = () => frame.value?.querySelector<HTMLButtonElement>('button.t-m
 /** Maximizada, o diálogo: Esc restaura; o Tab circula dentro do quadro (FR-017). */
 function onKeydown(e: KeyboardEvent) {
   if (!maximized.value) return
+  // com o visualizador de imagem aberto por cima (feature 010), o Esc e o Tab são dele
+  if (document.querySelector('dialog[open]')) return
   if (e.key === 'Escape') {
     e.preventDefault()
     e.stopPropagation()
@@ -165,8 +186,19 @@ function revealCard(id: string, glide = true) {
 }
 
 function select(id: string) {
+  visited.add(activeId.value)
   activeId.value = id
   if (maximized.value) revealCard(id)
+}
+
+/** Abrir outra pasta (feature 010, FR-004): abre o 1º arquivo dela; maximizada, os cartões voltam ao topo. */
+async function onToggle(index: number, opened: boolean) {
+  const first = props.folder.groups?.[index]?.files[0]
+  if (!opened || !first) return
+  visited.add(activeId.value)
+  activeId.value = first.id
+  await nextTick()
+  cards.value?.scrollTo({ top: 0, behavior: 'instant' })
 }
 
 onMounted(() => {
@@ -205,11 +237,14 @@ onBeforeUnmount(() => {
                   :aria-label="`Arquivos de ${folder.path}`"
                   :radius="0"
                   :width="300"
+                  :exclusive="!!folder.groups"
+                  :max-rows="folder.groups ? 8 : undefined"
                   color="var(--text)"
                   accent-color="var(--green-bright)"
                   line-color="var(--tree-line)"
                   muted-color="var(--text-dim)"
                   @select="select"
+                  @toggle="onToggle"
                 />
               </div>
               <div class="editor-pane">
@@ -217,7 +252,7 @@ onBeforeUnmount(() => {
                   <article
                     v-for="file in files"
                     :key="file.id"
-                    class="editor-file"
+                    :class="['editor-file', { 'has-figure-side': file.figure?.placement === 'side' }]"
                     :data-file-id="file.id"
                     :data-active="file.id === activeId ? '' : undefined"
                     :aria-label="file.name"
@@ -228,6 +263,17 @@ onBeforeUnmount(() => {
                         <span :class="['editor-code', `editor-indent-${line.indent}`]"><template v-for="(tok, k) in line.tokens" :key="k"><ExternalLink v-if="tok.kind === 'link' && tok.href" class="tok tok-link" :href="tok.href">{{ tok.text }}</ExternalLink><span v-else :class="['tok', `tok-${tok.kind}`]">{{ tok.text }}</span></template></span>
                       </li>
                     </ol>
+                    <ZoomFigure
+                      v-if="file.figure"
+                      class="editor-figure"
+                      :data-placement="file.figure.placement"
+                      :image="file.figure"
+                      :caption="file.figure.caption"
+                      :viewer-caption="file.figure.viewerCaption"
+                      :sizes="file.figure.sizes"
+                      :open-label="file.figure.openLabel"
+                      :load="file.id === activeId || visited.has(file.id)"
+                    />
                   </article>
                 </div>
                 <!-- maximizada, a lista rola por dentro: vira uma região focável, para rolar pelo teclado mesmo
@@ -239,11 +285,16 @@ onBeforeUnmount(() => {
                   :role="maximized ? 'region' : undefined"
                   :aria-label="maximized ? `Cartões de ${folder.path}` : undefined"
                 >
-                  <slot name="cards" />
+                  <slot name="cards" :open-group="maximized && folder.groups ? openGroup : null" />
                 </div>
               </div>
               <footer class="editor-footer mono">
-                <span class="editor-path">{{ active?.path }}</span>
+                <!-- os caminhos de todos os arquivos ficam empilhados, invisíveis, na mesma célula: no celular o
+                     caminho quebra em mais linhas, e o rodapé tem a altura do maior (feature 010, SC-003) -->
+                <span class="editor-path-box">
+                  <span class="editor-path">{{ active?.path }}</span>
+                  <span v-for="file in files" :key="file.id" class="editor-path-sizer" aria-hidden="true">{{ file.path }}</span>
+                </span>
                 <span class="editor-pos">{{ active?.position }} / {{ active?.total }}</span>
               </footer>
             </div>
@@ -303,6 +354,15 @@ onBeforeUnmount(() => {
   overflow-x: auto;
 }
 
+/* acordeão (feature 010): abaixo de 760 px, a árvore fica acima do arquivo, e a lista da pasta aberta mostra 4
+   linhas em vez de 8 (o `!important` vence o valor da prop, que o menu põe no `style`); maximizada, a árvore
+   rola por inteiro, sem a altura reservada */
+@media (max-width: 760px) {
+  .editor-tree :deep(.bm-exclusive) { --bm-max-rows: 4 !important; }
+}
+
+.editor-frame.is-maximized .editor-tree :deep(.bm-exclusive) { min-height: auto; }
+
 /* no celular, o nome que não cabe termina em reticências, como no explorer do VS Code, em vez de ser cortado
    no meio da letra pelo `overflow: hidden` da dobra do Branched Menu; o nome inteiro continua no texto do
    botão (nome acessível) e no rodapé (feature 008, FR-020, research R13) */
@@ -358,6 +418,40 @@ onBeforeUnmount(() => {
 
 .editor-code.editor-indent-1 { padding-left: 4ch; }
 
+/* imagem do arquivo (feature 010, research R6): abaixo das linhas, alinhada ao código (depois da coluna dos
+   números), com até 20rem; o `font-size` é o das linhas, para o `ch` bater */
+.editor-figure {
+  font-size: 0.85rem;
+  min-width: 0;
+}
+
+.editor-figure[data-placement="below"],
+.editor-figure[data-placement="side"] {
+  width: min(calc(100% - 3.2ch - var(--spacing) * 7), 20rem);
+  margin: calc(var(--spacing) * 2) 0 0 calc(3.2ch + var(--spacing) * 3);
+}
+
+/* a foto da experiência (feature 010, Q3, research R8): a partir de 900 px, à direita das linhas, numa coluna
+   de 10 a 16rem; abaixo disso, embaixo delas, como a miniatura dos certificados. Em 1366 px, o resumo da Prime
+   Control passa de 3 para 5 linhas, e a janela cresce 2 linhas (46 px), o limite do FR-017; uma foto menor
+   (14rem) não poupava nenhuma linha */
+@media (min-width: 900px) {
+  .editor-file.has-figure-side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(10rem, 36%, 16rem);
+    column-gap: calc(var(--spacing) * 4);
+    align-items: start;
+    padding-right: calc(var(--spacing) * 4);
+  }
+
+  .editor-file.has-figure-side .editor-figure {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+    margin: 0;
+  }
+}
+
 .tok-key { color: var(--syntax-key); }
 .tok-str { color: var(--syntax-str); }
 .tok-date { color: var(--syntax-date); }
@@ -383,12 +477,26 @@ onBeforeUnmount(() => {
   text-transform: uppercase;
 }
 
-.editor-path {
+.editor-path-box {
+  display: grid;
+  min-width: 0;
+}
+
+.editor-path,
+.editor-path-sizer {
+  grid-area: 1 / 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 
-.editor-pos { flex: none; }
+.editor-path-sizer { visibility: hidden; }
+
+/* largura fixa (até `33 / 33`): a posição não muda a largura que sobra para o caminho */
+.editor-pos {
+  flex: none;
+  min-width: 7ch;
+  text-align: right;
+}
 
 /* abaixo de 760px, a árvore fica acima do arquivo */
 @media (max-width: 760px) {

@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { resume } from '@/data/resume'
-import { challengeFolder, communityFolder, educationFolder, experienceFolder, fileText, slugify, type EditorFolder } from '@/lib/editor-files'
+import {
+  certificateFolder,
+  challengeFolder,
+  communityFolder,
+  educationFolder,
+  experienceFolder,
+  fileText,
+  slugify,
+  type EditorFolder,
+} from '@/lib/editor-files'
 import { formatPeriod, formatYearMonth, formatYears } from '@/lib/period'
 import { byCreatedDesc, byStartDesc, byStartYearDesc } from '@/lib/sort'
 
@@ -178,5 +187,106 @@ describe('arquivos das janelas de editor', () => {
     expect(slugify('CIEE-PR')).toBe('ciee-pr')
     expect(slugify('Gincana Junina')).toBe('gincana-junina')
     expect(slugify('Ação Única')).toBe('acao-unica')
+  })
+
+  // Feature 010 (FR-003 a FR-011, research R3 e R5; contracts/certificates-window.md §3)
+  describe('certificados', () => {
+    const folder = certificateFolder(resume.certificatePlatforms)
+    const groups = folder.groups!
+    const file = (id: string) => folder.files.find((f) => f.id === id)!
+
+    it('pasta ~/certificados com 5 pastas na ordem do autor e a posição contada na pasta', () => {
+      expect(folder.label).toBe('certificados')
+      expect(folder.path).toBe('~/certificados')
+      expect(groups.map((g) => g.label)).toEqual(['dio', 'prime-academy', 'udemy', 'senai', 'promenady'])
+      expect(groups.map((g) => g.title)).toEqual(['DIO', 'Prime Academy', 'Udemy', 'SENAI', 'Promenady'])
+      expect(groups.map((g) => g.files.length)).toEqual([33, 20, 2, 1, 5])
+      expect(folder.files).toEqual(groups.flatMap((g) => g.files))
+      for (const group of groups)
+        group.files.forEach((f, i) => {
+          expect(f.position).toBe(i + 1)
+          expect(f.total).toBe(group.files.length)
+          expect(f.group).toBe(group.label)
+          expect(f.path).toBe(`~/certificados/${group.label}/${f.name}`)
+          expect(f.name).toMatch(/^\d{4}-\d{2}-\d{2}_[a-z0-9-]+\.yml$/)
+          expect(f.name.length).toBeLessThanOrEqual(35)
+        })
+    })
+
+    it('1º da DIO: o bootcamp com tipo, data, carga horária e o link de verificação (contrato §3)', () => {
+      const first = groups[0]!.files[0]!
+      expect(first.id).toBe('dio/empregotech-basico')
+      expect(fileText(first)).toBe(
+        [
+          '# 1 / 33 · Programa EmpregoTech Curitiba - Básico',
+          'curso: Programa EmpregoTech Curitiba - Básico',
+          'plataforma: DIO',
+          'tipo: bootcamp',
+          'emitido: 29 JUL 2020',
+          'carga_horaria: 39 h',
+          'verificacao: hermes.dio.me/certificates/207D7222.pdf',
+        ].join('\n'),
+      )
+      const link = first.lines.at(-1)!.tokens.find((tok) => tok.kind === 'link')!
+      expect(link.href).toBe('https://hermes.dio.me/certificates/207D7222.pdf')
+    })
+
+    it('Prime Academy com codigo (texto), Promenady com o link host · código, SENAI com a ementa e o código omitido (R5, C2, C3)', () => {
+      const apis = fileText(file('prime-academy/apis'))
+      expect(apis).toContain('codigo: 666923b8ee6805a1a5040c2ddcb47d02')
+      expect(file('prime-academy/apis').lines.some((l) => l.tokens.some((tok) => tok.kind === 'link'))).toBe(false)
+      const promenady = file('promenady/formacao-consultores')
+      expect(fileText(promenady)).toContain('verificacao: e-certificado.com · 1641756A81BF361B10825550')
+      expect(promenady.lines.at(-1)!.tokens.find((tok) => tok.kind === 'link')!.href).toBe(
+        'https://e-certificado.com/login/autenticar?c=1641756A81BF361B10825550',
+      )
+      const senai = fileText(file('senai/ia'))
+      expect(senai).toContain('ementa: [Inteligência Artificial, Aprendizagem de máquina,')
+      expect(senai.split('\n').at(-1)).toBe('# código omitido por privacidade')
+      expect(senai).not.toMatch(/codigo:|verificacao:/)
+    })
+
+    it('ordem da pasta: data desc., e no mesmo dia a dos dados (DIO, 01 JUL 2020)', () => {
+      const julyFirst = groups[0]!.files.filter((f) => f.name.startsWith('2020-07-01_')).map((f) => f.id)
+      expect(julyFirst).toEqual(['dio/redux', 'dio/js-com-react', 'dio/reactjs-web', 'dio/react-typescript', 'dio/intro-reactjs'])
+    })
+
+    it('cada arquivo tem a miniatura abaixo das linhas, com o texto alternativo e a legenda do visualizador (FR-009)', () => {
+      const f = file('dio/logica-programacao').figure!
+      expect(f).toMatchObject({
+        src: 'certificados/dio/2020-04-13_logica-programacao-640.webp',
+        full: 'certificados/dio/2020-04-13_logica-programacao-1200.webp',
+        placement: 'below',
+        openLabel: '(abre o certificado em tamanho real)',
+        alt: 'Certificado da DIO: Lógica de programação essencial, 4 h, 13/04/2020',
+        viewerCaption: '# DIO · Lógica de programação essencial · 13 ABR 2020',
+      })
+      expect(f.caption).toBeUndefined()
+      expect(folder.files.every((x) => x.figure?.placement === 'below')).toBe(true)
+    })
+
+    it('só as chaves previstas', () => {
+      const allowed = ['curso', 'plataforma', 'tipo', 'emitido', 'carga_horaria', 'ementa', 'verificacao', 'codigo']
+      for (const f of folder.files) for (const l of f.lines) for (const tok of l.tokens) if (tok.kind === 'key') expect(allowed).toContain(tok.text)
+    })
+  })
+
+  // Feature 010 (FR-017, Q3; research R8): a foto do 1º dia ao lado das linhas do arquivo da Prime Control
+  it('só a Prime Control tem a foto, ao lado das linhas, com a legenda datada; as linhas não mudam', () => {
+    const carreira = experienceFolder(resume.experiences)
+    const withFigure = carreira.files.filter((f) => f.figure)
+    expect(withFigure.map((f) => f.id)).toEqual(['prime-control'])
+    const prime = withFigure[0]!
+    expect(prime.name).toBe('2020-10_prime-control.yml')
+    expect(prime.figure).toMatchObject({
+      src: 'carreira/prime-control/integracao-2020-10-15-512.webp',
+      full: 'carreira/prime-control/integracao-2020-10-15-1024.webp',
+      placement: 'side',
+      caption: '# 1º dia na Prime Control · 15 OUT 2020',
+      viewerCaption: '# 1º dia na Prime Control · 15 OUT 2020',
+      openLabel: '(abre a foto em tamanho real)',
+    })
+    expect(fileText(prime)).toContain('periodo: OUT 2020 — OUT 2022')
+    expect(fileText(prime)).not.toContain('foto')
   })
 })

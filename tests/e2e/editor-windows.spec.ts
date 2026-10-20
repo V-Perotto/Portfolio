@@ -14,6 +14,9 @@ const EDITORS = [
   { label: 'formacao', path: '~/formacao', section: '#educacao', count: 4 },
 ] as const
 
+/** As janelas que viram cartões sem JS e na impressão: as de cima e, desde a feature 010, a de Certificados. */
+const CARD_WINDOWS = [...EDITORS, { label: 'certificados', count: 61 }] as const
+
 const editor = (page: Page, label: string) => page.locator(`.editor-window[data-editor="${label}"]`)
 /** O quadro (no lugar ou, maximizado, no <body>). */
 const frameOf = (page: Page, path: string) =>
@@ -286,11 +289,11 @@ test('Ctrl+Alt+T não abre o terminal da dock com a janela maximizada (V8)', asy
   await expect(page.locator('#dock-terminal')).toHaveCount(0)
 })
 
-test('sem JavaScript: as quatro janelas mostram os cartões, sem árvore nem YAML (V9, FR-012; 008 FR-012)', async ({ browser }) => {
+test('sem JavaScript: as cinco janelas mostram os cartões, sem árvore nem YAML (V9, FR-012; 008 FR-012; 010 FR-014)', async ({ browser }) => {
   const context = await browser.newContext({ javaScriptEnabled: false })
   const page = await context.newPage()
   await page.goto('./')
-  for (const { label, count } of EDITORS) {
+  for (const { label, count } of CARD_WINDOWS) {
     const win = editor(page, label)
     await expect(win.locator('.editor-cards [data-card-id]')).toHaveCount(count)
     await expect(win.locator('.editor-cards [data-card-id]').first()).toBeVisible()
@@ -302,10 +305,10 @@ test('sem JavaScript: as quatro janelas mostram os cartões, sem árvore nem YAM
   await context.close()
 })
 
-test('impressão: as quatro janelas saem com os cartões (V9, FR-012; 008 FR-012)', async ({ page }) => {
+test('impressão: as cinco janelas saem com os cartões (V9, FR-012; 008 FR-012; 010 FR-014)', async ({ page }) => {
   await open(page)
   await page.emulateMedia({ media: 'print' })
-  for (const { label, count } of EDITORS) {
+  for (const { label, count } of CARD_WINDOWS) {
     const win = editor(page, label)
     await expect(win.locator('.editor-cards [data-card-id]')).toHaveCount(count)
     await expect(win.locator('.editor-cards [data-card-id]').first()).toBeVisible()
@@ -453,3 +456,79 @@ test('challenge Bom Jesus (FAE): 1º arquivo, fatos, link e reticências no celu
   expect(await label.evaluate((el) => el.scrollWidth > el.clientWidth && getComputedStyle(el).textOverflow === 'ellipsis')).toBe(true)
   await expect(small.locator('.editor-path')).toHaveText('~/projetos/challenges/2026-10_bom-jesus-fae.yml')
 })
+
+// Feature 010 (quickstart V11, V17; FR-017 a FR-021; SC-006): a foto do 1º dia na Prime Control
+test.describe('foto do 1º dia na Prime Control', () => {
+  for (const viewport of [
+    { width: 1366, height: 800 },
+    { width: 1920, height: 1080 },
+  ]) {
+    test(`${viewport.width}px: à direita das linhas, com a legenda datada; a janela cresce no máximo 2 linhas e fica igual nos 5 arquivos`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await open(page, viewport)
+      const win = await ready(page, 'carreira')
+      const frame = win.locator('.editor-frame')
+      const heights: number[] = []
+      for (const file of await win.locator('.bm-child').all()) {
+        await file.click()
+        heights.push(await height(frame))
+      }
+      expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(0.5)
+      // 453 px na 009 (research R8), mais 2 linhas do editor (23 px cada)
+      expect(Math.max(...heights)).toBeLessThanOrEqual(453 + 46 + 0.5)
+
+      await win.locator('.bm-child', { hasText: '2020-10_prime-control.yml' }).click()
+      const file = win.locator('.editor-file[data-active]')
+      await expect(file).toContainText('periodo: OUT 2020 — OUT 2022')
+      const figure = file.locator('.editor-figure')
+      await expect(figure.locator('figcaption')).toHaveText('# 1º dia na Prime Control · 15 OUT 2020')
+      const lines = (await file.locator('.editor-lines').boundingBox())!
+      const fig = (await figure.boundingBox())!
+      expect(fig.x).toBeGreaterThanOrEqual(lines.x + lines.width - 0.5)
+      await expect(figure.locator('img')).toHaveAttribute('alt', /^Integração dos novos funcionários na Prime Control em 15\/10\/2020/)
+      // só a Prime Control tem foto
+      await expect(win.locator('.editor-file .editor-figure')).toHaveCount(1)
+    })
+  }
+
+  for (const viewport of [
+    { width: 768, height: 1000 },
+    { width: 390, height: 844 },
+  ]) {
+    test(`${viewport.width}px: a foto fica embaixo das linhas`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await open(page, viewport)
+      const win = await ready(page, 'carreira')
+      await win.locator('.bm-child', { hasText: '2020-10_prime-control.yml' }).click()
+      const file = win.locator('.editor-file[data-active]')
+      const lines = (await file.locator('.editor-lines').boundingBox())!
+      const fig = (await file.locator('.editor-figure').boundingBox())!
+      expect(fig.y).toBeGreaterThanOrEqual(lines.y + lines.height - 0.5)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    })
+  }
+
+  test('a foto abre no visualizador; maximizada, o cartão da Prime Control tem a foto', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await open(page)
+    const win = await ready(page, 'carreira')
+    await win.locator('.bm-child', { hasText: '2020-10_prime-control.yml' }).click()
+    const link = win.locator('.editor-file[data-active] .shot-link')
+    await link.click()
+    const dialog = page.locator('body > dialog.shot-viewer')
+    await expect.poll(() => dialog.evaluate((d: HTMLDialogElement) => d.open)).toBe(true)
+    await expect(dialog.locator('.shot-caption')).toHaveText('# 1º dia na Prime Control · 15 OUT 2020')
+    await expect(dialog.locator('img.shot-full')).toHaveAttribute('src', /\/carreira\/prime-control\/integracao-2020-10-15-1024\.webp$/)
+    await page.keyboard.press('Escape')
+    await expect.poll(() => dialog.evaluate((d: HTMLDialogElement) => d.open)).toBe(false)
+    await expect(link).toBeFocused()
+
+    const frame = frameOf(page, '~/carreira')
+    await frame.locator('button.t-max').click()
+    const card = frame.locator('[data-card-id="prime-control"]')
+    await expect(card.locator('figure.exp-photo figcaption')).toHaveText('# 1º dia na Prime Control · 15 OUT 2020')
+    await expect(frame.locator('.editor-cards figure')).toHaveCount(1)
+    await page.keyboard.press('Escape')
+  })
+})
+

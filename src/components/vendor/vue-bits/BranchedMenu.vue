@@ -14,6 +14,12 @@
     como padrão); o contorno de foco do site continua (o original tirava o `outline`);
   - transições desligadas com "reduzir movimento" (`prefers-reduced-motion` e `html:not(.motion)`);
   - sem `className`.
+  Modificações locais (feature 010, research R1; contracts/certificates-window.md §2):
+  - prop `exclusive`: uma seção aberta por vez (abrir uma fecha as outras; clicar na aberta não a fecha);
+  - prop `maxRows` (com `exclusive`): a seção aberta rola por dentro, com no máximo `maxRows` linhas
+    (`--bm-max-rows`, que quem usa pode trocar por CSS), sem levar a página junto, e o menu reserva a
+    altura da maior seção (`--bm-sections`, `--bm-largest`), para não mudar de altura ao trocar de seção;
+  - a dobra fechada é `inert`: os filhos dela saem do Tab e do leitor de tela (em todos os usos).
 -->
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch, type Component, type CSSProperties } from 'vue'
@@ -54,6 +60,8 @@ const props = withDefaults(
     fontSize?: number
     drawDuration?: number
     foldDuration?: number
+    exclusive?: boolean
+    maxRows?: number
   }>(),
   {
     defaultOpen: 0,
@@ -71,6 +79,8 @@ const props = withDefaults(
     fontSize: 14,
     drawDuration: 400,
     foldDuration: 300,
+    exclusive: false,
+    maxRows: undefined,
   },
 )
 
@@ -126,6 +136,13 @@ watch(() => [activeSection.value, markerShown.value, props.items, props.fontSize
 
 const select = (value: string, item: BranchedMenuChild | BranchedMenuItem) => emit('select', value, item)
 const toggle = (i: number) => {
+  if (props.exclusive) {
+    // acordeão (feature 010): sempre uma seção aberta; a aberta não fecha
+    if (open.value.has(i)) return
+    open.value = new Set([i])
+    emit('toggle', i, true)
+    return
+  }
   const next = new Set(open.value)
   const isOpen = !next.has(i)
   if (isOpen) next.add(i)
@@ -158,12 +175,24 @@ const navStyle = computed(
       '--bm-draw': `${props.drawDuration}ms`,
       '--bm-muted': props.mutedColor ?? `color-mix(in srgb, ${props.color} 55%, transparent)`,
       '--bm-fold': `${props.foldDuration}ms`,
+      ...(props.exclusive && props.maxRows
+        ? {
+            '--bm-max-rows': props.maxRows,
+            '--bm-sections': props.items.length,
+            '--bm-largest': Math.max(1, ...props.items.map((it) => it.children?.length ?? 0)),
+          }
+        : {}),
     }) as CSSProperties,
 )
 </script>
 
 <template>
-  <nav ref="navRef" class="branched-menu" :aria-label="ariaLabel" :style="navStyle">
+  <nav
+    ref="navRef"
+    :class="['branched-menu', { 'bm-exclusive': exclusive && maxRows }]"
+    :aria-label="ariaLabel"
+    :style="navStyle"
+  >
     <span ref="markerRef" class="bm-marker" aria-hidden="true" />
     <div
       v-for="(item, i) in items"
@@ -182,7 +211,7 @@ const navStyle = computed(
       >
         {{ item.label }}
       </button>
-      <div v-if="item.children" class="bm-fold">
+      <div v-if="item.children" class="bm-fold" :inert="!open.has(i) || undefined">
         <div class="bm-fold-inner">
           <div class="bm-rows" :style="{ height: `${PAD * 2 + item.children.length * rowHeight}px` }">
             <svg
@@ -301,6 +330,21 @@ const navStyle = computed(
 .bm-fold-inner {
   min-height: 0;
   overflow: hidden;
+}
+
+/* acordeão com rolagem (feature 010): a seção aberta mostra até `--bm-max-rows` linhas e rola por dentro,
+   sem levar a página; o menu reserva a altura das cabeças e da maior seção aberta (cabeça: 9 px de cada
+   lado + a linha de `--bm-font + 1px` com `line-height` 1,2) */
+.bm-exclusive {
+  min-height: calc(
+    var(--bm-sections) * ((var(--bm-font) + 1px) * 1.2 + 18px) + min(var(--bm-max-rows), var(--bm-largest)) * var(--bm-row) + 12px
+  );
+}
+
+.bm-exclusive .bm-section[data-open] > .bm-fold > .bm-fold-inner {
+  max-height: calc(var(--bm-row) * var(--bm-max-rows) + 12px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .bm-rows {

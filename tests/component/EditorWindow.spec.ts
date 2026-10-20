@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { h, nextTick } from 'vue'
 import EditorWindow from '@/components/terminal/EditorWindow.vue'
 import { resume } from '@/data/resume'
-import { experienceFolder } from '@/lib/editor-files'
+import { certificateFolder, experienceFolder } from '@/lib/editor-files'
 
 // Feature 006, US1 (FR-001 a FR-018; contracts/editor-window.md): janela de editor com árvore,
 // arquivos, rodapé e maximizar.
@@ -104,5 +104,76 @@ describe('EditorWindow', () => {
     expect(document.getElementById('app')!.inert).toBe(false)
     expect(wrapper.get('.desktop-window').attributes('data-window-state')).toBe('minimized')
     wrapper.unmount()
+  })
+
+  // Feature 010 (FR-003 a FR-005, FR-009, FR-012; research R1, R6, R9): a janela de Certificados, com pastas
+  describe('com pastas (feature 010)', () => {
+    const certs = certificateFolder(resume.certificatePlatforms)
+    let openGroup: string | null | undefined
+
+    function mountCerts() {
+      const app = document.createElement('div')
+      app.id = 'app'
+      document.body.append(app)
+      return mount(EditorWindow, {
+        props: { folder: certs, windowId: 'certificados' },
+        slots: {
+          cards: (props: { openGroup: string | null }) => {
+            openGroup = props.openGroup
+            return h('ol', certs.files.map((file) => h('li', { 'data-card-id': file.id }, [h('h4', file.name)])))
+          },
+        },
+        attachTo: app,
+      })
+    }
+
+    it('5 pastas em acordeão: só a 1ª aberta, com o 1º arquivo e 1 / 33', async () => {
+      const wrapper = mountCerts()
+      await nextTick()
+      expect(wrapper.findAll('.bm-head').map((b) => b.text())).toEqual(['dio/', 'prime-academy/', 'udemy/', 'senai/', 'promenady/'])
+      expect(wrapper.findAll('.bm-head').map((b) => b.attributes('aria-expanded'))).toEqual(['true', 'false', 'false', 'false', 'false'])
+      expect(wrapper.get('nav').classes()).toContain('bm-exclusive')
+      expect(wrapper.get('.editor-file[data-active]').attributes('data-file-id')).toBe('dio/empregotech-basico')
+      expect(pos()).toBe('1 / 33')
+      expect(openGroup).toBeNull()
+      wrapper.unmount()
+    })
+
+    it('abrir outra pasta abre o 1º arquivo dela', async () => {
+      const wrapper = mountCerts()
+      await nextTick()
+      await wrapper.findAll('.bm-head')[1]!.trigger('click')
+      await nextTick()
+      expect(wrapper.get('.editor-file[data-active]').attributes('data-file-id')).toBe('prime-academy/scrum')
+      expect(path()).toBe('~/certificados/prime-academy/2020-10-29_scrum.yml')
+      expect(pos()).toBe('1 / 20')
+      await wrapper.findAll('.bm-head')[3]!.trigger('click')
+      await nextTick()
+      expect(pos()).toBe('1 / 1')
+      expect(wrapper.findAll('.bm-head').map((b) => b.attributes('aria-expanded'))).toEqual(['false', 'false', 'false', 'true', 'false'])
+      wrapper.unmount()
+    })
+
+    it('só o arquivo aberto (e os já vistos) tem o <img> da miniatura (FR-009)', async () => {
+      const wrapper = mountCerts()
+      await nextTick()
+      const withImage = () => wrapper.findAll('.editor-file').filter((f) => f.find('.editor-figure img').exists()).map((f) => f.attributes('data-file-id'))
+      expect(wrapper.findAll('.editor-file .editor-figure')).toHaveLength(certs.files.length)
+      expect(withImage()).toEqual(['dio/empregotech-basico'])
+      await wrapper.find('.bm-child[data-value="dio/postgresql"]').trigger('click')
+      await nextTick()
+      expect(withImage()).toEqual(['dio/empregotech-basico', 'dio/postgresql'])
+      wrapper.unmount()
+    })
+
+    it('maximizada, o slot dos cartões recebe a pasta aberta (FR-012)', async () => {
+      const wrapper = mountCerts()
+      await nextTick()
+      await wrapper.findAll('.bm-head')[2]!.trigger('click')
+      await wrapper.get('button.t-max').trigger('click')
+      await nextTick()
+      expect(openGroup).toBe('udemy')
+      wrapper.unmount()
+    })
   })
 })

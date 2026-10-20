@@ -75,8 +75,8 @@ test.describe('sem JS', () => {
   test('feature 006: □ desenhado como desativado, loader no estado final e favicon (V9, V13, V15, FR-025, FR-042)', async ({ page }) => {
     await page.goto('./')
     const max = page.locator('.t-max')
-    // 13 janelas: a de Educação entrou na 008, o DebianServer na 009
-    expect(await max.count()).toBe(13)
+    // 14 janelas: a de Educação entrou na 008, o DebianServer na 009, a de Certificados na 010
+    expect(await max.count()).toBe(14)
     expect(await max.evaluateAll((els) => els.every((el) => el.tagName === 'SPAN' && el.classList.contains('t-btn--disabled')))).toBe(true)
     await expect(page.locator('#home .hero-boot')).toHaveAttribute('data-loader', 'done')
     await expect(page.locator('#home .ll-text[data-active]')).toHaveText('portfolio.service carregado com sucesso!')
@@ -110,11 +110,11 @@ test.describe('sem JS', () => {
     await page.goto('./')
     await expect(page.locator('.app-dock, #dock-terminal, .desktop-icon, canvas, .hero-grid')).toHaveCount(0)
     // navegação com os 6 links, sem o prompt
-    await expect(page.locator('.nav-links a')).toHaveCount(6)
+    await expect(page.locator('.nav-links a')).toHaveCount(7)
     await expect(page.locator('.navbar')).not.toContainText('viper@portfolio')
     // 13 janelas completas (as 4 de editor: as 3 da 006 e a de Educação da 008; o DebianServer da 009), com
     // os controles só desenho
-    await expect(page.locator('.desktop-window')).toHaveCount(13)
+    await expect(page.locator('.desktop-window')).toHaveCount(14)
     await expect(page.locator('.terminal-bar button')).toHaveCount(0)
     expect(await page.locator('.t-controls').evaluateAll((els) => els.every((el) => el.getAttribute('aria-hidden') === 'true'))).toBe(true)
     await expect(page.locator('footer.footer p')).toHaveCount(1)
@@ -143,6 +143,42 @@ test.describe('sem JS, feature 009', () => {
     await expect(link.locator('img')).toHaveAttribute('alt', /^Painel do CasaOS do DebianServer em 20\/10\/2026/)
     await expect(item.locator('figcaption')).toBeVisible()
     await expect(page.locator('dialog')).toHaveCount(0)
+  })
+})
+
+// Feature 010 (quickstart V9; FR-014, SC-004): os 61 certificados em cartões, agrupados por plataforma
+test.describe('sem JS, feature 010', () => {
+  test('5 grupos e 61 cartões, cada um uma vez; ver certificado é um link para a imagem; nenhum diálogo', async ({ page }) => {
+    await page.goto('./#certificados')
+    const section = page.locator('#certificados')
+    await expect(section.locator('.cert-group h3')).toHaveText([
+      'DIO · 33 certificados',
+      'Prime Academy · 20 certificados',
+      'Udemy · 2 certificados',
+      'SENAI · 1 certificado',
+      'Promenady · 5 certificados',
+    ])
+    for (const group of await section.locator('.cert-group').all()) await expect(group).toBeVisible()
+    await expect(section.locator('.cert-group li')).toHaveCount(61)
+    const ids = await section.locator('.cert-group li').evaluateAll((els) => els.map((el) => el.getAttribute('data-card-id')))
+    expect(new Set(ids).size).toBe(61)
+    const view = section.locator('[data-card-id="senai/ia"] a.cert-view')
+    await expect(view).toHaveAttribute('href', /\/certificados\/senai\/2020-12-30_ia-1200\.webp$/)
+    await expect(view).toHaveAttribute('target', '_blank')
+    await expect(section.locator('[data-card-id="senai/ia"] .cert-code')).toHaveText('código omitido por privacidade')
+    // a miniatura do 1º arquivo está no HTML, mas o arquivo fica escondido sem JS (só os cartões aparecem)
+    await expect(section.locator('.editor-figure')).toBeHidden()
+    await expect(page.locator('dialog')).toHaveCount(0)
+  })
+
+  test('a foto do 1º dia no cartão da Prime Control, como link para o tamanho real (FR-018, FR-021)', async ({ page }) => {
+    await page.goto('./#experiencia')
+    const figure = page.locator('#experiencia [data-card-id="prime-control"] figure.exp-photo')
+    await expect(figure).toBeVisible()
+    await expect(figure.locator('figcaption')).toHaveText('# 1º dia na Prime Control · 15 OUT 2020')
+    await expect(figure.locator('a.shot-link')).toHaveAttribute('href', /\/carreira\/prime-control\/integracao-2020-10-15-1024\.webp$/)
+    await expect(figure.locator('a.shot-link')).toHaveAttribute('target', '_blank')
+    await expect(page.locator('#experiencia figure')).toHaveCount(1)
   })
 })
 

@@ -12,6 +12,10 @@
  * - ProjectKind 'side-project'; Detail, ServerApp e Screenshot; `inProductionSince`, `details` e `apps`;
  * - Project: 4ª variante, a exceção do Princípio II v3.1.0 (captura de tela no lugar dos links).
  *
+ * Mudanças da 010 (specs/010-certificates-folders/data-model.md):
+ * - ImageFile (base de Screenshot e da nova Photo); Experience.photo (a foto do 1º dia na Prime Control);
+ * - Certificate, CertificatePlatform e CertificateVerification; Resume.certificatePlatforms.
+ *
  * `src/data/resume.ts` exporta
  * `export const resume = { ... } satisfies Resume`, então qualquer campo obrigatório ausente
  * ou com tipo errado quebra o `vue-tsc` e, com ele, o build.
@@ -77,6 +81,19 @@ export interface Experience {
   summary: string
   highlights?: Metric[]
   tech: NonEmpty<TechName>
+  /** Foto ao lado do arquivo `~/carreira/…yml` e no cartão (feature 010). Hoje, só a Prime Control. */
+  photo?: Photo
+}
+
+/**
+ * Foto de uma experiência (feature 010, FR-017 a FR-021): gerada por tools/build-certificates.mjs, com os
+ * rostos de terceiros desfocados antes de qualquer versão publicada (FR-020).
+ */
+export interface Photo extends ImageFile {
+  /** Legenda sem a data: '1º dia na Prime Control'. */
+  caption: string
+  /** Dia da foto: '2020-10-15' (exibido `15 OUT 2020`, `formatDate`). */
+  taken: YearMonthDay
 }
 
 /**
@@ -158,22 +175,26 @@ export interface ServerApp {
   summary: string
 }
 
+/** Imagem publicada em `public/`, gerada por `tools/` (009: a captura; 010: a foto e os certificados). */
+export interface ImageFile {
+  /** Versão exibida, relativa ao `base`: 'projetos/debianserver/painel-2026-10-20-800.webp'. */
+  src: string
+  /** Largura da versão exibida, em px (800). */
+  srcWidth: number
+  /** Versão em tamanho real (a resolução da origem), relativa ao `base`. */
+  full: string
+  /** Dimensões do tamanho real (1396 × 809): proporção reservada e tamanho no visualizador. */
+  width: number
+  height: number
+  /** Texto alternativo: o que a imagem mostra, com a data (FR-017 da 009; FR-019 da 010). */
+  alt: string
+}
+
 /**
  * Evidência por captura de tela (Princípio II v3.1.0, 4ª exceção: infraestrutura pessoal sem acesso
  * público). Arquivos em `public/`, gerados por tools/build-screenshots.mjs (research R4 da 009).
  */
-export interface Screenshot {
-  /** Versão exibida na janela, relativa ao `base`: 'projetos/debianserver/painel-2026-10-20-800.webp'. */
-  src: string
-  /** Largura da versão exibida, em px (800). */
-  srcWidth: number
-  /** Versão em tamanho real (resolução original), relativa ao `base`. */
-  full: string
-  /** Dimensões do original (1396 × 809): proporção reservada e tamanho no visualizador. */
-  width: number
-  height: number
-  /** Texto alternativo: o que o painel mostra, com a data (FR-017). */
-  alt: string
+export interface Screenshot extends ImageFile {
   /** Legenda sem a data: 'painel do CasaOS do DebianServer' (FR-016). */
   caption: string
   /** Mês da captura, exibido no formato da página (`01 OUT 2026`). */
@@ -263,6 +284,42 @@ export interface Education {
   sources?: NonEmpty<Link>
 }
 
+/** Verificação de um certificado (feature 010, FR-008, research R5). */
+export type CertificateVerification =
+  /** Endereço que abre o certificado do autor; `code`, quando existe, vira o texto do link. */
+  | { url: string; code?: string }
+  /** Sem endereço que funcione: o código impresso, como texto. */
+  | { code: string; url?: never }
+
+/** Certificado de curso (feature 010, data-model §1): só os fatos impressos nele (Princípio I). */
+export interface Certificate {
+  /** Slug curto e fixo, único na plataforma: o nome do arquivo `AAAA-MM-DD_<id>.yml` (FR-006). */
+  id: string
+  /** Título como está impresso no certificado. */
+  title: string
+  /** Data de emissão. */
+  issued: YearMonthDay
+  /** Carga horária, em horas, como impressa. */
+  hours: number
+  /** Só quando o certificado declara o tipo e o título não o diz (FR-007). */
+  kind?: 'bootcamp'
+  /** Ementa, quando o certificado a traz (FR-007): só o SENAI. */
+  syllabus?: NonEmpty<string>
+  /** Ausente só quando publicar o código exporia dados pessoais (SENAI, C2). */
+  verification?: CertificateVerification
+}
+
+/** Plataforma de cursos: uma pasta da janela `~/certificados` (feature 010, FR-003). */
+export interface CertificatePlatform {
+  /** Nome da pasta na árvore: 'dio', 'prime-academy'… (minúsculas, sem acento, com hífen). */
+  id: string
+  /** Nome exibido: 'DIO', 'Prime Academy', 'Udemy', 'SENAI', 'Promenady'. */
+  name: string
+  /** Dimensões do tamanho real das imagens desta plataforma (research R2, R4). */
+  image: { width: number; height: number }
+  certificates: NonEmpty<Certificate>
+}
+
 export interface Contact {
   key: string
   url: string
@@ -278,5 +335,7 @@ export interface Resume {
   challenges: Challenge[]
   community: CommunityProject[]
   education: Education[]
+  /** Na ordem das pastas (a do pedido do autor). Vazio = sem seção, sem menu e sem `open` (feature 010). */
+  certificatePlatforms: CertificatePlatform[]
   contacts: NonEmpty<Contact>
 }
