@@ -1,29 +1,3 @@
-<!--
-Sync Impact Report
-- Version change: 2.3.0 → 3.0.0 (MAJOR: a exceção da tela de boot no Princípio IV é redefinida de
-  forma incompatível — deixa de garantir a página descoberta sem ação do visitante em até 7 s e de
-  ser omitida com movimento reduzido; vira uma porta de acesso que espera o visitante)
-- Modified principles:
-  - IV. Acessibilidade e Desempenho (exceção da tela de boot: "não pulável, página descoberta em
-    ≤ 7 s do início da navegação, omitida com movimento reduzido e sem JavaScript" passa a "porta de
-    acesso: a página só é descoberta depois de uma ação do visitante, sem teto para essa ação;
-    depois dela, ≤ 4 s; operável por teclado e leitor de tela; fechar só encerra a tentativa; sem
-    JavaScript, sem porta; com movimento reduzido, porta sem nenhuma animação"; a lista de
-    animações decorativas troca "boot, matrix" por "porta de acesso, fundos animados")
-- Added sections: none
-- Removed sections: none
-- Templates: not modified by this command (dependent templates read the constitution at runtime)
-- Dependent artifacts: specs/005-access-gate-dotfield (FR-001 a FR-012, FR-019, FR-020) aplica a
-  exceção nova; o FR-032 e o FR-033 da 004 e o FR-031 da 001, quanto ao boot, ficam substituídos
-  pela 005 — a cargo do /speckit-plan e do /speckit-implement da 005 (script inline de `index.html`
-  e tela de boot). Princípio III sem mudança de texto: a consulta do IP do visitante é uma exceção
-  justificada já permitida, registrada no plano da 005.
-- Origem: decisão do autor em 2026-10-09 (feature 005, item 1 "fazendo com que o usuário tenha que
-  clicar"; specify Q1: emendar, porta sem teto; clarify: porta também com movimento reduzido, sem
-  animação)
-- Follow-up TODOs: none
--->
-
 # Portfólio Vittorio Perotto Constitution
 
 ## Core Principles
@@ -53,17 +27,24 @@ Os projetos são o núcleo do portfólio e MUST ser apresentados de forma verifi
   Projeto técnico MUST informar também a stack utilizada; projeto não técnico (ex.: projeto
   comunitário ou de extensão) dispensa a stack.
 - Cada projeto MUST ter ao menos uma evidência pública acessível (repositório, demo, página em
-  marketplace ou equivalente), com três exceções, que MUST ficar explícitas no próprio projeto:
+  marketplace ou equivalente), com quatro exceções, que MUST ficar explícitas no próprio projeto:
   trabalho confidencial (sem expor nenhum detalhe sigiloso), experiência acadêmica sem artefato
-  público (ex.: monitoria de disciplina) e código em repositório privado. Na última, o projeto
-  MUST ter link para o repositório, e cada link privado MUST avisar, antes do clique, que o
-  repositório é privado e pode não abrir para o visitante.
+  público (ex.: monitoria de disciplina), código em repositório privado e infraestrutura pessoal
+  sem acesso público (ex.: servidor caseiro).
+- Código em repositório privado: o projeto MUST ter link para o repositório, e cada link privado
+  MUST avisar, antes do clique, que o repositório é privado e pode não abrir para o visitante.
+- Infraestrutura pessoal sem acesso público: a evidência MUST ser uma captura de tela publicada no
+  próprio site, com a data da captura visível, e com texto alternativo que descreva o que ela mostra.
+  A imagem, os metadados dela e o texto do projeto MUST NOT conter nenhum dado que permita
+  localizar ou acessar a infraestrutura (IP, domínio, portas, nome de rede, usuário).
 - Links externos MUST abrir com `target="_blank"` e `rel="noopener noreferrer"`; indicadores
   dinâmicos (badges de downloads, estrelas etc.) MUST ter texto alternativo descritivo.
 - Projetos são ordenados por relevância para o posicionamento profissional atual, não por data.
 
 **Racional**: o objetivo é que o visitante possa comprovar o trabalho, não apenas ler sobre ele.
 Quando o código é privado, o link avisado mostra que o repositório existe sem fingir que é público.
+Quando a infraestrutura não pode ficar aberta ao público, a captura datada mostra que ela existe e
+funciona sem expô-la a quem a visita.
 
 ### III. Saída Estática
 
@@ -176,4 +157,4 @@ princípios acima; violações MUST ser corrigidas ou justificadas explicitament
 - **Revisão de conformidade**: a cada nova feature e sempre que o currículo for atualizado, o
   conteúdo do site MUST ser revisado contra os Princípios I e II.
 
-**Version**: 3.0.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-09
+**Version**: 3.1.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-20
