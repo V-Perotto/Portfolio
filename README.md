@@ -40,6 +40,29 @@ captura original fica em `tools/source/`; as versões publicadas (`public/projet
 Chromium do Playwright). Na página, a captura abre num visualizador por cima da página; sem
 JavaScript, em nova aba. A janela do DebianServer também lista os apps do servidor, cada um com ícone.
 
+### Certificados
+
+A seção Certificados (`~/certificados`) é uma janela de editor com uma pasta por plataforma (DIO, Prime
+Academy, Udemy, SENAI e Promenady), em acordeão: só uma fica aberta, e a lista dela rola por dentro. Os
+certificados ficam em `certificatePlatforms`, em `src/data/resume.ts`, só com os fatos impressos neles; o
+guia de edição explica como acrescentar um certificado ou uma plataforma.
+
+As imagens publicadas (`public/certificados/<plataforma>/`, uma miniatura de 640 px e o tamanho real, e
+a foto do 1º dia na Prime Control em `public/carreira/prime-control/`) saem de
+`node tools/build-certificates.mjs`. O script:
+
+- lê a lista do próprio `resume.ts` (precisa de Node ≥ 23.6, que executa TypeScript com os tipos
+  apagados);
+- usa o `pdftoppm` (pacote `poppler-utils`) para renderizar os PDFs e o Chromium do Playwright para
+  gerar os WebP sem metadados;
+- aplica as tarjas pretas (dados de documento) e os desfoques (rostos de terceiros) **na imagem, antes de
+  reduzi-la**, e falha acima dos tetos de peso.
+
+Os arquivos de origem ficam **fora do repositório**, em `~/Documents/certificados` (ou na pasta de
+`CERTIFICADOS_DIR`): os PDFs não são versionados, e as versões sem tarja e sem desfoque não podem ir para
+um repositório público. Sem a pasta de origem, o site continua construindo normalmente com os WebP
+versionados; o script só é preciso para trocar ou acrescentar uma imagem.
+
 ## Fontes e ícones
 
 As fontes Iosevka em `public/fonts/` são geradas com subset por `tools/build-fonts.sh`.
@@ -51,6 +74,9 @@ uma cor só), do homarr-labs/dashboard-icons (Valkey, CasaOS, OpenWebUI e Samba)
 cor só. Rode o script só quando um ícone novo
 entrar no manifesto dele; precisa de rede e do `npx` (o svgo roda com versão fixa). Origem e
 licença de cada ícone ficam em `src/assets/tech-icons/NOTICE.md`.
+
+Os scripts de imagem (`tools/build-screenshots.mjs` e `tools/build-certificates.mjs`) dividem as funções
+de WebP de `tools/lib/webp.mjs` (tirar os metadados e ler as dimensões, usadas também pelos testes).
 
 O favicon (`public/favicon.svg`, `favicon-32.png` e `apple-touch-icon.png`) é o ícone de terminal da
 dock, gerado a partir das cores de `src/styles/tokens.css` por `node tools/build-favicon.mjs` (precisa
@@ -94,9 +120,9 @@ com mais navegadores ao mesmo tempo, os testes de tempo da porta de acesso ficam
 ## Versão
 
 O campo `version` do `package.json` é a versão do portfólio. O build a injeta na sessão SSH da porta
-de acesso (`Bem-vindo ao Portfolio v2.8`, só maior e menor). Cada feature sobe a versão menor: v1 é o
+de acesso (`Bem-vindo ao Portfolio v2.9`, só maior e menor). Cada feature sobe a versão menor: v1 é o
 site original em HTML/CSS/JS, 2.0 a refatoração para Vue (001), 2.1 a 2.3 as features 002 a 004, 2.4
-a 005, 2.5 a 006, 2.6 a 007, 2.7 a 008 e 2.8 a 009. Para subir: `npm version <x.y.z> --no-git-tag-version` (atualiza também o `package-lock.json`).
+a 005, 2.5 a 006, 2.6 a 007, 2.7 a 008, 2.8 a 009 e 2.9 a 010. Para subir: `npm version <x.y.z> --no-git-tag-version` (atualiza também o `package-lock.json`).
 
 ## Publicação
 

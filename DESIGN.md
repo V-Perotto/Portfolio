@@ -487,8 +487,9 @@ hora; a animação não se repete. Sem JS, com movimento reduzido ou impresso, a
 completa. Janela visível quando a página fica interativa sem a capa da porta também fica completa.
 
 ### Editor Window (signature)
-Experiência, Challenges, Comunitário e Educação são janelas de editor no estilo VS Code, uma por
-seção (`~/carreira`, `~/projetos/challenges`, `~/projetos/comunitario`, `~/formacao`), dentro de uma
+Experiência, Challenges, Comunitário, Educação e Certificados são janelas de editor no estilo VS Code,
+uma por seção (`~/carreira`, `~/projetos/challenges`, `~/projetos/comunitario`, `~/formacao`,
+`~/certificados`), dentro de uma
 Terminal Window que digita `code <pasta>`; o editor é a saída do comando. O editor é um painel em
 Void Plum Alt com fio Grape Wire e raio de cartão: faixa de abas em Title Bar Plum (a aba do arquivo
 aberto em Console, sublinhada em Phosphor Bright); à esquerda (acima, abaixo de 760px) a árvore de
@@ -504,6 +505,19 @@ muda a altura (os arquivos ficam empilhados na mesma célula). Maximizada, a jan
 `<body>`, cobre 95% da tela sobre a página desfocada (6px) e escurecida (Void Plum a 55%), e mostra
 a árvore com os cartões de hoje no lugar do arquivo; escolher um arquivo rola até o cartão. Esc, o
 `□` ou um clique fora restauram. Sem JS e na impressão, só os cartões.
+
+- **Árvore com várias pastas** (Certificados): uma pasta por plataforma, em acordeão. Só uma fica aberta
+  (abrir outra fecha a anterior e abre o 1º arquivo dela; clicar na aberta não a fecha), e a lista dela
+  mostra até 8 arquivos (4 abaixo de 760px) e rola por dentro, sem levar a página. As pastas fechadas
+  mostram só o nome, e os arquivos delas ficam `inert` (fora do Tab e do leitor de tela). A árvore
+  reserva a altura das 5 pastas mais a maior lista aberta, então a janela não muda de altura ao trocar de
+  pasta. A posição no rodapé conta dentro da pasta (`3 / 20`). Maximizada, só os cartões da pasta aberta.
+- **Imagem no arquivo** (Zoom Figure, abaixo): a miniatura do certificado fica abaixo das linhas YAML,
+  alinhada ao código, com até 20rem; a foto da experiência fica à direita das linhas a partir de 900px
+  (coluna de 10 a 16rem) e embaixo delas abaixo disso. Só o arquivo aberto e os já vistos baixam a imagem;
+  os outros guardam a caixa com a proporção, para a altura não mudar.
+- **Rodapé**: os caminhos de todos os arquivos ficam empilhados e invisíveis na mesma célula, e a posição
+  tem largura fixa (`7ch`): no celular, onde o caminho quebra, o rodapé tem a altura do maior.
 
 ### Section Title (signature)
 `## nome/` em mono 700, seguido opcionalmente de `$ comando` como lead. É a assinatura de
@@ -561,6 +575,29 @@ centrada e o ✕ de 44px em Grape Deep no canto. Abre e fecha em 0.2s (opacidade
 com movimento reduzido, na hora. Esc, o ✕ e o clique fora fecham, com a página na mesma posição e o
 foco de volta na captura. Sem JS e na impressão, não há visualizador; o link abre a imagem em nova aba.
 As versões publicadas saem de `tools/build-screenshots.mjs`, sem metadados.
+
+### Zoom Figure
+A figura que abre em tamanho real: a captura do DebianServer (Project Screenshot), a miniatura de cada
+certificado e a foto do 1º dia na Prime Control. Um link para a versão em tamanho real, com moldura Grape
+Wire de 1px, raio de cartão e fundo Title Bar Plum enquanto a imagem não chega (a caixa já tem a
+proporção, por `aspect-ratio`), a imagem preguiçosa com `srcset`, o aviso "(abre … em tamanho real)" no
+nome acessível e, se houver, a legenda `# …` em Dim Lilac mono a 0.82rem, com a quebra equilibrada.
+A moldura acende em Grape no hover, e o cursor é `zoom-in`.
+
+### Image Viewer
+O visualizador de imagem é um só na página: um `<dialog>` modal nativo levado ao `<body>` (fora do
+`#app`, que a Editor Window maximizada torna inerte), com o visual e o comportamento descritos em
+Project Screenshot. Serve à captura, às miniaturas, aos links `ver certificado` e à foto. Aberto por
+cima da janela maximizada, o Esc fecha só ele; a página continua travada, e o foco volta ao link.
+
+### Certificate Card
+O certificado na janela maximizada, sem JS e na impressão, agrupado por plataforma sob o título
+`DIO · 33 certificados` (Phosphor Bright, mono, maiúsculas pequenas). Cartão compacto com o visual do
+Card (fundo Title Bar Plum, fio Grape Wire, borda esquerda Grape de 3px que vira Phosphor Bright no hover
+e no foco), mas sem o brilho do SpotlightCard: são 61 cartões. Linhas: `// 29 JUL 2020 · 39 h` (Card
+Date), o título como impresso (1rem), `DIO · bootcamp` em Grape Glow mono, a ementa quando houver, e
+`> verificação · ver certificado` em mono 0.82rem. A partir de 900px, a data fica numa coluna à
+esquerda, como no cartão de challenge. Não tem miniatura: o link `ver certificado` abre o Image Viewer.
 
 ### Server Apps
 Lista `# apps` de um side-project de servidor, depois dos chips de stack: cada app com o Tech Icon
@@ -688,6 +725,10 @@ Cada artefato traz o próprio par de cores: Grape Glass usa Phosphor e Grape, Sh
   Title Bar Plum.
 - **Do** sublinhar todo link de conteúdo em repouso (Content Link): o link se distingue do texto
   pela forma, também em telas de toque.
+- **Do** esconder dado pessoal de uma imagem na própria imagem, antes de publicá-la (feature 010): tarja
+  preta opaca sobre documentos (RG, CPF, data de nascimento, naturalidade e códigos que levam a eles) e
+  desfoque forte sobre rostos de terceiros, aplicados pelo script de `tools/` na resolução de origem.
+  Uma tarja de CSS por cima deixaria a imagem original baixável.
 
 ### Don't:
 - **Don't** introduzir matiz novo. Sith Red é exceção de artefato, não precedente. Logotipos de
