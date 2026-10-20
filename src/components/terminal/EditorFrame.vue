@@ -458,8 +458,9 @@ html.app-failed .editor {
   inset: 0;
   z-index: 900;
   background: var(--maximize-scrim);
+  /* só a propriedade sem prefixo: o minificador do build gera o `-webkit-`; escrita ao lado dela, ele
+     descartava a sem prefixo, e o Chromium ficava sem o desfoque (achado na feature 009) */
   backdrop-filter: blur(var(--maximize-blur));
-  -webkit-backdrop-filter: blur(var(--maximize-blur));
 }
 
 html.motion .maximize-backdrop { animation: backdrop-in 0.2s ease both; }
