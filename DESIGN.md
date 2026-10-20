@@ -420,9 +420,10 @@ num terminal, ele precisa de um bom motivo para existir aqui.
   Phosphor a 35%. Representa uma tecnologia e abre com o Tech Icon dela, à esquerda do nome.
 - **State:** no hover o chip fica sólido em Phosphor Deep, o texto e o ícone viram On Accent, entra
   o glow verde e ele sobe 2px.
-- **Tag Now (`HEAD`, `EM CURSO`, `EM DESENVOLVIMENTO`):** selo de 3px em Phosphor Deep com texto
-  `#eafff4` a 0.7rem e um pulso de glow verde a cada 2.4s. Aparece só no que está realmente em
-  andamento: vínculo, formação ou projeto (no projeto, sem data nem período, e sem quebrar linha).
+- **Tag Now (`HEAD`, `EM CURSO`, `EM DESENVOLVIMENTO`, `EM PRODUÇÃO`):** selo de 3px em Phosphor Deep
+  com texto `#eafff4` a 0.7rem e um pulso de glow verde a cada 2.4s. Aparece só no que está realmente
+  em andamento: vínculo, formação ou projeto (no projeto, sem data nem período, e sem quebrar linha;
+  o `EM PRODUÇÃO` de um side-project vem com a linha `desde = 01 OUT 2026` nos metadados).
 - **Private Tag:** etiqueta `privado` em Dim Lilac a 0.72rem, caixa de 4px com fio Grape Wire,
   depois do cadeado e do caminho do repositório (ver Private Link).
 - **Attribute Badge:** caixa de 4px com véu verde e borda Phosphor Deep para os atributos pessoais
@@ -544,6 +545,29 @@ acessível termina em "repositório privado, pode não abrir". Todo cartão com 
 lista com o comentário `# repositório(s) privado(s): pode(m) abrir uma página de "não encontrado"…`.
 A forma (cadeado e etiqueta), não a cor, é o que diferencia do link público.
 
+### Project Screenshot
+Evidência de infraestrutura pessoal sem acesso público (Princípio II v3.1.0; o DebianServer, tipo
+`side-project`). Na coluna dos links da janela de projeto (abaixo das informações, abaixo de 900px), o
+comentário `# sem acesso público: a evidência é a captura do painel` (como o aviso de repositório
+privado) e uma figura: a captura inteira, em WebP (800px exibida, 1396px em tamanho real, por
+`srcset`), com moldura Grape Wire de 1px e raio de cartão, carregada só perto da tela e com a
+proporção reservada; a moldura acende em Grape no hover, e o cursor é `zoom-in`. Embaixo, a legenda
+`# painel do … · OUT 2026` (o mês da captura) em Dim Lilac mono a 0.82rem. A imagem é um link para o tamanho real, com
+"(abre a captura em tamanho real)" no nome acessível; por ser uma imagem com moldura, não leva o
+sublinhado dos Content Links. Com JS, o clique abre o **visualizador**: um `<dialog>` modal nativo que
+cobre a tela, sobre a página escurecida (Void Plum a 55%) e desfocada (6px), como a Editor Window
+maximizada, com a captura inteira (até 1396px e a altura da tela menos o lugar da legenda), a legenda
+centrada e o ✕ de 44px em Grape Deep no canto. Abre e fecha em 0.2s (opacidade e escala 0.96 → 1);
+com movimento reduzido, na hora. Esc, o ✕ e o clique fora fecham, com a página na mesma posição e o
+foco de volta na captura. Sem JS e na impressão, não há visualizador; o link abre a imagem em nova aba.
+As versões publicadas saem de `tools/build-screenshots.mjs`, sem metadados.
+
+### Server Apps
+Lista `# apps` de um side-project de servidor, depois dos chips de stack: cada app com o Tech Icon
+dele (na cor do texto, decorativo), o nome em Grape Glow e a explicação de uma linha em Lavender Ash
+(sans, 0.9rem). A partir de 600px, duas colunas alinhadas (nome | explicação, por subgrid); abaixo,
+a explicação desce para a linha de baixo do nome.
+
 ### Skill Icon
 Ícone Lucide (`@lucide/vue`, SVG inline no HTML pré-renderizado) entre o `###` e o nome de cada
 sub-parte de skills, em Phosphor Bright via `currentColor`, com `--icon-skill` (1.4rem) e
@@ -553,8 +577,11 @@ sub-parte de skills, em Phosphor Bright via `currentColor`, com `--icon-skill` (
 ### Tech Icon
 Logotipo da tecnologia à esquerda do nome, nos chips e nos loops de skills, com `--icon-tech` (1em,
 a altura do texto) e `aria-hidden`. Uma cor só, a do texto (`currentColor`), nunca a cor da marca. A
-fonte segue a ordem devicon → vectorlogo.zone → Lucide pelo assunto (TDD → `flask-conical`); o
-Valkey usa o logotipo do homarr-labs/dashboard-icons, por pedido do autor; logotipo com desenho branco sobre a forma (SAP, nginx) vira vazado. Todos vêm de
+fonte segue a ordem devicon → vectorlogo.zone → simple-icons (desenhados para uma cor só) →
+homarr-labs/dashboard-icons → Lucide pelo assunto (TDD → `flask-conical`); o Valkey usa o
+dashboard-icons por pedido do autor, e CasaOS, OpenWebUI e Samba por não estarem nas fontes
+anteriores. Logotipo com desenho branco sobre a forma (SAP, nginx, OpenWebUI) vira vazado. Os apps do
+servidor (Server Apps) usam o mesmo registro. Todos vêm de
 um sprite gerado por `tools/build-tech-icons.mjs` (`src/assets/tech-icons/`, licenças no
 `NOTICE.md`), usado com `<use href>`: arquivo do próprio site, visível sem JS. O registro
 tecnologia → ícone fica em `src/lib/tech-icons.ts`, e tecnologia sem ícone quebra o build.
@@ -577,7 +604,8 @@ sob o caminho do repositório ou sob o badge, nunca sob o cadeado ou a etiqueta 
 `> nome` acima de cada link de projeto fica em Grape Glow, para o verde do link ser o destaque (os
 Neon Signs dos temas mantêm a cor deles). Os badges de downloads dos temas são a exceção: o
 sublinhado fica na cor do badge (Grape Badge, Sith Badge). Menu, botões, dock e "▼ scroll" são
-controles de navegação e não levam o sublinhado.
+controles de navegação e não levam o sublinhado; a Project Screenshot também não (é uma imagem com
+moldura própria).
 
 ### Dock
 Barra fixa no centro de baixo da tela, só com JS e depois da porta de acesso: caixa Console Plum a 85% com
@@ -599,7 +627,7 @@ histórico, prompt); restaurado, cresce de volta a partir do botão. Fechar (`�
 apaga a sessão. O prompt `viper@portfolio:~$` usa as cores de sempre e o cursor `▊` Phosphor Bright na
 posição do cursor de texto; a conclusão única aparece em Dim Lilac depois do texto, e os candidatos
 viram chips tocáveis. Comandos: `help`, `find <seção>`, `open <janela>`, `clear` e `exit`. O `open`
-abre a janela de um projeto (pelo nome em slug: `srg`, `temas-vs-code`…) ou, maximizada, a de
+abre a janela de um projeto (pelo nome em slug: `srg`, `debianserver`, `temas-vs-code`…) ou, maximizada, a de
 `experiencia`, `challenges`, `comunitario` ou `educacao`, leva a página até ela e minimiza o terminal. A saída é um
 `role="log"`.
 Com foco, a borda acende em Grape.
@@ -678,3 +706,6 @@ Cada artefato traz o próprio par de cores: Grape Glass usa Phosphor e Grape, Sh
   tela, e sem animação com movimento reduzido (constituição v3.0.0).
 - **Don't** escrever valores soltos de cor ou espaçamento em componentes quando existe um token
   equivalente.
+- **Don't** escrever `-webkit-backdrop-filter` ao lado do `backdrop-filter`: o minificador do build
+  gera o prefixo sozinho e, com os dois escritos, descartava o sem prefixo, e o Chromium ficava sem
+  o desfoque (achado na feature 009).

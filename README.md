@@ -33,14 +33,22 @@ campo.
 Tecnologia nova nos chips ou nas skills precisa de um nome na união `TechName`
 (`src/types/resume.ts`) e de um ícone em `src/lib/tech-icons.ts`; sem isso o build falha.
 
+Projetos de infraestrutura pessoal sem acesso público (o DebianServer, tipo `side-project`) usam uma
+captura de tela datada como evidência, no lugar dos links (Princípio II da constituição, v3.1.0). A
+captura original fica em `tools/source/`; as versões publicadas (`public/projetos/<projeto>/`, WebP de
+800 px e em tamanho real, sem metadados) saem de `node tools/build-screenshots.mjs` (precisa do
+Chromium do Playwright). Na página, a captura abre num visualizador por cima da página; sem
+JavaScript, em nova aba. A janela do DebianServer também lista os apps do servidor, cada um com ícone.
+
 ## Fontes e ícones
 
 As fontes Iosevka em `public/fonts/` são geradas com subset por `tools/build-fonts.sh`.
 
 Os ícones de tecnologia (chips e loops de skills) vêm de um sprite SVG versionado em
 `src/assets/tech-icons/sprite.svg`, gerado por `node tools/build-tech-icons.mjs` a partir do
-devicon, do vectorlogo.zone, do homarr-labs/dashboard-icons (o logotipo do Valkey) e do Lucide, em
-uma cor só. Rode o script só quando um ícone novo
+devicon, do vectorlogo.zone, do [simple-icons](https://simpleicons.org) (logotipos já desenhados para
+uma cor só), do homarr-labs/dashboard-icons (Valkey, CasaOS, OpenWebUI e Samba) e do Lucide, em uma
+cor só. Rode o script só quando um ícone novo
 entrar no manifesto dele; precisa de rede e do `npx` (o svgo roda com versão fixa). Origem e
 licença de cada ícone ficam em `src/assets/tech-icons/NOTICE.md`.
 
@@ -65,7 +73,7 @@ a mais nada. É o único pedido a terceiros do site além dos badges do shields.
 
 Depois da porta, a dock no centro de baixo abre um terminal (também por Ctrl+Alt+T; no Ubuntu e em
 outros Linux esse atalho é do sistema, então lá use a dock). `help` lista os comandos, `find <seção>`
-leva até a seção, e `open <janela>` abre a janela de um projeto (`open italiami`) ou, maximizada, a da
+leva até a seção, e `open <janela>` abre a janela de um projeto (`open italiami`, `open debianserver`) ou, maximizada, a da
 experiência, dos challenges, do comunitário ou da educação (`open experiencia`, `open educacao`). O `−` do terminal, o botão da dock
 e o atalho minimizam o terminal sem perder a sessão; `exit`, `✕` e Esc fecham. O fundo do hero é o Letter Glitch do Vue Bits (canvas 2D), nas cores
 do tema, e a primeira linha do hero é o Lattice Loader. Experiência, Challenges, Comunitário e
@@ -86,9 +94,9 @@ com mais navegadores ao mesmo tempo, os testes de tempo da porta de acesso ficam
 ## Versão
 
 O campo `version` do `package.json` é a versão do portfólio. O build a injeta na sessão SSH da porta
-de acesso (`Bem-vindo ao Portfolio v2.7`, só maior e menor). Cada feature sobe a versão menor: v1 é o
+de acesso (`Bem-vindo ao Portfolio v2.8`, só maior e menor). Cada feature sobe a versão menor: v1 é o
 site original em HTML/CSS/JS, 2.0 a refatoração para Vue (001), 2.1 a 2.3 as features 002 a 004, 2.4
-a 005, 2.5 a 006, 2.6 a 007 e 2.7 a 008. Para subir: `npm version <x.y.z> --no-git-tag-version` (atualiza também o `package-lock.json`).
+a 005, 2.5 a 006, 2.6 a 007, 2.7 a 008 e 2.8 a 009. Para subir: `npm version <x.y.z> --no-git-tag-version` (atualiza também o `package-lock.json`).
 
 ## Publicação
 
