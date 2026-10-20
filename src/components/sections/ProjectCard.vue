@@ -3,12 +3,15 @@ import { computed } from 'vue'
 import BaseCard from '@/components/base/BaseCard.vue'
 import MetricBadge from '@/components/base/MetricBadge.vue'
 import TagChip from '@/components/base/TagChip.vue'
+import TechIcon from '@/components/base/TechIcon.vue'
 import DesktopWindow from '@/components/terminal/DesktopWindow.vue'
 import TerminalLine from '@/components/terminal/TerminalLine.vue'
 import TerminalWindow from '@/components/terminal/TerminalWindow.vue'
 import type { Project, ProjectKind } from '@/types/resume'
+import { formatDate } from '@/lib/period'
 import { projectWindowId } from '@/lib/sections'
 import EvidenceLink from './EvidenceLink.vue'
+import ProjectScreenshot from './ProjectScreenshot.vue'
 
 const props = defineProps<{ project: Project }>()
 
@@ -17,6 +20,7 @@ const KIND_LABEL: Record<ProjectKind, string> = {
   academico: 'acadêmico',
   'open-source': 'open source',
   profissional: 'profissional',
+  'side-project': 'side-project',
 }
 
 /** Todo link privado avisa que pode não abrir (FR-005, constituição v2.2.0). */
@@ -34,6 +38,7 @@ const privateCount = computed(() => props.project.evidence.filter((e) => e.priva
             <h3 class="t-output project-name">
               <span class="hl-purple">{{ project.name }}</span> — {{ project.subtitle }}
               <span v-if="project.inProgress" class="tag-now">EM DESENVOLVIMENTO</span>
+              <span v-if="project.inProductionSince" class="tag-now">EM PRODUÇÃO</span>
             </h3>
             <p class="t-output t-desc">{{ project.purpose }}</p>
             <ul v-if="project.highlights?.length" class="metrics" aria-label="Resultados">
@@ -42,14 +47,32 @@ const privateCount = computed(() => props.project.evidence.filter((e) => e.priva
             <dl class="project-meta">
               <div><dt>papel</dt><dd>{{ project.role }}</dd></div>
               <div><dt>tipo</dt><dd>{{ KIND_LABEL[project.kind] }}</dd></div>
+              <div v-if="project.inProductionSince"><dt>desde</dt><dd>{{ formatDate(project.inProductionSince) }}</dd></div>
               <div v-if="project.relatedTo"><dt>contexto</dt><dd>{{ project.relatedTo }}</dd></div>
+              <div v-for="detail in project.details" :key="detail.label"><dt>{{ detail.label }}</dt><dd>{{ detail.value }}</dd></div>
             </dl>
             <ul class="chips project-stack" aria-label="Stack">
               <TagChip v-for="tech in project.stack" :key="tech" :tech="tech" />
             </ul>
+            <!-- apps do servidor (feature 009, FR-012, FR-013, research R6): ícone na cor do texto, nome e uma linha -->
+            <template v-if="project.apps">
+              <p class="t-output apps-title" aria-hidden="true"># apps</p>
+              <ul class="project-apps" aria-label="Apps do servidor">
+                <li v-for="app in project.apps" :key="app.name">
+                  <span class="app-name hl-purple"><TechIcon :tech="app.name" />{{ app.name }}</span>
+                  <span class="app-desc">{{ app.summary }}</span>
+                </li>
+              </ul>
+            </template>
           </div>
           <div class="project-links">
-            <ul v-if="project.evidence.length" class="t-badges">
+            <!-- Princípio II v3.1.0: infraestrutura sem acesso público, comprovada pela captura; a exceção fica
+                 explícita no projeto, como o aviso de repositório privado (feature 009, FR-015, analyze C1) -->
+            <template v-if="project.screenshot">
+              <p class="t-output no-evidence"># sem acesso público: a evidência é a captura do painel</p>
+              <ProjectScreenshot :shot="project.screenshot" :id="project.id" />
+            </template>
+            <ul v-else-if="project.evidence.length" class="t-badges">
               <EvidenceLink v-for="evidence in project.evidence" :key="evidence.url" :evidence="evidence" />
             </ul>
             <p v-else class="t-output no-evidence"># {{ project.noEvidenceReason }}</p>
@@ -100,6 +123,47 @@ const privateCount = computed(() => props.project.evidence.filter((e) => e.priva
 .project-meta dd { color: var(--text); }
 
 .project-stack { margin-bottom: calc(var(--spacing) * 4); }
+
+/* apps do servidor (feature 009, research R6): nome com ícone em roxo e a explicação em texto corrido;
+   a partir de 600px, em duas colunas alinhadas (nome | explicação) */
+.apps-title { color: var(--text-dim); margin: 0 0 calc(var(--spacing) * 2) 0; }
+
+.project-apps {
+  display: grid;
+  gap: calc(var(--spacing) * 2.4);
+  margin-bottom: calc(var(--spacing) * 4);
+  list-style: none;
+}
+
+.project-apps li {
+  display: grid;
+  gap: calc(var(--spacing) * 0.8);
+  min-width: 0;
+}
+
+.app-name {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--spacing) * 1.6);
+  white-space: nowrap;
+}
+
+.app-desc {
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}
+
+@media (min-width: 600px) {
+  .project-apps { grid-template-columns: max-content minmax(0, 1fr); column-gap: calc(var(--spacing) * 4); }
+  /* subgrid em vez de `display: contents`, que em alguns leitores de tela tira o papel de item de lista */
+  .project-apps li {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    column-gap: calc(var(--spacing) * 4);
+    align-items: baseline;
+  }
+}
 
 .metrics {
   display: flex;

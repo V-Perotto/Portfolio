@@ -7,6 +7,8 @@ import type { Project, YearMonth } from '@/types/resume'
 // data-model.md, seções "Validação" (que estendem a da 001) — o que o tipo não cobre.
 
 const YEAR_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/
+/** Imagens em `public/`, pelo caminho relativo ao `base` (feature 009: capturas de tela). */
+const PUBLIC_IMAGES = new Set(Object.keys(import.meta.glob('../../public/**/*.webp')).map((path) => path.replace('../../public/', '')))
 const experiences = [...resume.experiences]
 const projects: Project[] = [...resume.projects]
 const now = new Date()
@@ -76,9 +78,13 @@ describe('resume.ts — validação', () => {
     for (const phrase of typedPhrases) expect(phrase.trim()).not.toBe('')
   })
 
-  it('(6) projeto sem evidência é confidencial ou acadêmico e explica o motivo', () => {
+  it('(6) projeto sem link é confidencial ou acadêmico com motivo, ou side-project com captura (Princípio II v3.1.0)', () => {
     for (const project of projects) {
       if (project.evidence.length > 0) continue
+      if (project.screenshot) {
+        expect(project.kind, project.id).toBe('side-project')
+        continue
+      }
       expect(project.confidential === true || project.kind === 'academico', project.id).toBe(true)
       expect(project.noEvidenceReason?.trim(), project.id).toBeTruthy()
     }
@@ -92,16 +98,22 @@ describe('resume.ts — validação', () => {
     }
   })
 
-  it('(8) inventário da feature 002', () => {
+  it('(8) inventário da feature 009', () => {
     expect(resume.experiences).toHaveLength(5)
     expect(resume.skillGroups).toHaveLength(5)
-    expect(projects.map((p) => p.id)).toEqual(['srg', 'vscode-themes', 'italiami', 'ocr-prontuarios', 'qclass-bot', 'monitoria'])
-    expect(resume.challenges).toHaveLength(7)
+    // o DebianServer entrou em 2º, depois do SRG (feature 009, Q2)
+    expect(projects.map((p) => p.id)).toEqual(['srg', 'debianserver', 'vscode-themes', 'italiami', 'ocr-prontuarios', 'qclass-bot', 'monitoria'])
+    // o Bom Jesus (FAE) entrou na feature 009
+    expect(resume.challenges).toHaveLength(8)
     expect(resume.community).toHaveLength(1)
     expect(resume.education).toHaveLength(4)
     expect(resume.profile.attributes).toHaveLength(5)
     expect(resume.contacts).toHaveLength(2)
     expect(projects.filter((p) => p.inProgress).map((p) => p.id)).toEqual(['srg'])
+    expect(projects.filter((p) => p.inProductionSince).map((p) => p.id)).toEqual(['debianserver'])
+    const server = projects.find((p) => p.id === 'debianserver')!
+    expect(server.details?.map((d) => d.label)).toEqual(['hardware', 'sistema', 'acesso'])
+    expect(server.apps?.map((a) => a.name)).toEqual(['Ente Photos', 'OpenWebUI', 'Kiwix', 'Syncthing', 'SearXNG', 'Watchtower'])
     expect(projects.flatMap((p) => p.evidence).filter((e) => e.private)).toHaveLength(10)
   })
 
@@ -122,6 +134,7 @@ describe('resume.ts — validação', () => {
       ...resume.skillGroups.flatMap((g) => g.items.map((i) => i.name)),
       ...resume.experiences.flatMap((e) => e.tech),
       ...projects.flatMap((p) => p.stack),
+      ...projects.flatMap((p) => (p.apps ?? []).map((app) => app.name)),
       ...resume.challenges.flatMap((c) => c.stack),
     ]
     expect(shown.filter((name) => !TECH_ICONS[name])).toEqual([])
@@ -142,5 +155,65 @@ describe('resume.ts — validação', () => {
     expect(shown).not.toContain('JSON de tema')
     expect(projects.find((p) => p.id === 'vscode-themes')!.stack).toContain('JSON')
     expect(projects.find((p) => p.id === 'italiami')!.role).toBe('Autor e desenvolvedor')
+  })
+
+  // Feature 009 (data-model §3): selo de produção, detalhes, apps e a captura de tela
+  it('(13) EM PRODUÇÃO e EM DESENVOLVIMENTO nunca no mesmo projeto; desde em "AAAA-MM-DD", até hoje', () => {
+    const today = `${currentMonth}-${String(now.getDate()).padStart(2, '0')}`
+    for (const project of projects) {
+      expect(!!project.inProgress && !!project.inProductionSince, project.id).toBe(false)
+      if (project.inProductionSince) {
+        expect(project.inProductionSince, project.id).toMatch(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/)
+        expect(project.inProductionSince <= today, `${project.id}: em produção no futuro`).toBe(true)
+      }
+    }
+    // o DebianServer entrou em produção em 1º de outubro de 2026 (pedido do autor)
+    expect(projects.find((p) => p.id === 'debianserver')!.inProductionSince).toBe('2026-10-01')
+  })
+
+  it('(14) rótulos de details em minúsculas sem acento, únicos no projeto; apps com explicação', () => {
+    for (const project of projects) {
+      const labels = (project.details ?? []).map((d) => d.label)
+      for (const label of labels) expect(label, project.id).toMatch(/^[a-z]+$/)
+      expect(new Set(labels).size, project.id).toBe(labels.length)
+      for (const detail of project.details ?? []) expect(detail.value.trim(), `${project.id}: ${detail.label}`).not.toBe('')
+      for (const app of project.apps ?? []) expect(app.summary.trim(), `${project.id}: ${app.name}`).not.toBe('')
+    }
+  })
+
+  it('(15) captura com texto alternativo, legenda e arquivos WebP relativos que existem em public/', () => {
+    for (const project of projects) {
+      const shot = project.screenshot
+      if (!shot) continue
+      expect(shot.alt.trim(), project.id).not.toBe('')
+      expect(shot.caption.trim(), project.id).not.toBe('')
+      expect(shot.captured, project.id).toMatch(YEAR_MONTH)
+      // o texto alternativo cita a data da captura (DD/MM/AAAA do mesmo mês)
+      const [year, month] = shot.captured.split('-')
+      expect(shot.alt, project.id).toMatch(new RegExp(`\\b\\d{2}/${month}/${year}\\b`))
+      for (const path of [shot.src, shot.full]) {
+        expect(path, project.id).not.toMatch(/^\/|^[a-z]+:/)
+        expect(path, project.id).toMatch(/\.webp$/)
+        expect(PUBLIC_IMAGES.has(path), path).toBe(true)
+      }
+      expect(shot.srcWidth, project.id).toBeLessThan(shot.width)
+    }
+  })
+
+  it('(16) nada nos projetos localiza ou dá acesso a um servidor: sem IP, .ts.net ou porta (FR-020)', () => {
+    for (const project of projects) {
+      const texts = [
+        project.purpose,
+        project.role,
+        ...(project.details ?? []).map((d) => d.value),
+        ...(project.apps ?? []).map((a) => a.summary),
+        ...(project.screenshot ? [project.screenshot.alt, project.screenshot.caption] : []),
+      ]
+      for (const text of texts) {
+        expect(text, project.id).not.toMatch(/\b\d{1,3}(\.\d{1,3}){3}\b/)
+        expect(text, project.id).not.toMatch(/\.ts\.net/)
+        expect(text, project.id).not.toMatch(/:\d{2,5}\b/)
+      }
+    }
   })
 })

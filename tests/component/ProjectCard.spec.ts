@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import ProjectCard from '@/components/sections/ProjectCard.vue'
+import { resume } from '@/data/resume'
+import { TECH_ICONS } from '@/lib/tech-icons'
 import type { Project } from '@/types/resume'
 
 const base = {
@@ -142,5 +144,60 @@ describe('ProjectCard', () => {
   it('o título da janela é o nome do projeto, sem "bash —" (FR-011 da 003)', () => {
     const project: Project = { ...base, stack: ['Vue.js'], evidence: [], confidential: true, noEvidenceReason: 'x' }
     expect(mount(ProjectCard, { props: { project } }).get('.terminal-title').text()).toBe('Demo')
+  })
+
+  // Feature 009 (FR-007 a FR-021, research R6 e R8; contracts/debianserver-window.md §1)
+  describe('DebianServer (side-project com captura)', () => {
+    const server = resume.projects.find((p) => p.id === 'debianserver')!
+
+    it('selo EM PRODUÇÃO, dl com papel, tipo, desde e os detalhes, nessa ordem, e rodapé [side-project]', () => {
+      const wrapper = mount(ProjectCard, { props: { project: server } })
+      expect(wrapper.get('h3 .tag-now').text()).toBe('EM PRODUÇÃO')
+      expect(wrapper.findAll('.project-meta dt').map((dt) => dt.text())).toEqual(['papel', 'tipo', 'desde', 'hardware', 'sistema', 'acesso'])
+      const values = wrapper.findAll('.project-meta dd').map((dd) => dd.text())
+      expect(values.slice(0, 3)).toEqual(['Autor: instalação, configuração e manutenção', 'side-project', '01 OUT 2026'])
+      expect(values.slice(3)).toEqual(server.details!.map((d) => d.value))
+      expect(wrapper.findAll('.project-stack li')).toHaveLength(6)
+      expect(wrapper.get('.project-footer').text()).toContain('[side-project]')
+    })
+
+    it('# apps e os 6 apps, cada um com ícone decorativo, nome e explicação, na ordem dos dados', () => {
+      const wrapper = mount(ProjectCard, { props: { project: server } })
+      expect(wrapper.get('.apps-title').text()).toBe('# apps')
+      expect(wrapper.get('.apps-title').attributes('aria-hidden')).toBe('true')
+      const list = wrapper.get('ul.project-apps')
+      expect(list.attributes('aria-label')).toBe('Apps do servidor')
+      const items = list.findAll('li')
+      expect(items).toHaveLength(6)
+      items.forEach((li, i) => {
+        const app = server.apps![i]!
+        const icon = li.get('svg.tech-icon')
+        expect(icon.attributes('aria-hidden')).toBe('true')
+        expect(icon.get('use').attributes('href')).toMatch(new RegExp(`#${TECH_ICONS[app.name]}$`))
+        expect(li.get('.app-name').text()).toBe(app.name)
+        expect(li.get('.app-desc').text()).toBe(app.summary)
+      })
+    })
+
+    it('na coluna de evidências: a linha da exceção e a captura, sem links nem aviso de privado (FR-015, analyze C1)', () => {
+      const wrapper = mount(ProjectCard, { props: { project: server } })
+      const links = wrapper.get('.project-links')
+      const note = links.get('.no-evidence')
+      expect(note.text()).toBe('# sem acesso público: a evidência é a captura do painel')
+      expect(note.element.nextElementSibling?.classList.contains('project-shot')).toBe(true)
+      expect(links.find('.t-badges').exists()).toBe(false)
+      expect(links.findAll('.no-evidence')).toHaveLength(1)
+      expect(links.findAll('a')).toHaveLength(1)
+    })
+
+    it('projeto sem os campos novos continua igual: sem desde, apps nem captura (FR-021)', () => {
+      const srg = resume.projects.find((p) => p.id === 'srg')!
+      const wrapper = mount(ProjectCard, { props: { project: srg } })
+      expect(wrapper.findAll('.project-meta dt').map((dt) => dt.text())).toEqual(['papel', 'tipo'])
+      expect(wrapper.find('.apps-title').exists()).toBe(false)
+      expect(wrapper.find('.project-apps').exists()).toBe(false)
+      expect(wrapper.find('.project-shot').exists()).toBe(false)
+      expect(wrapper.get('h3 .tag-now').text()).toBe('EM DESENVOLVIMENTO')
+    })
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPeriod, formatYearMonth, formatYears } from '@/lib/period'
+import { formatDate, formatPeriod, formatYearMonth, formatYears } from '@/lib/period'
 import type { YearMonth } from '@/types/resume'
 
 describe('formatYearMonth', () => {
@@ -22,6 +22,20 @@ describe('formatPeriod', () => {
 
   it('formata período em andamento', () => {
     expect(formatPeriod('2026-03')).toBe('MAR 2026 — PRESENTE')
+  })
+})
+
+// Feature 009: a entrada em produção do DebianServer leva o dia (`desde = 01 OUT 2026`)
+describe('formatDate', () => {
+  it('formata a data com o dia, com dois dígitos', () => {
+    expect(formatDate('2026-10-01')).toBe('01 OUT 2026')
+    expect(formatDate('2024-03-31')).toBe('31 MAR 2024')
+  })
+
+  it('rejeita mês ou dia inexistente', () => {
+    expect(() => formatDate('2026-13-01')).toThrow()
+    expect(() => formatDate('2026-10-32')).toThrow()
+    expect(() => formatDate('2026-10-1')).toThrow()
   })
 })
 

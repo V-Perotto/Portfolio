@@ -9,6 +9,8 @@ test.use({ reducedMotion: 'no-preference' })
 
 const PROJECTS = [
   ['srg', 'SRG'],
+  // feature 009 (FR-023): o DebianServer, depois do SRG
+  ['debianserver', 'DebianServer'],
   ['temas-vs-code', 'Temas VS Code'],
   ['italiami', 'ItaliaMi'],
   ['ocr-de-prontuarios', 'OCR de Prontuários'],
@@ -22,7 +24,7 @@ const EDITORS = [
   ['educacao', 'formacao', '~/formacao'],
 ] as const
 const OPEN_OPTIONS =
-  'OPTIONS: experiencia | srg | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao'
+  'OPTIONS: experiencia | srg | debianserver | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao'
 
 const dock = (page: Page) => page.locator('.app-dock .dock-btn')
 const input = (page: Page) => page.locator('#dock-terminal-input')
@@ -247,7 +249,7 @@ for (const viewport of [
   // rodando 4 navegadores, picos isolados passam de 1 s (a página com o Letter Glitch e as janelas de
   // editor é pesada); como no teste da dica da dock (006), cada tentativa tem folga (≤ 1,5 s) e a
   // mediana das 30 (27 até a 007) tem de ficar ≤ 1 s. O teto de 1 s sem folga fica no V1.
-  test(`as 10 opções, com a janela aberta, minimizada e fechada, em ≤ 1 s, ${viewport.width}px (V4, SC-001; 008 SC-006)`, async ({ page }) => {
+  test(`as 11 opções, com a janela aberta, minimizada e fechada, em ≤ 1 s, ${viewport.width}px (V4, SC-001; 008 SC-006; 009 SC-007)`, async ({ page }) => {
     test.setTimeout(240_000)
     await enter(page, viewport)
     const share = viewport.width < 760 ? 0.95 : 0.9
@@ -338,6 +340,10 @@ test('help e Tab do open (V6, FR-007, FR-008)', async ({ page }) => {
   await input(page).fill('open ed')
   await input(page).press('Tab')
   await expect(input(page)).toHaveValue('open educacao')
+  // feature 009: só o DebianServer começa com "deb"
+  await input(page).fill('open deb')
+  await input(page).press('Tab')
+  await expect(input(page)).toHaveValue('open debianserver')
 })
 
 test('sugestões tocáveis do open no celular (V6, FR-008)', async ({ browser }) => {

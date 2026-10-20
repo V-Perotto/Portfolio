@@ -18,6 +18,15 @@
  *   mostra o cadeado, "privado" e o aviso de que o link pode não abrir para o visitante.
  * - `inProgress: true` num projeto mostra o selo EM DESENVOLVIMENTO, sem data. `relatedTo` mostra a
  *   empresa ligada ao projeto (`contexto = ...`).
+ * - `inProductionSince: 'AAAA-MM-DD'` mostra o selo EM PRODUÇÃO e a linha `desde = 01 OUT 2026` (com o
+ *   dia); nunca junto com `inProgress`. `details` acrescenta linhas `rótulo = valor` depois de `contexto` (rótulo em
+ *   minúsculas, sem acento: `hardware`, `sistema`, `acesso`). `apps` lista os apps de um servidor: o nome
+ *   é uma `TechName` (com ícone em `TECH_ICONS`) e a explicação é uma linha fiel ao uso.
+ * - Infraestrutura pessoal sem acesso público (4ª exceção do Princípio II, v3.1.0): `kind: 'side-project'`
+ *   com `evidence: []` e `screenshot`. A captura original fica em `tools/source/`; as versões publicadas
+ *   (`public/`, nome com a data da captura) saem de `node tools/build-screenshots.mjs`. O `alt` diz a data
+ *   e o que o painel mostra; nenhum texto, nome de arquivo ou imagem pode trazer IP, domínio, porta, nome
+ *   de rede ou usuário.
  * - Tecnologias (skills, `tech` das experiências, `stack` de projetos e challenges): só nomes da
  *   união `TechName` (src/types/resume.ts), cada um com ícone em `TECH_ICONS` (src/lib/tech-icons.ts).
  *   Tecnologia nova: acrescente o nome nos dois. Ícone novo: acrescente-o no manifesto de
@@ -207,6 +216,54 @@ const data = {
       ],
     } satisfies Project,
     {
+      id: 'debianserver',
+      name: 'DebianServer',
+      subtitle: 'Meu homeserver',
+      command: 'debianserver --status',
+      purpose:
+        'Servidor caseiro self-hosted num notebook reaproveitado: guarda as fotos do celular, dá acesso à IA local, a uma Wikipedia offline e à sincronização de notas, sem depender de nuvem de terceiros.',
+      stack: ['Debian', 'CasaOS', 'Docker', 'Tailscale', 'Ollama', 'Samba'],
+      role: 'Autor: instalação, configuração e manutenção',
+      kind: 'side-project',
+      tag: '[side-project]',
+      inProductionSince: '2026-10-01',
+      details: [
+        { label: 'hardware', value: 'Notebook reaproveitado: Lenovo ideapad 330-15IKB, Intel Core i5-8250U' },
+        { label: 'sistema', value: 'CasaOS sobre Debian 13, com os apps em containers Docker' },
+        {
+          label: 'acesso',
+          value: 'Tailscale (VPN) de fora de casa, sem porta aberta na internet; no celular, os arquivos por SMB',
+        },
+      ],
+      apps: [
+        {
+          name: 'Ente Photos',
+          summary:
+            'Backup automático das fotos e vídeos do celular, criptografados de ponta a ponta e guardados no próprio servidor, no lugar de uma nuvem de terceiros.',
+        },
+        {
+          name: 'OpenWebUI',
+          summary:
+            'Interface de chat com IA: serve de ponte para os modelos locais (Ollama) que rodam no desktop, numa RTX 3060 de 12 GB, e pesquisa na web pelo SearXNG.',
+        },
+        { name: 'Kiwix', summary: 'Cópia offline da Wikipedia em português.' },
+        { name: 'Syncthing', summary: 'Mantém o cofre do Obsidian sincronizado entre o desktop, o celular e o servidor.' },
+        { name: 'SearXNG', summary: 'Metabuscador próprio, usado como fonte de busca na web do OpenWebUI.' },
+        { name: 'Watchtower', summary: 'Atualiza sozinho os containers dos outros apps quando sai uma versão nova.' },
+      ],
+      evidence: [],
+      screenshot: {
+        src: 'projetos/debianserver/painel-2026-10-20-800.webp',
+        srcWidth: 800,
+        full: 'projetos/debianserver/painel-2026-10-20-1396.webp',
+        width: 1396,
+        height: 809,
+        alt: 'Painel do CasaOS do DebianServer em 20/10/2026: CPU a 3%, RAM a 26% de 11,6 GB, disco com 122 GB usados de 460 GB e os apps App Store, Files, OpenWebUI, Syncthing, Watchtower, SearXNG, Kiwix Server e Ente Photos.',
+        caption: 'painel do CasaOS do DebianServer',
+        captured: '2026-10',
+      },
+    } satisfies Project,
+    {
       id: 'vscode-themes',
       name: 'Temas VS Code',
       subtitle: 'Open VSX Registry',
@@ -355,6 +412,15 @@ const data = {
       summary: 'Cadastro e consulta de candidatos, com extração de nome, e-mail e telefone de currículos em PDF.',
       stack: ['Angular', 'Node.js', 'TypeScript', 'SQL Server', 'Docker'],
       url: 'https://github.com/V-Perotto/cieepr-challenge',
+    } satisfies Challenge,
+    {
+      id: 'bomjesus-challenge',
+      name: 'Bom Jesus (FAE)',
+      created: '2026-10',
+      summary:
+        'Gestão acadêmica: API REST e interface web para cadastrar, consultar, atualizar e excluir alunos e professores de uma instituição de ensino.',
+      stack: ['Java', 'Spring Boot', 'Vue 3', 'TypeScript', 'H2', 'Docker'],
+      url: 'https://github.com/V-Perotto/bomjesus-challenge',
     } satisfies Challenge,
   ],
 

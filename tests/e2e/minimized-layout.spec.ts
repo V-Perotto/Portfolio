@@ -59,18 +59,19 @@ for (const width of WIDTHS) {
   })
 }
 
+// feature 009 (FR-024, research R9): com o DebianServer, 7 ícones: 4 linhas em 320px, 2 em 768px, 1 a partir de 1024px
 for (const [width, rows] of [
-  [320, 3],
+  [320, 4],
   [768, 2],
   [1024, 1],
   [1366, 1],
   [1920, 1],
 ] as const) {
-  test(`seis projetos minimizados: ${rows} linha(s) em ${width}px, na ordem, à esquerda (V14, FR-026, SC-007)`, async ({ page }) => {
+  test(`sete projetos minimizados: ${rows} linha(s) em ${width}px, na ordem, à esquerda (V14, FR-026, SC-007)`, async ({ page }) => {
     await open(page, width, '#projetos')
     const order = await page.locator('#projetos .projects-grid > li .terminal-title').allTextContents()
     await minimizeAllProjects(page)
-    await expect.poll(async () => (await iconRows(page)).flatMap((r) => r.titles).length).toBe(6)
+    await expect.poll(async () => (await iconRows(page)).flatMap((r) => r.titles).length).toBe(7)
     await expect.poll(async () => (await iconRows(page)).length).toBe(rows)
     const found = await iconRows(page)
     expect(found.flatMap((r) => r.titles)).toEqual(order.map((t) => t.trim()))
@@ -96,7 +97,7 @@ test('janela aberta entre ícones ocupa a própria linha; entre janelas, o espa�
     }),
   )
   const full = await page.locator('#projetos .projects-grid').evaluate((el) => Math.round(el.getBoundingClientRect().width))
-  // ícone 1 sozinho numa linha, janela 2 na largura toda, ícones 3 a 6 juntos numa linha
+  // ícone 1 sozinho numa linha, janela 2 na largura toda, ícones 3 a 7 juntos numa linha
   expect(layout[1]!.width).toBe(full)
   expect(layout[1]!.top).toBeGreaterThan(layout[0]!.bottom - 1)
   expect(new Set(layout.slice(2).map((l) => l.top)).size).toBe(1)

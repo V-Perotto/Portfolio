@@ -56,8 +56,9 @@ test('todo link de conteúdo sublinhado em repouso; hover e foco só acendem o b
   await page.goto('./')
   await enterPortfolio(page)
   // os links visíveis com JS: os dos cartões dentro das janelas de editor (006) só aparecem maximizados,
-  // e o mesmo endereço aparece no arquivo YAML aberto (que entra na conta)
-  const links = page.locator('a[target="_blank"]').filter({ visible: true })
+  // e o mesmo endereço aparece no arquivo YAML aberto (que entra na conta). A captura do DebianServer
+  // (feature 009) é uma imagem com moldura própria, não um link de texto: fica fora, como o menu e os botões
+  const links = page.locator('a[target="_blank"]:not(.shot-link)').filter({ visible: true })
   expect(await links.count()).toBeGreaterThanOrEqual(16)
 
   await page.keyboard.press('Tab') // a partir daqui, focus() conta como foco de teclado (:focus-visible)
@@ -153,7 +154,8 @@ test('comandos sem ./run, em Dim Lilac, com o $ roxo, em todas as janelas (V2, F
   await enterPortfolio(page)
   expect(await page.locator('body').innerText()).not.toContain('./run')
   const lines = page.locator('#sobre [data-t-cmd], #projetos .projects-grid [data-t-cmd], #contato [data-t-cmd]')
-  expect(await lines.count()).toBe(2 + 6 + 2)
+  // 7 projetos desde a feature 009 (o DebianServer)
+  expect(await lines.count()).toBe(2 + 7 + 2)
   for (const line of await lines.all()) {
     const text = (await line.textContent())?.trim() ?? ''
     expect(await color(line), text).toBe(TEXT_DIM)
@@ -183,6 +185,8 @@ test('títulos das janelas só com o assunto, sem "bash —" (V3, FR-011)', asyn
     'sobre.txt',
     '~/carreira',
     'SRG',
+    // feature 009: o DebianServer, depois do SRG
+    'DebianServer',
     'Temas VS Code',
     'ItaliaMi',
     'OCR de Prontuários',

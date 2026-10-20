@@ -49,6 +49,28 @@ describe('arquivos das janelas de editor', () => {
     })
   })
 
+  // Feature 009 (FR-001 a FR-005, SC-002): o Bom Jesus (FAE), o mais recente, é o 1º de 8
+  it('challenge Bom Jesus (FAE): 1º arquivo, 1 / 8, com os fatos e o repositório como link', () => {
+    const folder = challengeFolder(resume.challenges)
+    expect(folder.files).toHaveLength(8)
+    const first = folder.files[0]!
+    expect(first.name).toBe('2026-10_bom-jesus-fae.yml')
+    expect(first.path).toBe('~/projetos/challenges/2026-10_bom-jesus-fae.yml')
+    expect([first.position, first.total]).toEqual([1, 8])
+    const text = fileText(first)
+    expect(text.split('\n')[0]).toBe('# 1 / 8 · Bom Jesus (FAE)')
+    expect(text).toContain('OUT 2026')
+    expect(text).toContain('Gestão acadêmica: API REST e interface web')
+    const stack = ['Java', 'Spring Boot', 'Vue 3', 'TypeScript', 'H2', 'Docker']
+    const positions = stack.map((tech) => text.indexOf(tech))
+    expect(positions.every((at) => at >= 0)).toBe(true)
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions)
+    const links = first.lines.flatMap((l) => l.tokens).filter((tok) => tok.kind === 'link')
+    expect(links).toEqual([
+      { kind: 'link', text: 'github.com/V-Perotto/bomjesus-challenge', href: 'https://github.com/V-Perotto/bomjesus-challenge' },
+    ])
+  })
+
   it('cada projeto comunitário traz todos os fatos do cartão, com a fonte como link', () => {
     const { files } = communityFolder(resume.community)
     resume.community.forEach((p, i) => {
@@ -134,6 +156,7 @@ describe('arquivos das janelas de editor', () => {
         '2025-10_executiva-service.yml',
         '2024-01_ny-times-rpa.yml',
         '2026-09_ciee-pr.yml',
+        '2026-10_bom-jesus-fae.yml',
         '2023-06_gincana-junina.yml',
       ]),
     )

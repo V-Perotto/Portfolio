@@ -328,6 +328,43 @@ test.describe('a11y da 006', () => {
     expect(errors).toEqual([])
   })
 
+  // feature 009 (SC-005): o DebianServer aberto, minimizado e com o visualizador da captura aberto
+  test('DebianServer: janela aberta, visualizador aberto e janela minimizada, com o console sem erros', async ({ page }) => {
+    test.setTimeout(90_000)
+    const errors: string[] = []
+    page.on('pageerror', (e) => errors.push(String(e)))
+    page.on('console', (m) => {
+      if (m.type() === 'error') errors.push(m.text())
+    })
+    await page.goto('./')
+    await enterPortfolio(page)
+    const item = page.locator('#projetos .projects-grid > li').filter({ has: page.locator('h3', { hasText: 'DebianServer' }) })
+    await item.evaluate((el) => el.scrollIntoView({ block: 'start', behavior: 'instant' }))
+    // a janela termina de digitar (texto transparente de propósito durante a digitação, FR-030 da 001)
+    await expect(item.locator('[data-t-state]:not([data-t-state="done"])')).toHaveCount(0, { timeout: 5000 })
+    const img = item.locator('.project-shot img')
+    await img.scrollIntoViewIfNeeded()
+    await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true)
+    const id = await item.evaluate((el) => {
+      el.setAttribute('data-audit', 'debianserver')
+      return '[data-audit="debianserver"]'
+    })
+    expect(await audit(page, id), 'aberta').toEqual([])
+
+    await item.locator('.shot-link').click()
+    await expect.poll(() => page.locator('dialog.shot-viewer').evaluate((d: HTMLDialogElement) => d.open)).toBe(true)
+    await page.waitForTimeout(500)
+    expect(await audit(page), 'visualizador aberto').toEqual([])
+    await page.keyboard.press('Escape')
+    await expect.poll(() => page.locator('dialog.shot-viewer').evaluate((d: HTMLDialogElement) => d.open)).toBe(false)
+
+    await item.locator('button.t-min').click()
+    await expect(item.locator('.desktop-window')).toHaveAttribute('data-window-state', 'minimized')
+    await expect(item.locator('.desktop-window-frame')).toBeHidden()
+    expect(await audit(page, id), 'minimizada').toEqual([])
+    expect(errors).toEqual([])
+  })
+
   for (const phase of ['working', 'done']) {
     test(`hero com o loader ${phase}`, async ({ page }) => {
       await page.goto('./')

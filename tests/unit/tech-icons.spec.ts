@@ -25,9 +25,26 @@ describe('ícones de tecnologia', () => {
     }
   })
 
-  it('a fonte do ícone segue a ordem devicon → vectorlogo.zone → Lucide, pelo prefixo do id', () => {
-    for (const id of used) expect(id).toMatch(/^(devicon|vectorlogo|dashboard|lucide)-[a-z0-9-]+$/)
+  it('a fonte do ícone segue a ordem devicon → vectorlogo.zone → simple-icons → dashboard-icons → Lucide, pelo prefixo do id', () => {
+    for (const id of used) expect(id).toMatch(/^(devicon|vectorlogo|simpleicons|dashboard|lucide)-[a-z0-9-]+$/)
     expect(TECH_ICONS['SAP SD']).toBe('vectorlogo-sap')
+  })
+
+  // Feature 009 (research R3): os logotipos que faltam no devicon e no vectorlogo.zone vêm do
+  // simple-icons; CasaOS, OpenWebUI e Samba, do dashboard-icons, preparados para uma cor só
+  it('tecnologias e apps da feature 009 com o logotipo das fontes certas', () => {
+    expect(TECH_ICONS['Spring Boot']).toBe('devicon-spring')
+    expect(TECH_ICONS.Debian).toBe('devicon-debian')
+    const simple = ['H2', 'Tailscale', 'Ollama', 'Ente Photos', 'Kiwix', 'Syncthing', 'SearXNG', 'Watchtower'] as const
+    for (const name of simple) {
+      expect(TECH_ICONS[name], name).toMatch(/^simpleicons-/)
+      expect(symbols.has(TECH_ICONS[name]), name).toBe(true)
+    }
+    expect(TECH_ICONS.CasaOS).toBe('dashboard-casaos')
+    expect(TECH_ICONS.Samba).toBe('dashboard-samba-server')
+    // o "OI" branco virou recorte do disco
+    expect(TECH_ICONS.OpenWebUI).toBe('dashboard-open-webui')
+    expect(symbols.get('dashboard-open-webui')).toContain('fill-rule="evenodd"')
   })
 
   it('o Valkey usa o logotipo do homarr-labs/dashboard-icons, vazado no miolo (FR-043 da 004)', () => {

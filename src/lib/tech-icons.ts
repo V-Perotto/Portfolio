@@ -3,10 +3,11 @@ import type { TechIconId, TechName } from '@/types/resume'
 /**
  * Ícone de cada tecnologia exibida (chips e loops de skills; FR-012, FR-013, FR-017, research R1 e R3
  * da 003): id de um <symbol> de src/assets/tech-icons/sprite.svg. Ordem de preferência das fontes:
- * devicon → vectorlogo.zone → Lucide pelo assunto; o Valkey vem do homarr-labs/dashboard-icons, por
- * pedido do autor (FR-043 da 004). Variações de nome da mesma tecnologia apontam para
- * o mesmo id. O `Record` obriga toda `TechName` a ter ícone; tests/unit/tech-icons.spec.ts confere
- * que cada id existe no sprite.
+ * devicon → vectorlogo.zone → simple-icons → homarr-labs/dashboard-icons → Lucide pelo assunto (o
+ * Valkey, por pedido do autor na FR-043 da 004; simple-icons e os outros do dashboard-icons na feature
+ * 009, research R3). Os apps do servidor (feature 009) também têm ícone aqui. Variações de nome da
+ * mesma tecnologia apontam para o mesmo id. O `Record` obriga toda `TechName` a ter ícone;
+ * tests/unit/tech-icons.spec.ts confere que cada id existe no sprite.
  */
 export const TECH_ICONS: Record<TechName, TechIconId> = {
   // devicon
@@ -41,13 +42,30 @@ export const TECH_ICONS: Record<TechName, TechIconId> = {
   Axios: 'devicon-axios',
   JSON: 'devicon-json',
   'VS Code Extension API': 'devicon-vscode',
+  'Spring Boot': 'devicon-spring',
+  Debian: 'devicon-debian',
 
   // vectorlogo.zone: falta no devicon (SAP) ou lá só existe o logotipo escrito (nginx)
   'SAP SD': 'vectorlogo-sap',
   Nginx: 'vectorlogo-nginx',
 
-  // homarr-labs/dashboard-icons, por pedido do autor (feature 004)
+  // simple-icons (CC0), desenhados para uma cor só: logotipos que faltam no devicon e no vectorlogo.zone
+  // (feature 009)
+  H2: 'simpleicons-h2database',
+  Tailscale: 'simpleicons-tailscale',
+  Ollama: 'simpleicons-ollama',
+  'Ente Photos': 'simpleicons-ente',
+  Kiwix: 'simpleicons-kiwix',
+  Syncthing: 'simpleicons-syncthing',
+  SearXNG: 'simpleicons-searxng',
+  Watchtower: 'simpleicons-watchtower',
+
+  // homarr-labs/dashboard-icons: o Valkey por pedido do autor (feature 004); CasaOS, OpenWebUI e Samba
+  // por não estarem nas fontes anteriores (feature 009)
   Valkey: 'dashboard-valkey',
+  CasaOS: 'dashboard-casaos',
+  OpenWebUI: 'dashboard-open-webui',
+  Samba: 'dashboard-samba-server',
 
   // Lucide, pelo assunto: sem logotipo no devicon nem no vectorlogo.zone
   OCR: 'lucide-scan-text',

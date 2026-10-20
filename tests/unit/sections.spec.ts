@@ -29,10 +29,12 @@ describe('visibleSections', () => {
 // Feature 007 (FR-002, FR-003, research R1): alvos do comando `open`. Feature 008 (FR-015, FR-016,
 // research R7): a Educação é a 10ª opção.
 describe('openTargets', () => {
-  it('as 10 opções na ordem da página', () => {
+  // feature 009 (FR-023): o DebianServer é a 3ª opção, depois do srg
+  it('as 11 opções na ordem da página', () => {
     expect(openTargets(resume).map((t) => t.name)).toEqual([
       'experiencia',
       'srg',
+      'debianserver',
       'temas-vs-code',
       'italiami',
       'ocr-de-prontuarios',
@@ -71,7 +73,7 @@ describe('openTargets', () => {
     // o tipo exige ao menos um vínculo; o caso vazio só existe para provar a regra
     const empty = { ...resume, experiences: [], challenges: [], community: [], education: [] } as unknown as Resume
     const names = openTargets(empty).map((t) => t.name)
-    expect(names).toEqual(['srg', 'temas-vs-code', 'italiami', 'ocr-de-prontuarios', 'qclass-bot', 'monitor-de-curso'])
+    expect(names).toEqual(['srg', 'debianserver', 'temas-vs-code', 'italiami', 'ocr-de-prontuarios', 'qclass-bot', 'monitor-de-curso'])
     expect(openTargets({ ...resume, education: [] }).map((t) => t.name)).not.toContain('educacao')
   })
 })

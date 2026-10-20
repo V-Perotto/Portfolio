@@ -152,4 +152,22 @@ test.describe('movimento reduzido', () => {
     await expect(page.locator('body > .editor-frame')).toHaveCount(0)
     expect(await win.locator('.editor-frame').evaluate((el) => el.getAnimations().length)).toBe(0)
   })
+
+  // Feature 009 (quickstart V9): o visualizador da captura abre e fecha sem animação nenhuma
+  test('feature 009: visualizador da captura sem animação ao abrir e ao fechar', async ({ page }) => {
+    await page.goto('./')
+    await enterPortfolio(page)
+    const item = page.locator('#projetos .projects-grid > li').filter({ has: page.locator('h3', { hasText: 'DebianServer' }) })
+    const link = item.locator('.shot-link')
+    await link.scrollIntoViewIfNeeded()
+    await link.click()
+    const viewer = page.locator('dialog.shot-viewer')
+    expect(await viewer.evaluate((d: HTMLDialogElement) => d.open)).toBe(true)
+    expect(await viewer.evaluate((d) => d.getAnimations().length)).toBe(0)
+    expect(await viewer.evaluate((d) => getComputedStyle(d, '::backdrop').animationName)).toBe('none')
+    await page.keyboard.press('Escape')
+    // fecha na hora, sem esperar animação
+    expect(await viewer.evaluate((d: HTMLDialogElement) => d.open)).toBe(false)
+    await expect(link).toBeFocused()
+  })
 })

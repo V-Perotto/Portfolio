@@ -75,7 +75,7 @@ test('chip com ícone tem a mesma altura de antes (V6, FR-018)', async ({ page }
 test('ícones sem requisição a terceiros (V15, FR-013)', async ({ page }) => {
   const third: string[] = []
   page.on('request', (request) => {
-    if (/devicon|vectorlogo|jsdelivr/.test(request.url())) third.push(request.url())
+    if (/devicon|vectorlogo|simple-icons|dashboard-icons|jsdelivr/.test(request.url())) third.push(request.url())
   })
   await page.goto('./')
   await enterPortfolio(page)

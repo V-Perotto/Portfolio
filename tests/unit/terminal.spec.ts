@@ -10,7 +10,7 @@ const ctx: TerminalContext = { sections, targets: openTargets(resume) }
 const OPTIONS = 'OPTIONS: sobre | experiencia | skills | projetos | educacao | contato'
 const HINT = 'Digite help para ver os comandos.'
 const OPEN_OPTIONS =
-  'OPTIONS: experiencia | srg | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao'
+  'OPTIONS: experiencia | srg | debianserver | temas-vs-code | italiami | ocr-de-prontuarios | qclass-bot | monitor-de-curso | challenges | comunitario | educacao'
 
 describe('run', () => {
   it('linha vazia: nada', () => {
@@ -144,6 +144,9 @@ describe('open', () => {
     ['formacao', 'educacao', '→ ~/formacao'],
     ['~/formacao/', 'educacao', '→ ~/formacao'],
     ['projetos/OCR-de-Prontuarios', 'ocr-de-prontuarios', '→ ~/projetos/ocr-de-prontuarios'],
+    // feature 009 (FR-023): o DebianServer, pelo nome exibido ou pelo apelido
+    ['DebianServer', 'debianserver', '→ ~/projetos/debianserver'],
+    ['projetos/debianserver', 'debianserver', '→ ~/projetos/debianserver'],
   ])('open %s é normalizado (nome ou apelido)', (arg, name, out) => {
     expect(run(`open ${arg}`, ctx)).toEqual({ output: [out], action: { type: 'open', target: target(name) } })
   })
@@ -180,7 +183,9 @@ describe('open', () => {
     expect(complete('open it', ctx)).toEqual({ line: 'open italiami', candidates: ['italiami'] })
     expect(complete('open c', ctx)).toEqual({ line: 'open c', candidates: ['challenges', 'comunitario'] })
     expect(complete('open qc', ctx)).toEqual({ line: 'open qclass-bot', candidates: ['qclass-bot'] })
-    expect(complete('open ', ctx).candidates).toHaveLength(10)
+    expect(complete('open ', ctx).candidates).toHaveLength(11)
+    // feature 009: só o DebianServer começa com "deb"
+    expect(complete('open deb', ctx)).toEqual({ line: 'open debianserver', candidates: ['debianserver'] })
     expect(complete('open ed', ctx)).toEqual({ line: 'open educacao', candidates: ['educacao'] })
     expect(complete('open e', ctx)).toEqual({ line: 'open e', candidates: ['experiencia', 'educacao'] })
     // os apelidos são aceitos, mas não são candidatos

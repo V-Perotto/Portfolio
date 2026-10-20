@@ -8,7 +8,8 @@ test.use({ reducedMotion: 'no-preference' })
 
 const EDITORS = [
   { label: 'carreira', path: '~/carreira', section: '#experiencia', count: 5 },
-  { label: 'challenges', path: '~/projetos/challenges', section: '#projetos', count: 7 },
+  // 8 desde a feature 009 (o Bom Jesus (FAE), o mais recente)
+  { label: 'challenges', path: '~/projetos/challenges', section: '#projetos', count: 8 },
   { label: 'comunitario', path: '~/projetos/comunitario', section: '#projetos', count: 1 },
   { label: 'formacao', path: '~/formacao', section: '#educacao', count: 4 },
 ] as const
@@ -121,7 +122,7 @@ test('trocar de arquivo não muda a altura nem move a página; teclado e aria-cu
   await page.keyboard.press('Space')
   await expect(items.nth(2)).toHaveAttribute('aria-current', 'true')
   await expect(win.locator('.bm-child[aria-current]')).toHaveCount(1)
-  await expect(win.locator('.editor-pos')).toHaveText('3 / 7')
+  await expect(win.locator('.editor-pos')).toHaveText('3 / 8')
 })
 
 test('celular: árvore acima do arquivo; nenhuma largura com rolagem horizontal (V4, FR-011, SC-001)', async ({ page }) => {
@@ -250,7 +251,7 @@ test('maximizada, escolher o 6º challenge rola os cartões até ele; restaurar 
     .toBe(true)
   await frame.locator('button.t-max').click()
   await expect(frame.locator('.editor-file[data-active]')).toHaveAttribute('data-file-id', id!)
-  await expect(frame.locator('.editor-pos')).toHaveText('6 / 7')
+  await expect(frame.locator('.editor-pos')).toHaveText('6 / 8')
 })
 
 test('minimizar e fechar maximizada voltam ao ícone, sem desfoque nem página inerte (V7, FR-018)', async ({ page }) => {
@@ -409,4 +410,46 @@ test('Educação: minimizar e fechar até o ícone ~/formacao; fechada, digita o
   await expect(win.locator('.t-line').first()).toContainText('code ~/formacao')
   await expect(win.locator('.editor')).toHaveAttribute('data-t-state', /pending|typing/)
   await expect(win.locator('.editor')).not.toHaveAttribute('data-t-state', /pending|typing/, { timeout: 5000 })
+})
+
+// Feature 009 (quickstart V10; FR-001 a FR-005; SC-002): o challenge Bom Jesus (FAE), o 1º de 8
+test('challenge Bom Jesus (FAE): 1º arquivo, fatos, link e reticências no celular (V10, SC-002)', async ({ page }) => {
+  await open(page)
+  const win = await ready(page, 'challenges')
+  await expect(win.locator('.editor-tab')).toHaveText('2026-10_bom-jesus-fae.yml')
+  await expect(win.locator('.editor-path')).toHaveText('~/projetos/challenges/2026-10_bom-jesus-fae.yml')
+  await expect(win.locator('.editor-pos')).toHaveText('1 / 8')
+  const file = win.locator('.editor-file[data-active]')
+  for (const fact of [
+    'Bom Jesus (FAE)',
+    'OUT 2026',
+    'Gestão acadêmica: API REST e interface web para cadastrar, consultar, atualizar e excluir alunos e professores de uma instituição de ensino.',
+    'Java',
+    'Spring Boot',
+    'Vue 3',
+    'TypeScript',
+    'H2',
+    'Docker',
+  ])
+    await expect(file).toContainText(fact)
+  const repo = file.locator('a', { hasText: 'github.com/V-Perotto/bomjesus-challenge' })
+  await expect(repo).toHaveAttribute('href', 'https://github.com/V-Perotto/bomjesus-challenge')
+  await expect(repo).toHaveAttribute('target', '_blank')
+  await expect(repo).toHaveAttribute('rel', 'noopener noreferrer')
+
+  // maximizada: o 1º cartão é o dele, com os 6 chips e os ícones
+  await win.locator('button.t-max').click()
+  const frame = frameOf(page, '~/projetos/challenges')
+  const card = frame.locator('[data-card-id="bomjesus-challenge"]')
+  await expect(frame.locator('.editor-cards li').first()).toHaveAttribute('data-card-id', 'bomjesus-challenge')
+  await expect(card.locator('.chips li')).toHaveCount(6)
+  await expect(card.locator('.chips li svg.tech-icon')).toHaveCount(6)
+  await page.keyboard.press('Escape')
+
+  // celular de 320px: o nome não cabe na árvore e termina em reticências; o rodapé mostra o nome inteiro
+  await open(page, { width: 320, height: 844 })
+  const small = await ready(page, 'challenges')
+  const label = small.locator('.bm-child .bm-label', { hasText: '2026-10_bom-jesus-fae.yml' })
+  expect(await label.evaluate((el) => el.scrollWidth > el.clientWidth && getComputedStyle(el).textOverflow === 'ellipsis')).toBe(true)
+  await expect(small.locator('.editor-path')).toHaveText('~/projetos/challenges/2026-10_bom-jesus-fae.yml')
 })

@@ -2,9 +2,10 @@
 // Gera o sprite de ícones de tecnologia do site (feature 003, research R1–R2).
 //
 // Cada chip e cada item dos loops de skills usa <svg><use href="sprite.svg#id"></svg>. Os ícones vêm,
-// nesta ordem de preferência, do devicon (v2.17.0, MIT), do vectorlogo.zone e do Lucide (ISC, pelo
-// assunto da tecnologia). O Valkey vem do homarr-labs/dashboard-icons (Apache-2.0), por pedido do
-// autor (feature 004, research R11). Este script baixa os escolhidos, otimiza com o svgo, tira as cores das
+// nesta ordem de preferência, do devicon (v2.17.0, MIT), do vectorlogo.zone, do simple-icons (CC0,
+// desenhados para uma cor só; feature 009, research R3), do homarr-labs/dashboard-icons (Apache-2.0; o
+// Valkey por pedido do autor na feature 004, e CasaOS, OpenWebUI e Samba na 009) e do Lucide (ISC, pelo
+// assunto da tecnologia). Este script baixa os escolhidos, otimiza com o svgo, tira as cores das
 // marcas (tudo pinta com currentColor, a cor do texto do chip) e grava:
 //
 //   src/assets/tech-icons/sprite.svg   um <symbol id="devicon-python"> etc. por ícone
@@ -19,7 +20,8 @@
 //      --preview grava também uma grade com todos os ícones (16px e 32px) para conferir que nenhum
 //      virou borrão ao ganhar uma cor só.
 //
-// Precisa de rede (jsDelivr, com o devicon e o dashboard-icons em versões fixas, e vectorlogo.zone)
+// Precisa de rede (jsDelivr, com o devicon, o simple-icons e o dashboard-icons em versões fixas, e
+// vectorlogo.zone)
 // e do npx (o svgo roda com versão fixa, sem entrar no package.json, como o build-fonts.sh faz com o
 // pyftsubset).
 
@@ -67,6 +69,8 @@ const DEVICON = {
   axios: 'plain',
   json: 'plain',
   vscode: 'plain',
+  spring: 'original', // não existe `plain`; a folha do Spring é o símbolo do Spring Boot (feature 009)
+  debian: 'plain',
 }
 
 /**
@@ -79,12 +83,53 @@ const VECTORLOGO = {
 }
 
 /**
+ * simple-icons (CC0-1.0), numa versão fixa: slugs. Logotipos que faltam no devicon e no vectorlogo.zone,
+ * já desenhados para uma cor só (um <path> na grade de 24), o que o sprite faz com currentColor (feature
+ * 009, research R3). O `ente` é o logotipo da Ente, a empresa do Ente Photos.
+ */
+const SIMPLE_ICONS_VERSION = '15.22.0'
+const SIMPLE_ICONS = ['h2database', 'tailscale', 'ollama', 'ente', 'kiwix', 'syncthing', 'searxng', 'watchtower']
+const simpleIconsUrl = (path) => `https://cdn.jsdelivr.net/npm/simple-icons@${SIMPLE_ICONS_VERSION}/${path}`
+
+/**
  * homarr-labs/dashboard-icons (Apache-2.0), num commit fixo: nome → caminho no repositório. O Valkey
- * vem daqui (antes era o `database` genérico do Lucide).
+ * vem daqui (antes era o `database` genérico do Lucide); CasaOS, OpenWebUI e Samba também (feature 009,
+ * research R3: não estão no devicon, no vectorlogo.zone nem no simple-icons).
  */
 const DASHBOARD_ICONS_COMMIT = '57e939e504eda0ea764098015da93aa666ad6f31'
 const DASHBOARD = {
   valkey: 'svg/valkey.svg',
+  casaos: 'svg/casaos.svg',
+  'open-webui': 'svg/open-webui.svg',
+  'samba-server': 'svg/samba-server.svg',
+}
+
+/**
+ * Preparo dos ícones coloridos do dashboard-icons para uma cor só, antes do svgo (feature 009, research
+ * R3). Sem preparo, o `decolor()` pinta tudo de uma cor e o desenho some.
+ */
+const DASHBOARD_PREPARE = {
+  // três bolas sobrepostas, com transparência: sem `opacity`, viram a silhueta de nuvem do logotipo
+  casaos: (svg) => svg.replace(/\sopacity="[^"]*"/g, ''),
+  // disco escuro com "OI" branco: o círculo vira caminho, e o "OI" entra no mesmo caminho com
+  // `fill-rule="evenodd"`, como recorte (o miolo do "O" volta a ser preenchido), como o SAP e o nginx
+  'open-webui': (svg) => {
+    const c = svg.match(/<circle cx="([\d.]+)" cy="([\d.]+)" r="([\d.]+)"\s*\/>/)
+    const white = svg.match(/<path d="([^"]+)" fill="#fff"\s*\/>/)
+    const view = svg.match(/viewBox="([^"]+)"/)
+    if (!c || !white || !view) throw new Error('open-webui mudou de formato (esperado: <circle> + <path fill="#fff">)')
+    const [cx, cy, r] = c.slice(1).map(Number)
+    const disc = `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0z`
+    const hole = white[1].replace(/^m/, 'M') // começa relativo; depois do disco, precisa ser absoluto
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${view[1]}"><path fill-rule="evenodd" d="${disc}${hole}"/></svg>`
+  },
+  // um caminho só, pintado com um degradê por classe: sem <defs>, <style>, `class` e ids, pinta com
+  // currentColor
+  'samba-server': (svg) =>
+    svg
+      .replace(/<defs>[\s\S]*?<\/defs>/g, '')
+      .replace(/<style>[\s\S]*?<\/style>/g, '')
+      .replace(/\s(class|id)="[^"]*"/g, ''),
 }
 const dashboardUrl = (path) => `https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@${DASHBOARD_ICONS_COMMIT}/${path}`
 
@@ -111,10 +156,18 @@ const LUCIDE = {
   'iteration-cw': 'IterationCw',
 }
 
+/** Baixa com até 3 tentativas: o jsDelivr às vezes não responde a tempo. */
 async function fetchText(url) {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`${res.status} ao baixar ${url}`)
-  return res.text()
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(30_000) })
+      if (!res.ok) throw new Error(`${res.status} ao baixar ${url}`)
+      return await res.text()
+    } catch (error) {
+      if (attempt >= 3) throw error
+      console.warn(`tentando de novo (${attempt}/3): ${url}`)
+    }
+  }
 }
 
 /** Raiz e miolo de um SVG de uma linha só (saída do svgo). */
@@ -220,6 +273,7 @@ const dirs = {
   rawVectorlogo: join(work, 'raw-vectorlogo'),
   rawLucide: join(work, 'raw-lucide'),
   rawDashboard: join(work, 'raw-dashboard'),
+  rawSimpleIcons: join(work, 'raw-simpleicons'),
   min: join(work, 'min'),
 }
 Object.values(dirs).forEach((d) => mkdirSync(d))
@@ -233,8 +287,12 @@ try {
   for (const [name, url] of Object.entries(VECTORLOGO)) {
     writeFileSync(join(dirs.rawVectorlogo, `vectorlogo-${name}.svg`), await fetchText(url))
   }
+  for (const slug of SIMPLE_ICONS) {
+    writeFileSync(join(dirs.rawSimpleIcons, `simpleicons-${slug}.svg`), await fetchText(simpleIconsUrl(`icons/${slug}.svg`)))
+  }
   for (const [name, path] of Object.entries(DASHBOARD)) {
-    writeFileSync(join(dirs.rawDashboard, `dashboard-${name}.svg`), styleToAttrs(await fetchText(dashboardUrl(path))))
+    const prepare = DASHBOARD_PREPARE[name] ?? ((svg) => svg)
+    writeFileSync(join(dirs.rawDashboard, `dashboard-${name}.svg`), styleToAttrs(prepare(await fetchText(dashboardUrl(path)))))
   }
   for (const [id, component] of Object.entries(LUCIDE)) {
     if (!(component in lucide)) throw new Error(`@lucide/vue não tem ${component}`)
@@ -252,6 +310,7 @@ try {
   svgo(dirs.rawVectorlogo, 1)
   svgo(dirs.rawLucide, 1)
   svgo(dirs.rawDashboard, 1)
+  svgo(dirs.rawSimpleIcons, 1)
 
   const symbols = []
   for (const file of readdirSync(dirs.min).sort()) {
@@ -277,6 +336,7 @@ try {
 
   const deviconLicense = await fetchText(`https://cdn.jsdelivr.net/gh/devicons/devicon@v${DEVICON_VERSION}/LICENSE`)
   const dashboardLicense = await fetchText(dashboardUrl('LICENSE'))
+  const simpleIconsLicense = await fetchText(simpleIconsUrl('LICENSE.md'))
   const lucideLicense = readFileSync(join(ROOT, 'node_modules/@lucide/vue/LICENSE'), 'utf8')
   const lucideVersion = JSON.parse(readFileSync(join(ROOT, 'node_modules/@lucide/vue/package.json'), 'utf8')).version
   const today = new Date().toISOString().slice(0, 10)
@@ -308,13 +368,26 @@ Termos do vectorlogo.zone: "The logos themselves remain property of their origin
 modifications to the logos are in the public domain." Os logotipos são marcas dos donos e aparecem
 aqui só para identificar a tecnologia.
 
+## simple-icons ${SIMPLE_ICONS_VERSION} — ${SIMPLE_ICONS.length} ícones
+
+Fonte: https://simpleicons.org (jsDelivr, pacote \`simple-icons@${SIMPLE_ICONS_VERSION}\`). Símbolos \`simpleicons-*\`:
+${SIMPLE_ICONS.map((slug) => `\`${slug}\``).join(', ')}. Logotipos que faltam no devicon e no vectorlogo.zone,
+já desenhados para uma cor só (feature 009). Os logotipos são marcas dos donos e aparecem aqui só para
+identificar a tecnologia.
+
+\`\`\`text
+${simpleIconsLicense.trim()}
+\`\`\`
+
 ## homarr-labs/dashboard-icons — ${Object.keys(DASHBOARD).length} ícone(s)
 
 Fonte: https://github.com/homarr-labs/dashboard-icons (jsDelivr, commit ${DASHBOARD_ICONS_COMMIT}).
 Símbolos \`dashboard-*\`: ${Object.entries(DASHBOARD).map(([n, p]) => `\`${n}\` (${p})`).join(', ')}. O Valkey vem
 daqui por pedido do autor (feature 004); o \`fill-rule="evenodd"\` do original foi mantido, para o miolo
-continuar vazado numa cor só. Os logotipos são marcas dos donos e aparecem aqui só para identificar a
-tecnologia.
+continuar vazado numa cor só. CasaOS, OpenWebUI e Samba vêm daqui porque não estão nas fontes anteriores
+(feature 009): no CasaOS, as três bolas perderam a transparência e viraram uma silhueta só; no OpenWebUI,
+o "OI" branco virou recorte (\`fill-rule="evenodd"\`); no Samba, o degradê virou a cor do texto. Os
+logotipos são marcas dos donos e aparecem aqui só para identificar a tecnologia.
 
 \`\`\`text
 ${dashboardLicense.trim()}
@@ -323,7 +396,7 @@ ${dashboardLicense.trim()}
 ## Lucide (@lucide/vue ${lucideVersion}) — ${Object.keys(LUCIDE).length} ícones
 
 Fonte: https://lucide.dev, renderizados do pacote instalado. Símbolos \`lucide-*\`: ícones genéricos
-pelo assunto, para tecnologias sem logotipo no devicon nem no vectorlogo.zone:
+pelo assunto, para tecnologias sem logotipo nas outras fontes:
 ${Object.entries(LUCIDE).map(([id, c]) => `\`${id}\` (${c})`).join(', ')}.
 
 \`\`\`text

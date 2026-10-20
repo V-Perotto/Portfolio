@@ -75,8 +75,8 @@ test.describe('sem JS', () => {
   test('feature 006: □ desenhado como desativado, loader no estado final e favicon (V9, V13, V15, FR-025, FR-042)', async ({ page }) => {
     await page.goto('./')
     const max = page.locator('.t-max')
-    // 12 janelas: a de Educação entrou na 008
-    expect(await max.count()).toBe(12)
+    // 13 janelas: a de Educação entrou na 008, o DebianServer na 009
+    expect(await max.count()).toBe(13)
     expect(await max.evaluateAll((els) => els.every((el) => el.tagName === 'SPAN' && el.classList.contains('t-btn--disabled')))).toBe(true)
     await expect(page.locator('#home .hero-boot')).toHaveAttribute('data-loader', 'done')
     await expect(page.locator('#home .ll-text[data-active]')).toHaveText('portfolio.service carregado com sucesso!')
@@ -112,8 +112,9 @@ test.describe('sem JS', () => {
     // navegação com os 6 links, sem o prompt
     await expect(page.locator('.nav-links a')).toHaveCount(6)
     await expect(page.locator('.navbar')).not.toContainText('viper@portfolio')
-    // 12 janelas completas (as 4 de editor: as 3 da 006 e a de Educação da 008), com os controles só desenho
-    await expect(page.locator('.desktop-window')).toHaveCount(12)
+    // 13 janelas completas (as 4 de editor: as 3 da 006 e a de Educação da 008; o DebianServer da 009), com
+    // os controles só desenho
+    await expect(page.locator('.desktop-window')).toHaveCount(13)
     await expect(page.locator('.terminal-bar button')).toHaveCount(0)
     expect(await page.locator('.t-controls').evaluateAll((els) => els.every((el) => el.getAttribute('aria-hidden') === 'true'))).toBe(true)
     await expect(page.locator('footer.footer p')).toHaveCount(1)
@@ -124,6 +125,24 @@ test.describe('sem JS', () => {
     const height = page.viewportSize()!.height
     expect(gap).toBeGreaterThanOrEqual(height * 0.45)
     expect(gap).toBeLessThanOrEqual(height * 0.55)
+  })
+})
+
+// Feature 009 (quickstart V7; SC-006): o DebianServer completo sem JavaScript, e a captura como link
+test.describe('sem JS, feature 009', () => {
+  test('DebianServer com os 6 apps, a linha da exceção e a captura como link para o tamanho real, sem diálogo', async ({ page }) => {
+    await page.goto('./#projetos')
+    const item = page.locator('#projetos .projects-grid > li').filter({ has: page.locator('h3', { hasText: 'DebianServer' }) })
+    await expect(item.locator('.project-apps li')).toHaveCount(6)
+    for (const li of await item.locator('.project-apps li').all()) await expect(li).toBeVisible()
+    await expect(item.locator('.project-links .no-evidence')).toHaveText('# sem acesso público: a evidência é a captura do painel')
+    const link = item.locator('a.shot-link')
+    await expect(link).toHaveAttribute('href', /\/projetos\/debianserver\/painel-2026-10-20-1396\.webp$/)
+    await expect(link).toHaveAttribute('target', '_blank')
+    await expect(link.locator('img')).toHaveAttribute('loading', 'lazy')
+    await expect(link.locator('img')).toHaveAttribute('alt', /^Painel do CasaOS do DebianServer em 20\/10\/2026/)
+    await expect(item.locator('figcaption')).toBeVisible()
+    await expect(page.locator('dialog')).toHaveCount(0)
   })
 })
 
@@ -160,6 +179,11 @@ test.describe('impressão com a porta na tela', () => {
     await expect(education.locator('.edu-list > li h3')).toHaveCount(4)
     for (const title of await education.locator('.edu-list > li h3').all()) await expect(title).toBeVisible()
     await expect(education.locator('.editor-tree')).toBeHidden()
+    // feature 009 (SC-006): o DebianServer sai com a captura; o visualizador não
+    const server = page.locator('#projetos .projects-grid > li').filter({ has: page.locator('h3', { hasText: 'DebianServer' }) })
+    await expect(server.locator('.project-shot')).toBeVisible()
+    await expect(server.locator('.project-apps')).toBeVisible()
+    await expect(page.locator('dialog.shot-viewer')).toBeHidden()
   })
 })
 

@@ -1,11 +1,16 @@
 /**
- * Contrato da fonte de dados do portfólio (FR-001, FR-002 da 001; revisado pela 002, pela 003 e pela
- * 004).
+ * Contrato da fonte de dados do portfólio (FR-001, FR-002 da 001; revisado pela 002, pela 003, pela
+ * 004 e pela 009).
  *
  * Mudanças da 004 (specs/004-dock-windows-crt/data-model.md):
  * - TechName: 'JSON de tema' → 'JSON' (FR-041);
  * - TechIconId: prefixo novo `dashboard-` (homarr-labs/dashboard-icons, logotipo do Valkey, FR-043);
  * - SkillGroup.loopDirection (FR-046).
+ *
+ * Mudanças da 009 (specs/009-homeserver-bomjesus-challenge/data-model.md):
+ * - TechName: 13 nomes novos (o challenge Bom Jesus (FAE) e o DebianServer); TechIconId: `simpleicons-`;
+ * - ProjectKind 'side-project'; Detail, ServerApp e Screenshot; `inProductionSince`, `details` e `apps`;
+ * - Project: 4ª variante, a exceção do Princípio II v3.1.0 (captura de tela no lugar dos links).
  *
  * `src/data/resume.ts` exporta
  * `export const resume = { ... } satisfies Resume`, então qualquer campo obrigatório ausente
@@ -20,6 +25,9 @@ export type NonEmpty<T> = [T, ...T[]]
 
 /** "AAAA-MM", ex.: "2026-03". O formato exato é validado no Vitest. */
 export type YearMonth = `${number}-${number}`
+
+/** "AAAA-MM-DD", ex.: "2026-10-01": data com o dia (feature 009, a entrada em produção). Validada no Vitest. */
+export type YearMonthDay = `${number}-${number}-${number}`
 
 export type Highlight = 'green' | 'purple'
 
@@ -77,13 +85,15 @@ export interface Experience {
  */
 export type TechName =
   | '.NET' | 'Agentes de IA' | 'Agile/Scrum' | 'Angular' | 'Análise Funcional' | 'APIs REST'
-  | 'Arquitetura' | 'Axios' | 'C#' | 'Clean Code' | 'DDD' | 'Design Patterns' | 'Docker'
-  | 'Elasticsearch' | 'Factory' | 'Flask' | 'Git' | 'Java' | 'Java (Quarkus)' | 'Jenkins'
-  | 'JSON' | 'JSON Server' | 'Kibana' | 'LLMs' | 'MongoDB' | 'MVC' | 'MySQL' | 'NestJS'
-  | 'Nginx' | 'Node.js' | 'OCR' | 'Open VSX Registry' | 'PostgreSQL' | 'Prisma' | 'Processos'
-  | 'Programação Web' | 'Python' | 'Python (Flask)' | 'Quarkus' | 'RabbitMQ' | 'React' | 'Redis'
-  | 'Robocorp (RPA Framework)' | 'Robot Framework' | 'SAP SD' | 'Singleton' | 'SQL Server' | 'TDD'
-  | 'TypeScript' | 'Valkey' | 'Vite' | 'VS Code Extension API' | 'Vue 3' | 'Vue.js'
+  | 'Arquitetura' | 'Axios' | 'C#' | 'CasaOS' | 'Clean Code' | 'DDD' | 'Debian' | 'Design Patterns'
+  | 'Docker' | 'Elasticsearch' | 'Ente Photos' | 'Factory' | 'Flask' | 'Git' | 'H2' | 'Java'
+  | 'Java (Quarkus)' | 'Jenkins' | 'JSON' | 'JSON Server' | 'Kibana' | 'Kiwix' | 'LLMs' | 'MongoDB'
+  | 'MVC' | 'MySQL' | 'NestJS' | 'Nginx' | 'Node.js' | 'OCR' | 'Ollama' | 'Open VSX Registry'
+  | 'OpenWebUI' | 'PostgreSQL' | 'Prisma' | 'Processos' | 'Programação Web' | 'Python'
+  | 'Python (Flask)' | 'Quarkus' | 'RabbitMQ' | 'React' | 'Redis' | 'Robocorp (RPA Framework)'
+  | 'Robot Framework' | 'Samba' | 'SAP SD' | 'SearXNG' | 'Singleton' | 'Spring Boot' | 'SQL Server'
+  | 'Syncthing' | 'Tailscale' | 'TDD' | 'TypeScript' | 'Valkey' | 'Vite' | 'VS Code Extension API'
+  | 'Vue 3' | 'Vue.js' | 'Watchtower'
 
 /** Id de um <symbol> de src/assets/tech-icons/sprite.svg, prefixado pela fonte (devicon →
  *  vectorlogo.zone → Lucide, research R1 da 003; dashboard-icons para o Valkey, research R11 da
@@ -91,6 +101,7 @@ export type TechName =
 export type TechIconId =
   | `devicon-${string}`
   | `vectorlogo-${string}`
+  | `simpleicons-${string}`
   | `dashboard-${string}`
   | `lucide-${string}`
 
@@ -131,7 +142,43 @@ export interface Evidence {
   accent?: 'grape' | 'sith'
 }
 
-export type ProjectKind = 'pessoal' | 'academico' | 'open-source' | 'profissional'
+export type ProjectKind = 'pessoal' | 'academico' | 'open-source' | 'profissional' | 'side-project'
+
+/** Linha extra do `dl` da janela de projeto: `rótulo = valor` (feature 009, FR-010). */
+export interface Detail {
+  /** Minúsculas, sem acento nem espaço: `hardware`, `sistema`, `acesso`. */
+  label: string
+  value: string
+}
+
+/** App de um servidor (feature 009, FR-012): o ícone vem de TECH_ICONS pelo nome. */
+export interface ServerApp {
+  name: TechName
+  /** Uma linha, fiel ao uso informado pelo autor (Princípio I). */
+  summary: string
+}
+
+/**
+ * Evidência por captura de tela (Princípio II v3.1.0, 4ª exceção: infraestrutura pessoal sem acesso
+ * público). Arquivos em `public/`, gerados por tools/build-screenshots.mjs (research R4 da 009).
+ */
+export interface Screenshot {
+  /** Versão exibida na janela, relativa ao `base`: 'projetos/debianserver/painel-2026-10-20-800.webp'. */
+  src: string
+  /** Largura da versão exibida, em px (800). */
+  srcWidth: number
+  /** Versão em tamanho real (resolução original), relativa ao `base`. */
+  full: string
+  /** Dimensões do original (1396 × 809): proporção reservada e tamanho no visualizador. */
+  width: number
+  height: number
+  /** Texto alternativo: o que o painel mostra, com a data (FR-017). */
+  alt: string
+  /** Legenda sem a data: 'painel do CasaOS do DebianServer' (FR-016). */
+  caption: string
+  /** Mês da captura, exibido no formato da página (`01 OUT 2026`). */
+  captured: YearMonth
+}
 
 interface ProjectBase {
   id: string
@@ -150,18 +197,28 @@ interface ProjectBase {
   relatedTo?: string
   /** Projeto em andamento: selo "EM DESENVOLVIMENTO", sem data (FR-013). */
   inProgress?: true
+  /** Em uso desde o dia informado: selo "EM PRODUÇÃO" e linha `desde = 01 OUT 2026` (FR-007 da 009). Nunca
+   *  com `inProgress`. */
+  inProductionSince?: YearMonthDay
+  /** Linhas extras do `dl`, depois de `contexto` (FR-010 da 009). */
+  details?: NonEmpty<Detail>
+  /** Apps do servidor, na ordem dos dados (FR-012 da 009). */
+  apps?: NonEmpty<ServerApp>
 }
 
 /**
- * Exceções do Princípio II (constituição v2.2.0):
+ * Exceções do Princípio II (constituição v3.1.0):
  * - com evidência: ao menos um link; se todos forem `private`, é a exceção "código em repositório
  *   privado", e o cartão diz isso a partir dos próprios links (FR-005, FR-010);
- * - sem link nenhum: só trabalho confidencial ou experiência acadêmica, com o motivo.
+ * - sem link nenhum: trabalho confidencial ou experiência acadêmica, com o motivo, ou infraestrutura
+ *   pessoal sem acesso público (`side-project`), com a captura de tela no lugar dos links (feature 009).
  */
 export type Project =
-  | (ProjectBase & { evidence: NonEmpty<Evidence>; confidential?: never; noEvidenceReason?: never })
-  | (ProjectBase & { evidence: []; confidential: true; noEvidenceReason: string })
-  | (ProjectBase & { kind: 'academico'; evidence: []; confidential?: never; noEvidenceReason: string })
+  | (ProjectBase & { evidence: NonEmpty<Evidence>; confidential?: never; noEvidenceReason?: never; screenshot?: never })
+  | (ProjectBase & { evidence: []; confidential: true; noEvidenceReason: string; screenshot?: never })
+  | (ProjectBase & { kind: 'academico'; evidence: []; confidential?: never; noEvidenceReason: string; screenshot?: never })
+  // Princípio II v3.1.0: infraestrutura pessoal sem acesso público, comprovada pela captura
+  | (ProjectBase & { kind: 'side-project'; evidence: []; screenshot: Screenshot; confidential?: never; noEvidenceReason?: never })
 
 /** Desafio técnico público (FR-014 a FR-016). A ordem de exibição vem de `created`. */
 export interface Challenge {
